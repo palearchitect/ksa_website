@@ -1,0 +1,1 @@
+import{_ as o,o as s,c as t,a as n}from"./index-bd7dab59.js";const c={},r={class:"min-h-screen"};function a(_,e){return s(),t("div",r,[...e[0]||(e[0]=[n("h1",{class:"text-4xl font-bold p-8"},"Ongoing Projects Page",-1)])])}const l=o(c,[["render",a]]);export{l as default};

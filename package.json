@@ -1,0 +1,35 @@
+{
+  "name": "website",
+  "version": "1.0.0",
+  "description": "KSA Valuers - Real Estate Valuation in Nigeria",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview"
+  },
+  "keywords": [
+    "vue",
+    "real estate",
+    "valuation",
+    "ksa valuers",
+    "nigeria"
+  ],
+  "author": "The Pale Architect",
+  "license": "MIT",
+  "dependencies": {
+    "@heroicons/vue": "^2.2.0",
+    "axios": "^1.6.0",
+    "pinia": "^2.1.7",
+    "vue": "^3.4.0",
+    "vue-meta": "3.0.0-alpha.10",
+    "vue-router": "^4.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "vite": "^4.5.0"
+  }
+}
