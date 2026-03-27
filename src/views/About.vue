@@ -1,5 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+  <ErrorBoundary>
+    <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white">
     <!-- Hero Section -->
     <section class="relative py-20 md:py-32 overflow-hidden">
       <div class="absolute inset-0 bg-gradient-to-r from-blue-900/95 to-blue-800/90">
@@ -295,10 +296,17 @@
         </div>
       </div>
     </section>
-  </div>
+    </div>
+  </ErrorBoundary>
 </template>
 
 <script setup>
+import ErrorBoundary from '../components/global/ErrorBoundary.vue'
+import { useSEO } from '../hooks/useSEO'
+useSEO({
+  title: 'About Us - KSA Valuers',
+  description: 'Learn about our mission, values, and team at KSA Valuers, Nigeria’s trusted property valuers.'
+})
 import { ref } from 'vue'
 import ServiceCard from '@/components/sections/ServiceCard.vue'
 import CityCard from '@/components/sections/CityCard.vue'

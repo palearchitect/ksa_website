@@ -1,9 +1,10 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <ErrorBoundary>
+    <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
     <div class="relative bg-gradient-to-r from-blue-900 to-blue-800">
       <div class="absolute inset-0 bg-black/30"></div>
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
         <div class="text-center">
           <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
             Contact Us
@@ -16,26 +17,27 @@
     </div>
 
     <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-      <div class="grid lg:grid-cols-2 gap-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+      <div class="grid lg:grid-cols-2 gap-8 lg:gap-12">
         <!-- Contact Form -->
         <div>
-          <div class="bg-white rounded-2xl shadow-lg p-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-8">Send us a Message</h2>
+          <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6 md:mb-8">Send us a Message</h2>
             
-            <form @submit.prevent="handleSubmit" class="space-y-6">
+            <!-- Form submits directly to Formspree - no JavaScript interception -->
+            <form action="https://formspree.io/f/xjgerbag" method="POST" class="space-y-6">
               <!-- Name -->
               <div>
                 <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
                   Full Name <span class="text-red-500">*</span>
                 </label>
                 <input
-                  v-model="form.name"
                   type="text"
+                  name="name"
                   id="name"
                   required
                   placeholder="John Doe"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
               </div>
 
@@ -46,12 +48,12 @@
                     Email Address <span class="text-red-500">*</span>
                   </label>
                   <input
-                    v-model="form.email"
                     type="email"
+                    name="email"
                     id="email"
                     required
                     placeholder="john@example.com"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   />
                 </div>
                 <div>
@@ -59,11 +61,11 @@
                     Phone Number
                   </label>
                   <input
-                    v-model="form.phone"
                     type="tel"
+                    name="phone"
                     id="phone"
                     placeholder="+234 800 000 0000"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   />
                 </div>
               </div>
@@ -74,10 +76,10 @@
                   Subject <span class="text-red-500">*</span>
                 </label>
                 <select
-                  v-model="form.subject"
+                  name="subject"
                   id="subject"
                   required
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 >
                   <option value="" disabled selected>Select a subject</option>
                   <option value="property-valuation">Property Valuation Inquiry</option>
@@ -97,161 +99,154 @@
                   Message <span class="text-red-500">*</span>
                 </label>
                 <textarea
-                  v-model="form.message"
+                  name="message"
                   id="message"
                   rows="6"
                   required
                   placeholder="Please provide details about your inquiry..."
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                  class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
                 ></textarea>
               </div>
+
+              <!-- Honeypot field to prevent spam (hidden from users) -->
+              <input type="text" name="_gotcha" style="display:none" />
+
+              <!-- Optional: Redirect to a thank you page on your site -->
+              <input type="hidden" name="_next" value="https://yourwebsite.com/thank-you" />
+
+              <!-- Optional: Custom subject for email -->
+              <input type="hidden" name="_subject" value="New contact form submission from KSA Valuers website!" />
 
               <!-- Submit Button -->
               <div>
                 <button
                   type="submit"
-                  :disabled="isSubmitting"
-                  class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-200"
                 >
-                  <span v-if="!isSubmitting">Send Message</span>
-                  <span v-else class="flex items-center justify-center">
-                    <svg class="animate-spin h-5 w-5 mr-2 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Sending...
-                  </span>
+                  Send Message
                 </button>
                 <p class="text-xs text-gray-500 mt-3">
                   By submitting this form, you agree to our Privacy Policy and consent to being contacted by KSA Valuers.
                 </p>
               </div>
             </form>
-
-            <!-- Success Message -->
-            <div v-if="showSuccess" class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div class="flex items-center">
-                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span class="text-green-800 font-medium">Message sent successfully! We'll contact you within 24 hours.</span>
-              </div>
-            </div>
           </div>
         </div>
 
         <!-- Contact Information -->
-        <div>
-          <!-- Contact Details -->
-          <div class="space-y-8">
-            <!-- Office Address -->
-            <div class="bg-white rounded-2xl shadow-lg p-8">
-              <div class="flex items-start mb-6">
-                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                  <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="text-lg font-bold text-gray-900 mb-2">Office Address</h3>
-                  <p class="text-gray-600">
-                    Suite J260, Road 5, Ikota Shopping Complex,<br>
-                    Ajah, Lekki, Lagos, Nigeria
-                  </p>
-                </div>
+        <div class="space-y-8">
+          <!-- Office Address with Map -->
+          <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            <div class="flex items-start">
+              <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
               </div>
-              
-              <!-- Map Placeholder -->
-              <div class="mt-6 rounded-lg overflow-hidden">
-                <div class="bg-gray-200 h-48 flex items-center justify-center">
-                  <div class="text-center">
-                    <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                    </svg>
-                    <p class="text-gray-500 text-sm">Google Maps Integration Available</p>
-                  </div>
-                </div>
+              <div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Office Address</h3>
+                <p class="text-gray-600">
+                  Suite J260, Road 5, Ikota Shopping Complex,<br>
+                  Ajah, Lekki, Lagos, Nigeria
+                </p>
               </div>
             </div>
+            
+            <!-- Map Placeholder -->
+            <div class="mt-6 rounded-lg overflow-hidden bg-gray-100 h-48 flex items-center justify-center">
+              <div class="text-center">
+                <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                <p class="text-gray-500 text-sm">Google Maps Integration Available</p>
+              </div>
+            </div>
+          </div>
 
-            <!-- Contact Methods -->
-            <div class="bg-white rounded-2xl shadow-lg p-8">
-              <h3 class="text-lg font-bold text-gray-900 mb-6">Get in Touch</h3>
-              
-              <div class="space-y-6">
-                <!-- Phone Numbers -->
-                <div>
-                  <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Phone Numbers</h4>
-                  <div class="space-y-2">
-                    <a href="tel:+2349053901001" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors">
-                      <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                      +234 905 390 1001
-                    </a>
-                    <a href="tel:08184796032" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors">
-                      <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                      +234 818 479 6032
-                    </a>
-                    <a href="tel:+2349053901802" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors">
-                      <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                      +234 905 390 1802
-                    </a>
-                  </div>
-                </div>
-
-                <!-- Email -->
-                <div>
-                  <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Email Address</h4>
-                  <a href="mailto:kayodesegunandassociates@gmail.com" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors">
-                    <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          <!-- Contact Methods -->
+          <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            <h3 class="text-lg font-bold text-gray-900 mb-6">Get in Touch</h3>
+            
+            <div class="space-y-8">
+              <!-- Phone Numbers -->
+              <div>
+                <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Phone Numbers</h4>
+                <div class="space-y-3">
+                  <a href="tel:+2349053901001" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors group">
+                    <svg class="w-5 h-5 text-gray-400 mr-3 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    kayodesegunandassociates@gmail.com
+                    +234 905 390 1001
+                  </a>
+                  <a href="tel:08184796032" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors group">
+                    <svg class="w-5 h-5 text-gray-400 mr-3 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    +234 818 479 6032
+                  </a>
+                  <a href="tel:+2349053901802" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors group">
+                    <svg class="w-5 h-5 text-gray-400 mr-3 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    +234 905 390 1802
                   </a>
                 </div>
+              </div>
 
-                <!-- Business Hours -->
-                <div>
-                  <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Business Hours</h4>
-                  <div class="flex items-center text-gray-700">
-                    <svg class="w-5 h-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div>
-                      <p>Monday - Friday: 8:00 AM - 6:00 PM</p>
-                      <p class="text-sm text-gray-500">Saturday: 9:00 AM - 2:00 PM</p>
-                    </div>
+              <!-- Email -->
+              <div>
+                <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Email Address</h4>
+                <a href="mailto:contact@ksavaluers.com" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors group">
+                  <svg class="w-5 h-5 text-gray-400 mr-3 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  contact@ksavaluers.com
+                </a>
+              </div>
+
+              <!-- Business Hours -->
+              <div>
+                <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Business Hours</h4>
+                <div class="flex items-center text-gray-700">
+                  <svg class="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <div>
+                    <p>Monday - Friday: 8:00 AM - 5:00 PM</p>
+                    <p class="text-sm text-gray-500 mt-1">Saturday: 9:00 AM - 2:00 PM</p>
                   </div>
                 </div>
               </div>
 
               <!-- Social Media -->
-              <div class="mt-8 pt-8 border-t border-gray-100">
+              <div class="pt-6 border-t border-gray-100">
                 <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Connect With Us</h4>
-                <div class="flex space-x-4">
-                  <a href="#" class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-colors">
-                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                <div class="flex space-x-3">
+                  <!-- Facebook -->
+                  <a href="https://facebook.com/ksavaluers" target="_blank" rel="noopener noreferrer" class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-colors group">
+                    <svg class="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                     </svg>
                   </a>
-                  <a href="#" class="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center hover:bg-pink-200 transition-colors">
-                    <svg class="w-5 h-5 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
+                  
+                  <!-- Instagram -->
+                  <a href="https://instagram.com/Ksavaluers" target="_blank" rel="noopener noreferrer" class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center hover:bg-pink-200 transition-colors group">
+                    <svg class="w-6 h-6 text-pink-600 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
                     </svg>
                   </a>
-                  <a href="#" class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-colors">
-                    <svg class="w-5 h-5 text-blue-700" fill="currentColor" viewBox="0 0 24 24">
+                  
+                  <!-- LinkedIn -->
+                  <a href="https://linkedin.com/company/ksavaluers" target="_blank" rel="noopener noreferrer" class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-colors group">
+                    <svg class="w-6 h-6 text-blue-700 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
                     </svg>
                   </a>
-                  <a href="#" class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-colors">
-                    <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 24 24">
+                  
+                  <!-- Twitter/X -->
+                  <a href="https://twitter.com/ksavaluers" target="_blank" rel="noopener noreferrer" class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-colors group">
+                    <svg class="w-6 h-6 text-blue-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.213c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
                     </svg>
                   </a>
@@ -263,15 +258,15 @@
       </div>
 
       <!-- FAQ/Quick Help Section -->
-      <div class="mt-16">
-        <div class="text-center mb-12">
-          <h2 class="text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
-          <p class="text-lg text-gray-600 max-w-3xl mx-auto">
+      <div class="mt-12 lg:mt-16">
+        <div class="text-center mb-8 lg:mb-12">
+          <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
+          <p class="text-base md:text-lg text-gray-600 max-w-3xl mx-auto px-4">
             Quick answers to common inquiries about our property valuation and management services.
           </p>
         </div>
         
-        <div class="grid md:grid-cols-2 gap-6">
+        <div class="grid md:grid-cols-2 gap-4 lg:gap-6">
           <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
             <h3 class="text-lg font-bold text-gray-900 mb-3">How long does property valuation take?</h3>
             <p class="text-gray-600">Standard property valuations are completed within 3-5 business days. Complex or large-scale properties may require additional time for thorough assessment.</p>
@@ -290,13 +285,13 @@
           </div>
         </div>
         
-        <div class="text-center mt-8">
+        <div class="text-center mt-6 lg:mt-8">
           <router-link
             to="/faq"
-            class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+            class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium group"
           >
             View all FAQs
-            <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
           </router-link>
@@ -307,7 +302,7 @@
     <!-- Live Chat Widget -->
     <button
       @click="toggleChat"
-      class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-40"
+      class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-40 hover:scale-110"
       aria-label="Open chat"
     >
       <svg v-if="!showChat" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -319,7 +314,7 @@
     </button>
 
     <!-- Chat Window -->
-    <div v-if="showChat" class="fixed bottom-24 right-6 w-80 bg-white rounded-xl shadow-2xl z-50">
+    <div v-if="showChat" class="fixed bottom-20 right-6 w-80 bg-white rounded-xl shadow-2xl z-50">
       <div class="p-4 border-b border-gray-200">
         <div class="flex items-center justify-between">
           <div class="flex items-center">
@@ -342,9 +337,16 @@
       </div>
       
       <div class="p-4 h-64 overflow-y-auto">
-        <!-- Chat messages would go here -->
-        <div class="text-center py-8">
+        <div v-if="chatMessages.length === 0" class="text-center py-8">
           <p class="text-gray-500 text-sm">Start chatting with our support team</p>
+        </div>
+        <div v-else class="space-y-3">
+          <div v-for="(msg, index) in chatMessages" :key="index" :class="['flex', msg.sender === 'user' ? 'justify-end' : 'justify-start']">
+            <div :class="['max-w-xs rounded-lg px-4 py-2', msg.sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800']">
+              <p class="text-sm">{{ msg.text }}</p>
+              <p class="text-xs mt-1 opacity-70">{{ formatTime(msg.timestamp) }}</p>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -355,77 +357,65 @@
             @keyup.enter="sendChatMessage"
             type="text"
             placeholder="Type your message..."
-            class="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            class="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           />
           <button
             @click="sendChatMessage"
-            class="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors"
+            class="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            :disabled="!chatMessage.trim()"
           >
             Send
           </button>
         </div>
       </div>
     </div>
-  </div>
+    </div>
+  </ErrorBoundary>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
-// Form State
-const form = ref({
-  name: '',
-  email: '',
-  phone: '',
-  subject: '',
-  message: ''
+import ErrorBoundary from '../components/global/ErrorBoundary.vue'
+import { useSEO } from '../hooks/useSEO'
+useSEO({
+  title: 'Contact Us - KSA Valuers',
+  description: 'Get in touch with Nigeria’s premier property valuers for expert consultation, property valuation, and comprehensive real estate solutions.'
 })
+import { ref } from 'vue';
 
-const isSubmitting = ref(false)
-const showSuccess = ref(false)
-
-// Chat State
-const showChat = ref(false)
-const chatMessage = ref('')
-
-// Form Submission
-const handleSubmit = async () => {
-  isSubmitting.value = true
-  
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1500))
-  
-  console.log('Form submitted:', form.value)
-  
-  // Reset form
-  form.value = {
-    name: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: ''
-  }
-  
-  isSubmitting.value = false
-  showSuccess.value = true
-  
-  // Hide success message after 5 seconds
-  setTimeout(() => {
-    showSuccess.value = false
-  }, 5000)
-}
+// Chat state only (form state removed since Formspree handles it)
+const showChat = ref(false);
+const chatMessage = ref('');
+const chatMessages = ref([]);
 
 // Chat Functions
 const toggleChat = () => {
-  showChat.value = !showChat.value
-}
+  showChat.value = !showChat.value;
+};
 
 const sendChatMessage = () => {
   if (chatMessage.value.trim()) {
-    console.log('Chat message:', chatMessage.value)
-    chatMessage.value = ''
+    chatMessages.value.push({
+      text: chatMessage.value,
+      sender: 'user',
+      timestamp: new Date()
+    });
+    chatMessage.value = '';
+    
+    // Simulate auto-reply
+    setTimeout(() => {
+      chatMessages.value.push({
+        text: "Thanks for your message. Our support team will respond shortly.",
+        sender: 'support',
+        timestamp: new Date()
+      });
+    }, 1000);
   }
-}
+};
+
+// Format timestamp for chat
+const formatTime = (timestamp) => {
+  return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
 </script>
 
 <style scoped>
@@ -436,7 +426,7 @@ const sendChatMessage = () => {
 
 /* Chat widget animation */
 .fixed {
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 /* Form focus states */
@@ -446,21 +436,54 @@ input:focus, textarea:focus, select:focus {
 }
 
 /* Scrollbar styling for chat */
-::-webkit-scrollbar {
+.overflow-y-auto::-webkit-scrollbar {
   width: 6px;
 }
 
-::-webkit-scrollbar-track {
+.overflow-y-auto::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 3px;
 }
 
-::-webkit-scrollbar-thumb {
+.overflow-y-auto::-webkit-scrollbar-thumb {
   background: #c1c1c1;
   border-radius: 3px;
 }
 
-::-webkit-scrollbar-thumb:hover {
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
   background: #a1a1a1;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .fixed.bottom-20 {
+    bottom: 5rem;
+    right: 1rem;
+    width: calc(100% - 2rem);
+    max-width: 320px;
+  }
+}
+
+/* Hover effects */
+.group:hover .group-hover\:scale-110 {
+  transform: scale(1.1);
+}
+
+.group:hover .group-hover\:translate-x-1 {
+  transform: translateX(0.25rem);
+}
+
+/* Loading animation */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 </style>

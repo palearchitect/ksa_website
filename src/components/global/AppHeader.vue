@@ -1,5 +1,5 @@
 <template>
-  <header class="bg-white/80 backdrop-blur-sm shadow">
+  <header class="bg-white/10 backdrop-blur-sm shadow">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div class="flex items-center justify-between">
         <!-- Logo Section -->

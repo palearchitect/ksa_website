@@ -1,5 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <ErrorBoundary>
+    <div class="min-h-screen bg-gray-50">
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <!-- Page Title & Breadcrumb -->
@@ -41,7 +42,7 @@
               <!-- Partner Photo -->
               <div class="w-64 h-64 rounded-full overflow-hidden border-4 border-blue-100 mb-6">
                 <img 
-                  src="https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                  src="../assets/images/KAYODE-e1712319829816-277x300.jpg" 
                   alt="Principal Partner"
                   class="w-full h-full object-cover"
                 >
@@ -75,13 +76,13 @@
                     <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    +234 905 390 1001
+                    Kayode Segun & Associates
                   </a>
-                  <a href="mailto:kayodesegunandassociates@gmail.com" class="flex items-center text-gray-700 hover:text-blue-600">
+                  <a href="mailto:kayode@ksavaluers.com" class="flex items-center text-gray-700 hover:text-blue-600">
                     <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                    kayodesegunandassociates@gmail.com
+                    kayode@ksavaluers.com
                   </a>
                 </div>
               </div>
@@ -146,7 +147,7 @@
                 </router-link>
               </li>
               <li>
-                <router-link to="/all-properties" class="flex items-center text-gray-700 hover:text-blue-600">
+                <router-link to="/properties" class="flex items-center text-gray-700 hover:text-blue-600">
                   <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
@@ -289,10 +290,17 @@
         </div>
       </div>
     </div>
-  </div>
+    </div>
+  </ErrorBoundary>
 </template>
 
 <script setup>
+import ErrorBoundary from '../components/global/ErrorBoundary.vue'
+import { useSEO } from '../hooks/useSEO'
+useSEO({
+  title: 'Principal Partner',
+  description: 'Meet our principal partner and learn about their vision and leadership.'
+})
 // No additional script needed for this component
 </script>
 

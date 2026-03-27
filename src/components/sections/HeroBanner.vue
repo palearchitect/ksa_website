@@ -17,7 +17,7 @@
 
       <!-- CTA Button -->
       <router-link
-        to="/all-properties"
+        to="/properties"
         class="inline-block px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
       >
         Explore Properties

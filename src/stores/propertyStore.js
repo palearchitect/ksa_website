@@ -285,6 +285,7 @@ export const usePropertyStore = defineStore('property', () => {
     loadFromLocalStorage,
     saveToLocalStorage,
     initSampleData,
+    loadSampleData: initSampleData,
     
     // Getters
     totalProperties,

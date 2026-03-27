@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
+  // Public Routes
   {
     path: '/',
     name: 'Home',
@@ -37,13 +38,12 @@ const routes = [
     component: () => import('../views/FAQ.vue')
   },
   {
-    path: '/all-properties',
-    name: 'PropertyList',
-    component: () => import('../views/PropertyList.vue')
+    path: '/properties',
+    name: 'PropertiesPage',
+    component: () => import('../views/PropertiesPage.vue')
   },
-  // PROPERTY DETAIL ROUTE:
   {
-    path: '/property/:id',
+    path: '/properties/:id',
     name: 'PropertyDetail',
     component: () => import('../views/PropertyDetail.vue'),
     props: true
@@ -63,67 +63,166 @@ const routes = [
     name: 'PrincipalPartner',
     component: () => import('../views/PrincipalPartner.vue')
   },
-  {
-    path: '/admin/login',
-    name: 'AdminLogin',
-    component: () => import('../views/AdminLogin.vue')
-  },
+  // Admin Routes
   {
     path: '/admin',
     name: 'AdminDashboard',
-    component: () => import('../views/AdminDashboard.vue'),
+    component: () => import('../views/admin/AdminDashboard.vue'),
     meta: { requiresAuth: true }
   },
-  // ADMIN ROUTES:
   {
     path: '/admin/properties',
-    name: 'AdminProperties',
-    component: () => import('../components/admin/AdminPropertyList.vue'),
+    name: 'AdminPropertyList',
+    component: () => import('../views/admin/AdminPropertyList.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/properties/new',
+    name: 'AdminPropertyForm',
+    component: () => import('../views/admin/AdminPropertyForm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/properties/:id',
+    name: 'AdminPropertyEdit',
+    component: () => import('../views/admin/AdminPropertyForm.vue'),
+    meta: { requiresAuth: true },
+    props: true
+  },
+  {
+    path: '/admin/appointments',
+    name: 'AdminAppointments',
+    component: () => import('../views/admin/AdminAppointments.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/admin/bookings',
     name: 'AdminBookings',
-    component: () => import('../components/admin/AdminBookings.vue'),
+    component: () => import('../views/admin/AdminBookings.vue'),
     meta: { requiresAuth: true }
   },
   {
-    path: '/admin/property/add',
-    name: 'AddProperty',
-    component: () => import('../components/admin/AdminPropertyForm.vue'),
+    path: '/admin/projects',
+    name: 'AdminProjectList',
+    component: () => import('../views/admin/AdminProjectList.vue'),
     meta: { requiresAuth: true }
   },
   {
-    path: '/admin/property/edit/:id',
-    name: 'EditProperty',
-    component: () => import('../components/admin/AdminPropertyForm.vue'),
-    props: true,
+    path: '/admin/projects/new',
+    name: 'AdminProjectForm',
+    component: () => import('../views/admin/AdminProjectForm.vue'),
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/projects/:id',
+    name: 'AdminProjectEdit',
+    component: () => import('../views/admin/AdminProjectForm.vue'),
+    meta: { requiresAuth: true },
+    props: true
+  },
+  {
+    path: '/admin/login',
+    name: 'AdminLogin',
+    component: () => import('../views/admin/AdminLogin.vue')
+  },
+
+  // Auth Routes
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/auth/Login.vue')
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import('../views/auth/Register.vue')
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: () => import('../views/auth/ForgotPassword.vue')
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('../views/auth/ResetPassword.vue')
+  },
+
+  // User Routes
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../views/user/Profile.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/my-bookings',
+    name: 'MyBookings',
+    component: () => import('../views/user/MyBookings.vue'),
+    meta: { requiresAuth: true }
+  },
+  
+  
+  
+  // Catch-all 404 route
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('../views/NotFound.vue')
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { top: 0 }
+    }
+  }
 })
 
-// Authentication check function
-const isAuthenticated = () => {
-  return localStorage.getItem('isAuthenticated') === 'true'
-}
-
-// Route guard for protected routes
-router.beforeEach((to, from, next) => {
-  if (to.meta.requiresAuth) {
-    if (isAuthenticated()) {
-      next()
-    } else {
-      // Redirect to login if not authenticated
-      next('/admin/login')
-    }
-  } else {
-    next()
+// Route guard with auth store
+router.beforeEach(async (to, from, next) => {
+  // Dynamically import authStore to avoid circular dependencies
+  const { useAuthStore } = await import('../stores/authStore')
+  const authStore = useAuthStore()
+  
+  const isAuth = authStore.isAuthenticated
+  
+  // Redirect to login for protected routes
+  if (to.meta.requiresAuth && !isAuth) {
+    next({
+      name: 'AdminLogin',
+      query: { redirect: to.fullPath }
+    })
+    return
   }
+  
+  // Redirect to dashboard if already logged in and trying to access login
+  if (to.name === 'AdminLogin' && isAuth) {
+    next('/admin')
+    return
+  }
+  
+  // For admin routes, ensure we have authentication
+  if (to.path.startsWith('/admin') && to.name !== 'AdminLogin' && !isAuth) {
+    next({ name: 'AdminLogin', query: { redirect: to.fullPath } })
+    return
+  }
+  
+  next()
+})
+
+// Set page titles
+router.afterEach((to) => {
+  // Use meta title or generate from route name
+  const title = to.meta?.title || 
+    (to.name ? to.name.replace(/([A-Z])/g, ' $1').trim() : 'Page')
+  
+  document.title = `${title} | KSA Valuers Admin`
 })
 
 export default router

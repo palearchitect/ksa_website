@@ -1,5 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
+  <ErrorBoundary>
+    <div class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
     <!-- Header -->
     <div class="text-center mb-8">
       <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Book a Property Tour</h1>
@@ -354,9 +355,9 @@
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
             </svg>
-            Call Now: +234 800 123 4567
+            Call Now
           </a>
-          <a href="mailto:bookings@kayodesegun.com" 
+          <a href="mailto:bookings@ksavaluers.com" 
              class="inline-flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -367,22 +368,32 @@
       </div>
       <p class="mt-4 text-gray-500 text-sm">© {{ new Date().getFullYear() }} Kayode Segun & Associates. All rights reserved.</p>
     </div>
-  </div>
+    </div>
+  </ErrorBoundary>
 </template>
 
 <script setup>
+import ErrorBoundary from '../components/global/ErrorBoundary.vue'
+import { useSEO } from '../hooks/useSEO'
+useSEO({
+  title: 'Book a Property Tour',
+  description: 'Schedule a viewing of your desired property with KSA Valuers.'
+})
 import { ref, computed, onMounted, watch } from 'vue'
 import { propertyService, bookingService, emailService } from '@/services/api'
+import { useBookingStore } from '@/stores/bookingStore'
+
+const bookingStore = useBookingStore()
 
 // State management
 const currentStep = ref(1)
-const bookingSuccess = ref(false)
 const bookingError = ref(null)
 const isSubmitting = ref(false)
 const loadingSlots = ref(false)
 const properties = ref([])
 const selectedPropertyId = ref('')
 const selectedPropertyDetails = ref(null)
+const bookingSuccess = ref(false)
 
 // Calendar state
 const currentDate = ref(new Date())
@@ -538,22 +549,24 @@ const formatDateForAPI = (date) => {
 }
 
 const checkDateAvailability = (date) => {
-  // In a real app, you would check against booked slots
-  // For now, simulate some booked dates
   const today = new Date()
-  const timeDiff = date.getTime() - today.getTime()
-  const dayDiff = Math.ceil(timeDiff / (1000 * 3600 * 24))
-  
-  if (dayDiff < 0) return { available: 0 }
-  
-  // Simulate: Weekends have limited slots
-  const dayOfWeek = date.getDay()
-  if (dayOfWeek === 0 || dayOfWeek === 6) { // Weekend
-    return { available: Math.floor(Math.random() * 3) } // 0-2 slots
-  }
-  
-  // Weekdays have more slots
-  return { available: 4 + Math.floor(Math.random() * 4) } // 4-7 slots
+  today.setHours(0, 0, 0, 0)
+  if (date < today) return { available: 0 }
+
+  const dateStr = formatDateForAPI(date)
+  const allSlots = [
+    '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+    '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'
+  ]
+
+  // Count how many slots are already booked for this date
+  const bookedForDate = bookingStore.bookings.filter(
+    b => b.date === dateStr && b.status !== 'cancelled'
+  )
+  const bookedTimes = bookedForDate.map(b => b.time)
+  const available = allSlots.filter(t => !bookedTimes.includes(t)).length
+
+  return { available }
 }
 
 const loadAvailableSlots = async () => {
@@ -561,25 +574,22 @@ const loadAvailableSlots = async () => {
   
   loadingSlots.value = true
   try {
-    // Format date for API
     const dateStr = formatDateForAPI(selectedDate.value)
     
-    // In a real app, you would call:
-    // const response = await bookingService.getAvailableSlots(dateStr)
-    // availableTimeSlots.value = response.data
-    
-    // For now, simulate API response
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // Generate time slots with some random bookings
     const allSlots = [
       '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
       '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'
     ]
-    
+
+    // Check which slots are already booked from the store
+    const bookedForDate = bookingStore.bookings.filter(
+      b => b.date === dateStr && b.status !== 'cancelled'
+    )
+    const bookedTimes = bookedForDate.map(b => b.time)
+
     availableTimeSlots.value = allSlots.map(time => ({
       time,
-      isBooked: Math.random() > 0.7 // 30% chance of being booked
+      isBooked: bookedTimes.includes(time)
     }))
     
   } catch (error) {
@@ -649,32 +659,39 @@ const submitBooking = async () => {
       bookingSource: 'website'
     }
     
-    // 1. Create booking in Strapi
-    const bookingResponse = await bookingService.createBooking(bookingData)
-    bookingId.value = bookingResponse.data?.id || `BOOK-${Date.now().toString().slice(-8)}`
+    // 1. Create booking in store (this replaces Strapi for now)
+    const newBooking = bookingStore.createBooking(bookingData)
+    bookingId.value = newBooking.id
     
-    // 2. Send confirmation email
-    await emailService.sendBookingConfirmation({
-      ...bookingData,
-      bookingId: bookingId.value,
-      formattedDate: formatDate(selectedDate.value)
-    })
+    // 2. Optional: Send confirmation email (if backend is set up)
+    try {
+      await emailService.sendBookingConfirmation({
+        ...bookingData,
+        bookingId: bookingId.value,
+        formattedDate: formatDate(selectedDate.value)
+      })
+    } catch (emailError) {
+      console.log('Email service not available:', emailError)
+    }
     
-    // 3. Send admin notification
-    await emailService.sendAdminNotification({
-      ...bookingData,
-      bookingId: bookingId.value,
-      formattedDate: formatDate(selectedDate.value)
-    })
-    
+    // 3. Optional: Send admin notification
+    try {
+      await emailService.sendAdminNotification({
+        ...bookingData,
+        bookingId: bookingId.value,
+        formattedDate: formatDate(selectedDate.value)
+      })
+    } catch (emailError) {
+      console.log('Email notification not available:', emailError)
+    }
+     
     // Update UI
     bookingSuccess.value = true
     currentStep.value = 3
     
   } catch (error) {
     console.error('Booking error:', error)
-    bookingError.value = error.response?.data?.error?.message || 
-                        'There was an error submitting your booking. Please try again or contact us directly.'
+    bookingError.value = 'There was an error submitting your booking. Please try again or contact us directly.'
     
     // If it's a duplicate booking error
     if (error.response?.status === 409) {

@@ -76,9 +76,9 @@
           Projects Overview
         </router-link>
         <router-link 
-          to="/all-properties" 
+          to="/properties" 
           class="dropdown-link" 
-          :class="{ 'dropdown-link-active': isActiveRoute('/all-properties') }" 
+          :class="{ 'dropdown-link-active': isActiveRoute('/properties') }"
           @click="handleNavigate"
         >
           <BuildingStorefrontIcon class="dropdown-icon" />
@@ -304,7 +304,7 @@ const mobileSections = computed(() => [
     icon: BuildingOfficeIcon,
     children: [
       { to: '/projects', label: 'Projects Overview' },
-      { to: '/all-properties', label: 'All Properties', icon: BuildingStorefrontIcon },
+      { to: '/properties', label: 'All Properties', icon: BuildingStorefrontIcon },
       { to: '/ongoing-projects', label: 'Ongoing Projects', icon: CheckCircleIcon }
     ]
   },
@@ -372,16 +372,6 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 
-// Debug: log route changes
-onMounted(() => {
-  console.log('Navigation mounted. Current route:', {
-    path: route.path,
-    fullPath: route.fullPath,
-    name: route.name,
-    params: route.params,
-    query: route.query
-  })
-})
 </script>
 
 <style scoped>

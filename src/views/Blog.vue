@@ -1,5 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <ErrorBoundary>
+    <div class="min-h-screen bg-gray-50">
     <!-- Header -->
     <div class="bg-white shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -313,10 +314,17 @@
         </div>
       </div>
     </div>
-  </div>
+    </div>
+  </ErrorBoundary>
 </template>
 
 <script setup>
+import ErrorBoundary from '../components/global/ErrorBoundary.vue'
+import { useSEO } from '../hooks/useSEO'
+useSEO({
+  title: 'Blog - Property Insights & Updates',
+  description: 'Stay informed with the latest property market trends, investment tips, and company updates from Nigeria’s premier property valuers.'
+})
 import { ref, computed, onMounted } from 'vue'
 
 // Mock user data (replace with real auth)

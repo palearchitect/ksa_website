@@ -1,5 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <ErrorBoundary>
+    <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
     <div class="relative bg-gradient-to-r from-blue-900 to-blue-800">
       <div class="absolute inset-0 bg-black/30"></div>
@@ -21,15 +22,15 @@
               </svg>
               Join Our Team
             </router-link>
-            <button
-              @click="showAuthModal = true"
+            <router-link
+              to="/admin/login"
               class="inline-flex items-center justify-center px-8 py-3 bg-transparent border-2 border-white text-white font-semibold rounded-lg hover:bg-white/10 transition-all duration-200"
             >
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>
               Already a Member? Sign In
-            </button>
+            </router-link>
           </div>
         </div>
       </div>
@@ -53,8 +54,11 @@
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
           <div class="p-8">
             <div class="flex items-center mb-6">
-              <div class="w-20 h-20 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 flex items-center justify-center text-white text-2xl font-bold mr-4">
-                MA
+              <div class="w-40 h-40 rounded-full overflow-hidden border-4 border-blue-100 mb-6">
+                <img 
+                  src="../assets/images/IMG-20240405-WA0009-233x300.jpg"
+                  class="w-full h-full object-cover"
+                >
               </div>
               <div>
                 <h3 class="text-xl font-bold text-gray-900">ESV. Markson Ajiboye</h3>
@@ -72,12 +76,6 @@
             <div class="border-t border-gray-100 pt-6">
               <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact</h4>
               <div class="space-y-2">
-                <a href="tel:+2349053898636" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors">
-                  <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  +234 905 389 8636
-                </a>
                 <a href="mailto:info@ksavaluers.com" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors">
                   <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -93,8 +91,11 @@
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
           <div class="p-8">
             <div class="flex items-center mb-6">
-              <div class="w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 to-purple-700 flex items-center justify-center text-white text-2xl font-bold mr-4">
-                EK
+             <div class="w-40 h-40 rounded-full overflow-hidden border-4 border-purple-100 mb-6">
+                <img 
+                  src="../assets/images/IMG-20240405-WA0011-e1712320368546-300x268.jpg"
+                  class="w-full h-full object-cover"
+                >
               </div>
               <div>
                 <h3 class="text-xl font-bold text-gray-900">Eniola Abiola Kayode</h3>
@@ -127,8 +128,11 @@
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
           <div class="p-8">
             <div class="flex items-center mb-6">
-              <div class="w-20 h-20 rounded-full bg-gradient-to-r from-green-600 to-green-700 flex items-center justify-center text-white text-2xl font-bold mr-4">
-                AA
+              <div class="w-40 h-40 rounded-full overflow-hidden border-4 border-green-100 mb-6">
+                <img 
+                  src="../assets/images/DSC00129-240x300.jpeg"
+                  class="w-full h-full object-cover"
+                >
               </div>
               <div>
                 <h3 class="text-xl font-bold text-gray-900">Akinyele Abiodun</h3>
@@ -147,12 +151,6 @@
             <div class="border-t border-gray-100 pt-6">
               <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact</h4>
               <div class="space-y-2">
-                <a href="tel:+2349053901001" class="flex items-center text-gray-700 hover:text-green-600 transition-colors">
-                  <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  +234 905 390 1001
-                </a>
                 <a href="mailto:abiodun@ksavaluers.com" class="flex items-center text-gray-700 hover:text-green-600 transition-colors">
                   <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -168,8 +166,11 @@
         <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
           <div class="p-8">
             <div class="flex items-center mb-6">
-              <div class="w-20 h-20 rounded-full bg-gradient-to-r from-orange-600 to-orange-700 flex items-center justify-center text-white text-2xl font-bold mr-4">
-                OI
+              <div class="w-40 h-40 rounded-full overflow-hidden border-4 border-orange-100 mb-6">
+                <img 
+                  src="../assets/images/DSC00141-scaled.jpeg"
+                  class="w-full h-full object-cover"
+                >
               </div>
               <div>
                 <h3 class="text-xl font-bold text-gray-900">Olaoluwa Isaac Ojewumi</h3>
@@ -188,51 +189,11 @@
             <div class="border-t border-gray-100 pt-6">
               <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact</h4>
               <div class="space-y-2">
-                <a href="tel:+2349053901802" class="flex items-center text-gray-700 hover:text-orange-600 transition-colors">
-                  <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  +234 905 390 1802
-                </a>
-                <a href="mailto:isaac@ksavaluers.com" class="flex items-center text-gray-700 hover:text-orange-600 transition-colors">
+                <a href="mailto:olaoluwaisaac@ksavaluers.com" class="flex items-center text-gray-700 hover:text-orange-600 transition-colors">
                   <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  isaac@ksavaluers.com
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Team Member 5 -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-          <div class="p-8">
-            <div class="flex items-center mb-6">
-              <div class="w-20 h-20 rounded-full bg-gradient-to-r from-red-600 to-red-700 flex items-center justify-center text-white text-2xl font-bold mr-4">
-                AB
-              </div>
-              <div>
-                <h3 class="text-xl font-bold text-gray-900">Akinyele Bola</h3>
-                <p class="text-red-600 font-medium">Construction Cost Consultant</p>
-              </div>
-            </div>
-            <div class="mb-6">
-              <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 mb-3">
-                Cost Analysis Specialist
-              </div>
-              <p class="text-gray-600">
-                Specialist in construction cost analysis and project budgeting. Bola ensures accurate cost estimations and value optimization for all construction and development projects.
-              </p>
-            </div>
-            <div class="border-t border-gray-100 pt-6">
-              <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact</h4>
-              <div class="space-y-2">
-                <a href="mailto:info@ksavaluers.com" class="flex items-center text-gray-700 hover:text-red-600 transition-colors">
-                  <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  info@ksavaluers.com
+                  olaoluwaisaac@ksavaluers.com
                 </a>
               </div>
             </div>
@@ -332,7 +293,7 @@
               <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
               </svg>
-              Call Now: +234 905 390 1001
+              Call Now
             </a>
           </div>
         </div>
@@ -452,10 +413,17 @@
         </div>
       </div>
     </div>
-  </div>
+    </div>
+  </ErrorBoundary>
 </template>
 
 <script setup>
+import ErrorBoundary from '../components/global/ErrorBoundary.vue'
+import { useSEO } from '../hooks/useSEO'
+useSEO({
+  title: 'Our Team',
+  description: 'Meet the professionals behind KSA Valuers.'
+})
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -528,4 +496,4 @@ const handleSignup = () => {
 .modal-leave-to {
   opacity: 0;
 }
-</style>
+</style>       

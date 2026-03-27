@@ -1,5 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <ErrorBoundary>
+    <div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
     <div class="relative bg-gradient-to-r from-blue-900 to-blue-800">
       <div class="absolute inset-0 bg-black/30"></div>
@@ -48,6 +49,112 @@
             Clear search
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- AI Assistant Button -->
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 text-right">
+      <button
+        @click="showAIPanel = !showAIPanel"
+        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all duration-200 shadow-md hover:shadow-lg"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        {{ showAIPanel ? 'Hide AI Assistant' : 'Ask AI Assistant' }}
+      </button>
+    </div>
+
+    <!-- AI Assistant Panel -->
+    <div v-if="showAIPanel" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl shadow-lg p-6 border border-blue-200">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center">
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-bold text-gray-900">AI Assistant</h3>
+              <p class="text-sm text-gray-600">Powered by AI • 24/7 Support</p>
+            </div>
+          </div>
+          <button @click="showAIPanel = false" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div v-if="unansweredQuestion" class="mb-4 p-3 bg-white rounded-lg border border-gray-200">
+          <p class="text-sm text-gray-500">Your question:</p>
+          <p class="text-gray-800 font-medium">"{{ unansweredQuestion }}"</p>
+        </div>
+        
+        <div class="bg-white rounded-lg p-4 min-h-[100px]">
+          <div v-if="isAILoading" class="flex items-center justify-center h-20">
+            <svg class="animate-spin h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </div>
+          <div v-else>
+            <p class="text-gray-700">{{ aiAnswer || "👋 Hello! I'm your AI assistant. Ask me anything about KSA Valuers, property valuation, or our services!" }}</p>
+          </div>
+        </div>
+        
+        <div class="mt-4 flex gap-2">
+          <input
+            v-model="userQuestion"
+            @keyup.enter="askAI"
+            type="text"
+            placeholder="Type your question here..."
+            class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <button
+            @click="askAI"
+            :disabled="isAILoading || !userQuestion.trim()"
+            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Ask
+          </button>
+        </div>
+        
+        <!-- Suggested Questions -->
+        <div class="mt-4">
+          <p class="text-xs text-gray-500 mb-2">Try asking:</p>
+          <div class="flex flex-wrap gap-2">
+            <button
+              @click="askSuggestedQuestion('How much does property valuation cost?')"
+              class="text-xs px-3 py-1 bg-white border border-gray-200 rounded-full hover:bg-blue-50 hover:border-blue-300 transition-colors"
+            >
+              💰 Valuation costs
+            </button>
+            <button
+              @click="askSuggestedQuestion('What documents do I need for property valuation?')"
+              class="text-xs px-3 py-1 bg-white border border-gray-200 rounded-full hover:bg-blue-50 hover:border-blue-300 transition-colors"
+            >
+              📄 Required documents
+            </button>
+            <button
+              @click="askSuggestedQuestion('How long does property valuation take?')"
+              class="text-xs px-3 py-1 bg-white border border-gray-200 rounded-full hover:bg-blue-50 hover:border-blue-300 transition-colors"
+            >
+              ⏱️ Processing time
+            </button>
+            <button
+              @click="askSuggestedQuestion('Do you serve clients outside Lagos?')"
+              class="text-xs px-3 py-1 bg-white border border-gray-200 rounded-full hover:bg-blue-50 hover:border-blue-300 transition-colors"
+            >
+              🗺️ Service areas
+            </button>
+          </div>
+        </div>
+        
+        <p class="text-xs text-gray-500 mt-3">
+          AI responses are generated automatically. For complex matters, please contact our team directly.
+        </p>
       </div>
     </div>
 
@@ -118,7 +225,7 @@
                     <span class="text-blue-600 font-bold">?</span>
                   </div>
                   <div>
-                    <h3 class="text-lg font-semibold text-gray-900">{{ highlightSearchTerms(faq.question) }}</h3>
+                    <h3 class="text-lg font-semibold text-gray-900" v-html="highlightSearchTerms(faq.question)"></h3>
                   </div>
                 </div>
                 <svg 
@@ -383,7 +490,7 @@
         </div>
       </div>
 
-      <!-- No Results Message -->
+      <!-- No Results Message with AI Option -->
       <div v-else class="text-center py-16">
         <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
           <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -391,15 +498,23 @@
           </svg>
         </div>
         <h3 class="text-2xl font-bold text-gray-900 mb-3">No questions found</h3>
-        <p class="text-gray-600 max-w-md mx-auto mb-8">
-          We couldn't find any questions matching "{{ searchQuery }}". Try searching with different keywords or browse by category.
+        <p class="text-gray-600 max-w-md mx-auto mb-4">
+          We couldn't find any questions matching "{{ searchQuery }}". 
         </p>
-        <button
-          @click="clearSearch"
-          class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors duration-200"
-        >
-          Clear Search
-        </button>
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <button
+            @click="askAIWithQuery(searchQuery)"
+            class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-blue-700 transition-colors duration-200"
+          >
+            Ask AI Assistant Instead
+          </button>
+          <button
+            @click="clearSearch"
+            class="px-6 py-3 bg-gray-600 text-white font-semibold rounded-lg hover:bg-gray-700 transition-colors duration-200"
+          >
+            Clear Search
+          </button>
+        </div>
       </div>
 
       <!-- CTA Section -->
@@ -454,16 +569,33 @@
         </button>
       </div>
     </div>
-  </div>
+    </div>
+  </ErrorBoundary>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import ErrorBoundary from '../components/global/ErrorBoundary.vue'
+import { useSEO } from '../hooks/useSEO'
+useSEO({
+  title: 'FAQ - Frequently Asked Questions',
+  description: 'Find answers to the most common questions about our services, processes, and professional approach to property valuation and management.'
+})
+import { ref, computed, watch } from 'vue'
+
+// API Configuration - Update this with your backend URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 
 // State
 const searchQuery = ref('')
 const activeCategory = ref('all')
 const openFAQs = ref([])
+
+// AI State
+const showAIPanel = ref(false)
+const userQuestion = ref('')
+const aiAnswer = ref('')
+const isAILoading = ref(false)
+const unansweredQuestion = ref('')
 
 // Categories
 const categories = ref([
@@ -475,7 +607,7 @@ const categories = ref([
   { id: 'legal', name: 'Legal & Documentation' }
 ])
 
-// FAQ Data (same as before)
+// FAQ Data 
 const faqs = ref([
   // General Company Information
   {
@@ -628,12 +760,10 @@ const closeAllFAQs = () => {
 
 const selectCategory = (categoryId) => {
   activeCategory.value = categoryId
-  // Clear search when changing categories
   searchQuery.value = ''
 }
 
 const handleSearch = () => {
-  // When searching, switch to "all" category
   if (searchQuery.value && activeCategory.value !== 'all') {
     activeCategory.value = 'all'
   }
@@ -658,7 +788,6 @@ const showCategory = (categoryId) => {
 const getFAQsByCategory = (categoryId) => {
   let faqsInCategory = faqs.value.filter(faq => faq.category === categoryId)
   
-  // Apply search filter if there's a search query
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     faqsInCategory = faqsInCategory.filter(faq => 
@@ -678,16 +807,69 @@ const highlightSearchTerms = (text) => {
   return text.replace(regex, '<mark class="bg-yellow-200 font-medium">$1</mark>')
 }
 
+// AI Functions - Updated to use your backend
+const askAI = async () => {
+  if (!userQuestion.value.trim()) return
+  
+  unansweredQuestion.value = userQuestion.value
+  isAILoading.value = true
+  showAIPanel.value = true
+  
+  try {
+    // Call your backend API
+    const response = await fetch(`${API_BASE_URL}/api/ask-ai`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        question: userQuestion.value
+      })
+    })
+    
+    const data = await response.json()
+    
+    if (response.ok && data.success) {
+      aiAnswer.value = data.answer
+    } else {
+      aiAnswer.value = data.message || "I couldn't generate an answer. Please try again or contact our team."
+    }
+    
+  } catch (error) {
+    console.error('AI Error:', error)
+    
+    // Better error messages based on connection status
+    if (!navigator.onLine) {
+      aiAnswer.value = "You're offline. Please check your internet connection and try again."
+    } else {
+      aiAnswer.value = "I'm having trouble connecting right now. Please try again or contact our team directly."
+    }
+  } finally {
+    isAILoading.value = false
+    userQuestion.value = ''
+  }
+}
+
+const askAIWithQuery = (query) => {
+  userQuestion.value = query
+  showAIPanel.value = true // Ensure panel opens
+  askAI()
+}
+
+const askSuggestedQuestion = (question) => {
+  userQuestion.value = question
+  showAIPanel.value = true // Ensure panel opens
+  askAI()
+}
+
 // Computed Properties
 const filteredFAQs = computed(() => {
   let filtered = faqs.value
 
-  // Apply category filter
   if (activeCategory.value !== 'all') {
     filtered = filtered.filter(faq => faq.category === activeCategory.value)
   }
 
-  // Apply search filter
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(faq => 
@@ -699,14 +881,12 @@ const filteredFAQs = computed(() => {
   return filtered
 })
 
-// Open first FAQ by default when searching
+// Watch for search
 watch(searchQuery, (newQuery) => {
   if (newQuery && filteredFAQs.value.length > 0) {
     openFAQs.value = [filteredFAQs.value[0].id]
   }
 })
-
-import { watch } from 'vue'
 </script>
 
 <style scoped>
@@ -771,5 +951,19 @@ mark {
   .faq-item .pl-12 {
     padding-left: 4rem;
   }
+}
+
+/* AI Panel animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 </style>
