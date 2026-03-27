@@ -6,9 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview",
+    "preview": "vite preview",
     "backend": "cd backend && npm run dev",
-    "dev:all": "concurrently \"npm run dev\" \"npm run backend\""
+    "dev:all": "concurrently \"npm run dev\" \"npm run backend\"",
+    "start": "cd backend && npm start"
   },
   "keywords": [
     "vue",
