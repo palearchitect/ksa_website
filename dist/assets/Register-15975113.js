@@ -1,0 +1,1 @@
+import{_ as t,o as s,c as o,a as c}from"./index-1c1bacc4.js";const r={},n={class:"flex flex-col items-center justify-center min-h-[60vh]"};function a(l,e){return s(),o("div",n,[...e[0]||(e[0]=[c("h1",{class:"text-4xl font-bold"},"Register Page",-1)])])}const i=t(r,[["render",a]]);export{i as default};

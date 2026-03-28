@@ -7,7 +7,7 @@
           <router-link to="/" class="flex items-center space-x-6">
             <!-- Logo Size -->
             <img 
-              src="@/assets/logo.png"
+              src="@/assets/images/logo.png"
               class="h-24 w-auto md:h-32"
             />
           </router-link>

@@ -7,7 +7,7 @@
       <div class="text-center mb-8">
         <router-link to="/" class="inline-block mb-4">
           <img 
-            src="@/assets/images/cropped-ksa-logo-e1711991945569-190x71.png" 
+            src="@/assets/images/logo.png" 
             alt="KSA Valuers" 
             class="h-16 mx-auto bg-white px-4 py-2 rounded-lg shadow-lg"
           >
