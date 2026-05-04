@@ -102,7 +102,7 @@
     </nav>
 
     <main class="flex-1">
-      <slot />
+      <router-view />
     </main>
   </div>
 </template>
@@ -110,9 +110,11 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 const mobileOpen = ref(false)
 
 const activeClass = 'bg-blue-600 text-white'
@@ -127,8 +129,8 @@ const isActive = (name) => {
   return routeName.value === name || routeName.value === `/admin/${name}` || route.path.includes(`/admin/${name}`)
 }
 
-const logout = () => {
-  localStorage.removeItem('adminToken')
+const logout = async () => {
+  await authStore.logout()
   mobileOpen.value = false
   router.push('/admin/login')
 }

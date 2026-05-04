@@ -243,9 +243,14 @@
 <script setup>
 import { useProjectStore } from '@/stores/projectStore'
 import { useRouter } from 'vue-router'
+import { onMounted } from 'vue'
 
 const projectStore = useProjectStore()
 const router = useRouter()
+
+onMounted(() => {
+  projectStore.fetchProjects()
+})
 
 const goToAddProject = () => {
   router.push({ name: 'AdminProjectForm' })
@@ -255,16 +260,16 @@ const editProject = (id) => {
   router.push({ name: 'AdminProjectEdit', params: { id } })
 }
 
-const toggleFeatured = (id) => {
+const toggleFeatured = async (id) => {
   const project = projectStore.getProjectById(id)
   if (project) {
-    projectStore.updateProject(id, { featured: !project.featured })
+    await projectStore.updateProject(id, { featured: !project.featured })
   }
 }
 
-const deleteProject = (id) => {
+const deleteProject = async (id) => {
   if (confirm('Are you sure you want to delete this project?')) {
-    const result = projectStore.deleteProject(id)
+    const result = await projectStore.deleteProject(id)
     if (result.success) {
       alert(result.message)
     }

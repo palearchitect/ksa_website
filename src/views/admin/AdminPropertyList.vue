@@ -133,9 +133,14 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { usePropertyStore } from '@/stores/propertyStore'
 
 const propertyStore = usePropertyStore()
+
+onMounted(() => {
+  propertyStore.fetchProperties()
+})
 
 const getStatusClass = (status) => {
   const classes = {
@@ -147,16 +152,16 @@ const getStatusClass = (status) => {
   return classes[status] || 'bg-gray-100 text-gray-800'
 }
 
-const toggleFeatured = (id) => {
+const toggleFeatured = async (id) => {
   const property = propertyStore.getPropertyById(id)
   if (property) {
-    propertyStore.updateProperty(id, { featured: !property.featured })
+    await propertyStore.updateProperty(id, { featured: !property.featured })
   }
 }
 
-const deleteProperty = (id) => {
+const deleteProperty = async (id) => {
   if (confirm('Are you sure you want to delete this property?')) {
-    propertyStore.deleteProperty(id)
+    await propertyStore.deleteProperty(id)
   }
 }
 </script>

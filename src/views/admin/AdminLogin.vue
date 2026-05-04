@@ -220,14 +220,8 @@
           </button>
         </form>
 
-        <!-- Demo Credentials Info -->
-        <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p class="text-xs font-semibold text-blue-900 mb-2">Demo Credentials:</p>
-          <div class="text-xs text-blue-700 space-y-1">
-            <p><strong>Admin:</strong> admin@ksavaluers.com / admin123</p>
-            <p><strong>Manager:</strong> markson@ksavaluers.com / markson123</p>
-            <p><strong>Valuer:</strong> abiodun@ksavaluers.com / abiodun123</p>
-          </div>
+        <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
+          Use your provisioned admin account. Credentials are no longer hardcoded in the frontend.
         </div>
       </div>
 
@@ -293,12 +287,13 @@ const handleLogin = async () => {
   successMessage.value = ''
 
   try {
-    const result = await authStore.login(loginForm.value.email, loginForm.value.password)
+    const result = await authStore.login(loginForm.value.email, loginForm.value.password, loginForm.value.remember)
     
     if (result.success) {
       successMessage.value = 'Login successful! Redirecting...'
       setTimeout(() => {
-        router.push('/admin')
+        const redirect = router.currentRoute.value.query.redirect || '/admin'
+        router.push(redirect)
       }, 1000)
     } else {
       errorMessage.value = result.error || 'Login failed. Please check your credentials.'
@@ -311,30 +306,6 @@ const handleLogin = async () => {
 }
 
 const handleSignup = async () => {
-  loading.value = true
-  errorMessage.value = ''
-  successMessage.value = ''
-
-  try {
-    const result = await authStore.signup(
-      signupForm.value.name,
-      signupForm.value.email,
-      signupForm.value.password,
-      signupForm.value.department
-    )
-    
-    if (result.success) {
-      successMessage.value = result.message || 'Account created! Redirecting...'
-      setTimeout(() => {
-        router.push('/admin')
-      }, 1000)
-    } else {
-      errorMessage.value = result.error || 'Signup failed. Please try again.'
-    }
-  } catch (error) {
-    errorMessage.value = 'An error occurred. Please try again.'
-  } finally {
-    loading.value = false
-  }
+  errorMessage.value = 'Self-service signup is disabled. Please contact an administrator.'
 }
 </script>

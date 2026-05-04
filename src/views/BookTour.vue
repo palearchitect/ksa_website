@@ -36,7 +36,7 @@
                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
             <option value="">-- Select a property --</option>
             <option v-for="property in properties" :key="property.id" :value="property.id">
-              {{ property.attributes.title || `Property #${property.id}` }}
+              {{ property.title || `Property #${property.id}` }}
             </option>
           </select>
           
@@ -554,17 +554,7 @@ const checkDateAvailability = (date) => {
   if (date < today) return { available: 0 }
 
   const dateStr = formatDateForAPI(date)
-  const allSlots = [
-    '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-    '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'
-  ]
-
-  // Count how many slots are already booked for this date
-  const bookedForDate = bookingStore.bookings.filter(
-    b => b.date === dateStr && b.status !== 'cancelled'
-  )
-  const bookedTimes = bookedForDate.map(b => b.time)
-  const available = allSlots.filter(t => !bookedTimes.includes(t)).length
+    const available = availableTimeSlots.value.filter(s => !s.isBooked).length
 
   return { available }
 }
@@ -576,21 +566,8 @@ const loadAvailableSlots = async () => {
   try {
     const dateStr = formatDateForAPI(selectedDate.value)
     
-    const allSlots = [
-      '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
-      '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM'
-    ]
-
-    // Check which slots are already booked from the store
-    const bookedForDate = bookingStore.bookings.filter(
-      b => b.date === dateStr && b.status !== 'cancelled'
-    )
-    const bookedTimes = bookedForDate.map(b => b.time)
-
-    availableTimeSlots.value = allSlots.map(time => ({
-      time,
-      isBooked: bookedTimes.includes(time)
-    }))
+    const response = await bookingService.getAvailableSlots(dateStr, selectedPropertyId.value || null)
+    availableTimeSlots.value = response.data || []
     
   } catch (error) {
     console.error('Error loading available slots:', error)
@@ -620,7 +597,7 @@ const loadPropertyDetails = async () => {
   
   try {
     const response = await propertyService.getPropertyById(selectedPropertyId.value)
-    selectedPropertyDetails.value = response.data?.attributes || null
+    selectedPropertyDetails.value = response.data || null
   } catch (error) {
     console.error('Error loading property details:', error)
   }
@@ -659,9 +636,9 @@ const submitBooking = async () => {
       bookingSource: 'website'
     }
     
-    // 1. Create booking in store (this replaces Strapi for now)
-    const newBooking = bookingStore.createBooking(bookingData)
-    bookingId.value = newBooking.id
+    const newBooking = await bookingService.createBooking(bookingData)
+    await bookingStore.loadBookings()
+    bookingId.value = newBooking.data.id
     
     // 2. Optional: Send confirmation email (if backend is set up)
     try {

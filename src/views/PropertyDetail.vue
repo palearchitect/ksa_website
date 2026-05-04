@@ -74,7 +74,7 @@
               <!-- Status Badge -->
               <div class="absolute top-4 left-4">
                 <span :class="statusBadgeClass" class="px-4 py-2 rounded-full text-sm font-semibold">
-                  {{ property.status === 'sale' ? 'For Sale' : 'For Rent' }}
+                  {{ ['sale', 'For Sale'].includes(property.status) ? 'For Sale' : 'For Rent' }}
                 </span>
               </div>
 
@@ -142,7 +142,7 @@
                   <div>
                     <p class="text-3xl md:text-4xl font-bold text-gray-900">{{ formatPrice(property.price) }}</p>
                     <p class="text-gray-600 mt-1">
-                      {{ property.status === 'sale' ? 'Sale Price' : 'Monthly Rent' }}
+                      {{ ['sale', 'For Sale'].includes(property.status) ? 'Sale Price' : 'Monthly Rent' }}
                     </p>
                   </div>
                   <button 
@@ -429,6 +429,7 @@ import { useRoute, useRouter } from 'vue-router'
 import ErrorBoundary from '../components/global/ErrorBoundary.vue'
 import LoadingState from '../components/global/LoadingState.vue'
 import { useSEO } from '../hooks/useSEO'
+import { propertyService, bookingService } from '@/services/api'
 
 // SEO
 useSEO({
@@ -459,7 +460,7 @@ const scheduleForm = reactive({ name: '', email: '', date: '', time: '' })
 
 // Computed
 const statusBadgeClass = computed(() => {
-  return property.value?.status === 'sale'
+  return ['sale', 'For Sale'].includes(property.value?.status)
     ? 'bg-green-100 text-green-800'
     : 'bg-blue-100 text-blue-800'
 })
@@ -494,21 +495,11 @@ const loadProperty = async () => {
   try {
     const propertyId = route.params.id
     
-    // Try to fetch from API
-    try {
-      const response = await fetch(`/api/properties/${propertyId}`)
-      if (response.ok) {
-        property.value = await response.json()
-      } else {
-        // Use mock data for demo
-        property.value = getMockProperty(propertyId)
-      }
-    } catch {
-      // Use mock data if API fails
-      property.value = getMockProperty(propertyId)
-    }
+    const response = await propertyService.getPropertyById(propertyId)
+    property.value = response.data || null
     
-    currentImage.value = property.value.images?.[0] || ''
+    if (!property.value) return
+    currentImage.value = property.value.images?.[0] || property.value.image || ''
     
     // Check favorites
     const favorites = JSON.parse(localStorage.getItem('propertyFavorites') || '[]')
@@ -521,33 +512,6 @@ const loadProperty = async () => {
     loading.value = false
   }
 }
-
-const getMockProperty = (id) => ({
-  id: Number(id) || 1,
-  title: 'Luxury Villa in Banana Island',
-  location: 'Banana Island, Lagos',
-  price: 250000000,
-  status: 'sale',
-  bedrooms: 5,
-  bathrooms: 6,
-  size: '5,000',
-  yearBuilt: 2020,
-  description: 'Magnificent luxury villa with panoramic ocean views, private pool, and state-of-the-art amenities.',
-  additionalDescription: 'The villa includes a chef\'s kitchen, home theater, and smart home automation.',
-  amenities: ['Swimming Pool', 'Gym', 'Home Theater', 'Garden', 'Security', 'Generator'],
-  images: [
-    'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800',
-    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
-    'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
-    'https://images.unsplash.com/photo-1567496898669-ee935f003f30?w=800'
-  ],
-  featured: true,
-  agent: {
-    name: 'Akinyele Abiodun',
-    phone: '+234 800 123 4567',
-    email: 'abiodun@ksavaluers.com'
-  }
-})
 
 const handleImageError = () => {
   imageError.value = true
@@ -627,9 +591,7 @@ const scheduleMessage = ref('')
 
 const submitBooking = async () => {
   try {
-    const { useBookingStore } = await import('@/stores/bookingStore')
-    const bookingStore = useBookingStore()
-    bookingStore.createBooking({
+    await bookingService.createBooking({
       name: bookingForm.name,
       email: bookingForm.email,
       phone: bookingForm.phone,
@@ -667,9 +629,7 @@ const submitContact = async () => {
 
 const submitSchedule = async () => {
   try {
-    const { useBookingStore } = await import('@/stores/bookingStore')
-    const bookingStore = useBookingStore()
-    bookingStore.createBooking({
+    await bookingService.createBooking({
       name: scheduleForm.name,
       email: scheduleForm.email,
       date: scheduleForm.date,

@@ -314,15 +314,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useBookingStore } from '@/stores/bookingStore'
 
 const bookingStore = useBookingStore()
 
-// Load sample data if empty
-if (bookingStore.bookings.length === 0) {
-  bookingStore.loadSampleData()
-}
+onMounted(() => {
+  bookingStore.loadBookings()
+})
 
 // State
 const activeTab = ref('all')
@@ -404,27 +403,27 @@ const viewBooking = (booking) => {
   selectedBooking.value = booking
 }
 
-const confirmBooking = (id) => {
+const confirmBooking = async (id) => {
   if (confirm('Confirm this booking?')) {
-    bookingStore.updateBookingStatus(id, 'confirmed')
+    await bookingStore.updateBookingStatus(id, 'confirmed')
   }
 }
 
-const completeBooking = (id) => {
+const completeBooking = async (id) => {
   if (confirm('Mark this booking as completed?')) {
-    bookingStore.updateBookingStatus(id, 'completed')
+    await bookingStore.updateBookingStatus(id, 'completed')
   }
 }
 
-const cancelBooking = (id) => {
+const cancelBooking = async (id) => {
   if (confirm('Cancel this booking?')) {
-    bookingStore.updateBookingStatus(id, 'cancelled')
+    await bookingStore.updateBookingStatus(id, 'cancelled')
   }
 }
 
-const deleteBookingConfirm = (id) => {
+const deleteBookingConfirm = async (id) => {
   if (confirm('Are you sure you want to delete this booking? This action cannot be undone.')) {
-    bookingStore.deleteBooking(id)
+    await bookingStore.deleteBooking(id)
   }
 }
 </script>

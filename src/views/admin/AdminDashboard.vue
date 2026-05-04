@@ -7,7 +7,7 @@
         <p class="text-gray-600">Welcome back, {{ adminName }}!</p>
       </div>
 
-      <!-- Stats Overview -->
+      <!-- Stats Overview --> 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div class="bg-white rounded-lg shadow p-6">
           <div class="flex items-center justify-between mb-4">
@@ -182,7 +182,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { useProjectStore } from '@/stores/projectStore'
@@ -195,16 +195,13 @@ const projectStore = useProjectStore()
 const bookingStore = useBookingStore()
 const authStore = useAuthStore()
 
-// Load sample data
-if (propertyStore.properties.length === 0) {
-  propertyStore.loadSampleData()
-}
-if (projectStore.projects.length === 0) {
-  projectStore.loadSampleData()
-}
-if (bookingStore.bookings.length === 0) {
-  bookingStore.loadSampleData()
-}
+onMounted(async () => {
+  await Promise.all([
+    propertyStore.fetchProperties(),
+    projectStore.fetchProjects(),
+    bookingStore.loadBookings()
+  ])
+})
 
 const adminName = computed(() => authStore.user?.name || 'Admin')
 

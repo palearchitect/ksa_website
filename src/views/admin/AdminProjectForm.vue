@@ -299,6 +299,7 @@ const errorMessage = ref('')
 const isEditMode = computed(() => !!route.params.id)
 
 onMounted(() => {
+  projectStore.fetchProjects()
   if (isEditMode.value) {
     loadProject()
   }
@@ -315,7 +316,7 @@ const loadProject = () => {
   }
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   errorMessage.value = ''
   
   // Validation
@@ -330,9 +331,9 @@ const handleSubmit = () => {
   try {
     let result
     if (isEditMode.value) {
-      result = projectStore.updateProject(parseInt(route.params.id), form.value)
+      result = await projectStore.updateProject(parseInt(route.params.id), form.value)
     } else {
-      result = projectStore.addProject(form.value)
+      result = await projectStore.addProject(form.value)
     }
     
     if (result.success) {

@@ -1,6 +1,7 @@
 // stores/propertyStore.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { propertyService } from '@/services/api'
 
 export const usePropertyStore = defineStore('property', () => {
   // ========== STATE ==========
@@ -32,128 +33,61 @@ export const usePropertyStore = defineStore('property', () => {
     'Maitama, Abuja', 'Port Harcourt', 'Ibadan'
   ]
   
-  // ========== INITIAL SAMPLE DATA ==========
-  const initSampleData = () => {
-    properties.value = [
-      {
-        id: 1,
-        title: 'Luxury Modern Apartment in Ikoyi',
-        location: 'Ikoyi, Lagos',
-        image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&h=400&fit=crop',
-        price: 450000000,
-        status: 'For Sale',
-        type: 'Apartment',
-        bedrooms: 4,
-        bathrooms: 3,
-        squareFootage: 5500,
-        description: 'Premium waterfront apartment with modern amenities. Spacious living area with panoramic views.',
-        featured: true,
-        tags: ['luxury', 'waterfront', 'modern'],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 2,
-        title: 'Beautiful Family House in Lekki',
-        location: 'Lekki, Lagos',
-        image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&h=400&fit=crop',
-        price: 85000000,
-        status: 'For Rent',
-        type: 'House',
-        bedrooms: 3,
-        bathrooms: 2,
-        squareFootage: 4200,
-        description: 'Spacious family home in prestigious Lekki estate. Perfect for family living.',
-        featured: false,
-        tags: ['family', 'spacious', 'estate'],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ]
-    saveToLocalStorage()
-  }
+  const loading = ref(false)
+  const error = ref(null)
   
   // ========== CRUD OPERATIONS ==========
-  const addProperty = (propertyData) => {
-    const newId = properties.value.length > 0 
-      ? Math.max(...properties.value.map(p => p.id)) + 1 
-      : 1
-    
-    const newProperty = {
-      id: newId,
-      ...propertyData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      featured: propertyData.featured || false,
-      tags: propertyData.tags || [],
-      type: propertyData.type || 'House'
+  const fetchProperties = async () => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await propertyService.getProperties()
+      properties.value = response.data || []
+      return { success: true, data: properties.value }
+    } catch (err) {
+      error.value = err.response?.data?.message || 'Failed to fetch properties'
+      return { success: false, message: error.value }
+    } finally {
+      loading.value = false
     }
-    
-    properties.value.unshift(newProperty) // Add to beginning
-    saveToLocalStorage()
-    
-    return { 
-      success: true, 
-      data: newProperty, 
-      message: '✅ Property published successfully!' 
+  }
+
+  const addProperty = async (propertyData) => {
+    try {
+      const response = await propertyService.createProperty(propertyData)
+      properties.value.unshift(response.data)
+      return { success: true, data: response.data, message: 'Property published successfully!' }
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Failed to create property' }
     }
   }
   
-  const updateProperty = (id, updatedData) => {
+  const updateProperty = async (id, updatedData) => {
     const index = properties.value.findIndex(p => p.id === id)
-    
-    if (index === -1) {
-      return { success: false, message: '❌ Property not found' }
-    }
-    
-    properties.value[index] = {
-      ...properties.value[index],
-      ...updatedData,
-      updatedAt: new Date().toISOString()
-    }
-    
-    saveToLocalStorage()
-    return { 
-      success: true, 
-      data: properties.value[index], 
-      message: '✅ Property updated successfully!' 
-    }
-  }
-  
-  const deleteProperty = (id) => {
-    const initialLength = properties.value.length
-    properties.value = properties.value.filter(p => p.id !== id)
-    
-    if (properties.value.length < initialLength) {
-      saveToLocalStorage()
-      return { success: true, message: '✅ Property deleted!' }
-    }
-    
-    return { success: false, message: '❌ Property not found' }
-  }
-  
-  const deleteAllProperties = () => {
-    properties.value = []
-    localStorage.removeItem('propertyManager_properties')
-    return { success: true, message: '✅ All properties cleared!' }
-  }
-  
-  // ========== LOCAL STORAGE ==========
-  const saveToLocalStorage = () => {
-    localStorage.setItem('propertyManager_properties', JSON.stringify(properties.value))
-  }
-  
-  const loadFromLocalStorage = () => {
-    const saved = localStorage.getItem('propertyManager_properties')
-    if (saved) {
-      try {
-        properties.value = JSON.parse(saved)
-      } catch (error) {
-        console.error('Error loading from localStorage:', error)
-        properties.value = []
+    try {
+      const response = await propertyService.updateProperty(id, updatedData)
+      if (index !== -1) {
+        properties.value[index] = response.data
       }
+      return { success: true, data: response.data, message: 'Property updated successfully!' }
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Failed to update property' }
     }
   }
+  
+  const deleteProperty = async (id) => {
+    try {
+      await propertyService.deleteProperty(id)
+      properties.value = properties.value.filter(p => p.id !== id)
+      return { success: true, message: 'Property deleted!' }
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Failed to delete property' }
+    }
+  }
+  
+  const deleteAllProperties = async () => ({ success: false, message: 'Bulk delete is disabled.' })
+  const saveToLocalStorage = () => undefined
+  const loadFromLocalStorage = () => undefined
   
   // ========== GETTERS / COMPUTED ==========
   const totalProperties = computed(() => properties.value.length)
@@ -163,11 +97,11 @@ export const usePropertyStore = defineStore('property', () => {
   )
   
   const propertiesForSale = computed(() => 
-    properties.value.filter(p => p.status === 'For Sale')
+    properties.value.filter(p => ['For Sale', 'sale'].includes(p.status))
   )
   
   const propertiesForRent = computed(() => 
-    properties.value.filter(p => p.status === 'For Rent')
+    properties.value.filter(p => ['For Rent', 'rent'].includes(p.status))
   )
   
   const filteredProperties = computed(() => {
@@ -260,10 +194,7 @@ export const usePropertyStore = defineStore('property', () => {
   }
   
   // ========== INITIALIZE ==========
-  loadFromLocalStorage()
-  if (properties.value.length === 0) {
-    initSampleData()
-  }
+  fetchProperties()
   
   // ========== RETURN ==========
   return {
@@ -284,8 +215,9 @@ export const usePropertyStore = defineStore('property', () => {
     deleteAllProperties,
     loadFromLocalStorage,
     saveToLocalStorage,
-    initSampleData,
-    loadSampleData: initSampleData,
+    fetchProperties,
+    loading,
+    error,
     
     // Getters
     totalProperties,

@@ -82,15 +82,14 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useBookingStore } from '@/stores/bookingStore'
 
 const bookingStore = useBookingStore()
 
-// Load sample data if empty
-if (bookingStore.bookings.length === 0) {
-  bookingStore.loadSampleData()
-}
+onMounted(() => {
+  bookingStore.loadBookings()
+})
 
 // Show all bookings sorted by date (upcoming first)
 const upcomingAppointments = computed(() => {
@@ -111,10 +110,10 @@ const getStatusClass = (status) => {
   return classes[status] || 'bg-gray-100 text-gray-800'
 }
 
-const updateStatus = (id, newStatus) => {
+const updateStatus = async (id, newStatus) => {
   const action = newStatus === 'cancelled' ? 'cancel' : newStatus
   if (confirm(`Are you sure you want to ${action} this appointment?`)) {
-    bookingStore.updateBookingStatus(id, newStatus)
+    await bookingStore.updateBookingStatus(id, newStatus)
   }
 }
 </script>

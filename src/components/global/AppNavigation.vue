@@ -260,20 +260,8 @@ const openMobileDropdownId = ref(null)
 
 // Improved route matching function
 const isActiveRoute = (path) => {
-  const currentPath = route.path
-  
-  // Handle home page specially
-  if (path === '/') {
-    return currentPath === '/' || 
-           currentPath === '' || 
-           route.fullPath === '/' ||
-           route.name === 'home'
-  }
-  
-  // For other pages, check exact match and also check for route names
-  return currentPath === path || 
-         route.fullPath === path ||
-         (route.name && route.name.toLowerCase() === path.replace('/', '').replace(/-/g, ''))
+  if (path === '/') return route.path === '/'
+  return route.path === path || route.path.startsWith(`${path}/`)
 }
 
 // Mobile navigation structure
@@ -381,7 +369,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 4px;
   position: relative;
-  z-index: 9999; /* Increased from 100 */
+  z-index: 30;
 }
 
 .nav-link {
@@ -437,7 +425,7 @@ onUnmounted(() => {
 
 .nav-dropdown-group {
   position: relative;
-  z-index: 9999; /* Increased from 1000 */
+  z-index: 35;
 }
 
 .dropdown-menu {
@@ -451,7 +439,7 @@ onUnmounted(() => {
   border-radius: 8px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   padding: 6px 0;
-  z-index: 99999; /* Very high z-index to ensure it's on top */
+  z-index: 40;
   animation: fadeIn 0.15s ease-out;
 }
 
@@ -539,7 +527,7 @@ onUnmounted(() => {
   height: 100%;
   background: white;
   position: relative;
-  z-index: 99999; /* Very high z-index */
+  z-index: 50;
 }
 
 .mobile-nav-header {
@@ -777,7 +765,7 @@ onUnmounted(() => {
     right: 0;
     width: 300px;
     height: 100vh;
-    z-index: 99999; /* Very high z-index */
+    z-index: 50;
     box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
   }
 }
@@ -807,35 +795,5 @@ onUnmounted(() => {
   background: #a1a1a1;
 }
 
-/* Global z-index overrides - IMPORTANT */
-:global(.desktop-nav) {
-  z-index: 9999 !important;
-}
-
-:global(.nav-dropdown-group) {
-  z-index: 9999 !important;
-}
-
-:global(.dropdown-menu) {
-  z-index: 99999 !important;
-}
-
-:global(.nav-link) {
-  position: relative !important;
-  z-index: 9999 !important;
-}
-
-:global(.mobile-nav) {
-  z-index: 99999 !important;
-}
-
-/* Ensure navigation appears above all other content */
-:global(header) {
-  position: relative;
-  z-index: 9999;
-}
-
-:global(.desktop-nav *) {
-  position: relative;
-}
+/* Keep header stack simple and predictable */
 </style>

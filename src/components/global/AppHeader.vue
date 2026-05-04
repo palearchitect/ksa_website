@@ -1,14 +1,14 @@
 <template>
   <header class="bg-white/10 backdrop-blur-sm shadow">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
       <div class="flex items-center justify-between">
         <!-- Logo Section -->
         <div class="flex-shrink-0">
           <router-link to="/" class="flex items-center space-x-6">
             <!-- Logo Size -->
-            <img 
+            <img
               src="@/assets/images/logo.png"
-              class="h-24 w-auto md:h-32"
+              class="h-12 w-auto md:h-16"
             />
           </router-link>
         </div>
@@ -23,7 +23,7 @@
           <button
             @click="toggleMobileMenu"
             class="inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100/80 focus:outline-none backdrop-blur-sm transition-colors duration-200"
-            aria-expanded="false"
+            :aria-expanded="mobileMenuOpen ? 'true' : 'false'"
           >
             <span class="sr-only">Open main menu</span>
             <svg
@@ -55,7 +55,7 @@
     <AppNavigation 
       v-if="mobileMenuOpen" 
       :mobile="true" 
-      @close="mobileMenuOpen = false"
+      @navigate="mobileMenuOpen = false"
     />
   </header>
 </template>

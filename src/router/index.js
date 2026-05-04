@@ -66,59 +66,19 @@ const routes = [
   // Admin Routes
   {
     path: '/admin',
-    name: 'AdminDashboard',
-    component: () => import('../views/admin/AdminDashboard.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/admin/properties',
-    name: 'AdminPropertyList',
-    component: () => import('../views/admin/AdminPropertyList.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/admin/properties/new',
-    name: 'AdminPropertyForm',
-    component: () => import('../views/admin/AdminPropertyForm.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/admin/properties/:id',
-    name: 'AdminPropertyEdit',
-    component: () => import('../views/admin/AdminPropertyForm.vue'),
+    component: () => import('../views/admin/AdminLayout.vue'),
     meta: { requiresAuth: true },
-    props: true
-  },
-  {
-    path: '/admin/appointments',
-    name: 'AdminAppointments',
-    component: () => import('../views/admin/AdminAppointments.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/admin/bookings',
-    name: 'AdminBookings',
-    component: () => import('../views/admin/AdminBookings.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/admin/projects',
-    name: 'AdminProjectList',
-    component: () => import('../views/admin/AdminProjectList.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/admin/projects/new',
-    name: 'AdminProjectForm',
-    component: () => import('../views/admin/AdminProjectForm.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
-    path: '/admin/projects/:id',
-    name: 'AdminProjectEdit',
-    component: () => import('../views/admin/AdminProjectForm.vue'),
-    meta: { requiresAuth: true },
-    props: true
+    children: [
+      { path: '', name: 'AdminDashboard', component: () => import('../views/admin/AdminDashboard.vue') },
+      { path: 'properties', name: 'AdminPropertyList', component: () => import('../views/admin/AdminPropertyList.vue') },
+      { path: 'properties/new', name: 'AdminPropertyForm', component: () => import('../views/admin/AdminPropertyForm.vue') },
+      { path: 'properties/:id', name: 'AdminPropertyEdit', component: () => import('../views/admin/AdminPropertyForm.vue'), props: true },
+      { path: 'appointments', name: 'AdminAppointments', component: () => import('../views/admin/AdminAppointments.vue') },
+      { path: 'bookings', name: 'AdminBookings', component: () => import('../views/admin/AdminBookings.vue') },
+      { path: 'projects', name: 'AdminProjectList', component: () => import('../views/admin/AdminProjectList.vue') },
+      { path: 'projects/new', name: 'AdminProjectForm', component: () => import('../views/admin/AdminProjectForm.vue') },
+      { path: 'projects/:id', name: 'AdminProjectEdit', component: () => import('../views/admin/AdminProjectForm.vue'), props: true }
+    ]
   },
   {
     path: '/admin/login',
@@ -190,6 +150,7 @@ router.beforeEach(async (to, from, next) => {
   const { useAuthStore } = await import('../stores/authStore')
   const authStore = useAuthStore()
   
+  await authStore.loadSession()
   const isAuth = authStore.isAuthenticated
   
   // Redirect to login for protected routes
@@ -222,7 +183,8 @@ router.afterEach((to) => {
   const title = to.meta?.title || 
     (to.name ? to.name.replace(/([A-Z])/g, ' $1').trim() : 'Page')
   
-  document.title = `${title} | KSA Valuers Admin`
+  const suffix = to.path.startsWith('/admin') ? 'KSA Valuers Admin' : 'KSA Valuers'
+  document.title = `${title} | ${suffix}`
 })
 
 export default router

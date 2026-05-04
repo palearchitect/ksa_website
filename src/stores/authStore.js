@@ -1,105 +1,48 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { authAPI } from '@/services/api'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
   const user = ref(null)
-  const token = ref(null)
   const isAuthenticated = ref(false)
+  const loading = ref(false)
 
   // Load from localStorage on init
-  const loadSession = () => {
-    const savedUser = localStorage.getItem('ksaAdmin')
-    const savedToken = localStorage.getItem('ksaToken')
-    
-    if (savedUser && savedToken) {
-      user.value = JSON.parse(savedUser)
-      token.value = savedToken
+  const loadSession = async () => {
+    try {
+      const response = await authAPI.me()
+      user.value = response.data
       isAuthenticated.value = true
+    } catch {
+      user.value = null
+      isAuthenticated.value = false
     }
   }
 
   // Login
-  const login = async (email, password) => {
+  const login = async (email, password, _remember = false) => {
+    loading.value = true
     try {
-      // Demo credentials - in production, this would call your backend API
-      const validCredentials = [
-        { email: 'admin@ksavaluers.com', password: 'admin123', name: 'Admin User', role: 'admin' },
-        { email: 'markson@ksavaluers.com', password: 'markson123', name: 'ESV. Markson Ajiboye', role: 'manager' },
-        { email: 'abiodun@ksavaluers.com', password: 'abiodun123', name: 'Akinyele Abiodun', role: 'valuer' }
-      ]
-
-      const userCredential = validCredentials.find(
-        cred => cred.email === email && cred.password === password
-      )
-
-      if (!userCredential) {
-        throw new Error('Invalid email or password')
-      }
-
-      // Set user data
-      const userData = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: userCredential.name,
-        email: userCredential.email,
-        role: userCredential.role,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userCredential.name)}&background=3b82f6&color=fff`
-      }
-
-      const sessionToken = `token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-
-      user.value = userData
-      token.value = sessionToken
+      const response = await authAPI.login({ email, password })
+      user.value = response.data
       isAuthenticated.value = true
-
-      // Save to localStorage
-      localStorage.setItem('ksaAdmin', JSON.stringify(userData))
-      localStorage.setItem('ksaToken', sessionToken)
-
-      return { success: true, user: userData }
+      return { success: true, user: response.data }
     } catch (error) {
-      return { success: false, error: error.message }
+      return { success: false, error: error.response?.data?.message || error.message }
+    } finally {
+      loading.value = false
     }
   }
 
   // Signup/Register
-  const signup = async (name, email, password, department) => {
-    try {
-      // In production, this would call your backend API to create account
-      const userData = {
-        id: Math.random().toString(36).substr(2, 9),
-        name,
-        email,
-        role: 'pending',
-        department,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=3b82f6&color=fff`,
-        status: 'pending_approval'
-      }
-
-      // For demo - auto-approve and log in
-      const sessionToken = `token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      
-      user.value = userData
-      token.value = sessionToken
-      isAuthenticated.value = true
-
-      localStorage.setItem('ksaAdmin', JSON.stringify(userData))
-      localStorage.setItem('ksaToken', sessionToken)
-
-      return { success: true, user: userData, message: 'Account created successfully!' }
-    } catch (error) {
-      return { success: false, error: error.message }
-    }
-  }
+  const signup = async () => ({ success: false, error: 'Self-service signup is disabled. Contact an administrator.' })
 
   // Logout
   const logout = () => {
     user.value = null
-    token.value = null
     isAuthenticated.value = false
-    
-    localStorage.removeItem('ksaAdmin')
-    localStorage.removeItem('ksaToken')
+    authAPI.logout().catch(() => undefined)
   }
 
   // Check if user has specific role
@@ -117,8 +60,8 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     // State
     user,
-    token,
     isAuthenticated,
+    loading,
     
     // Actions
     login,

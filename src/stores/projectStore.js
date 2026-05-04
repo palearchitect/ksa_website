@@ -1,6 +1,7 @@
 // stores/projectStore.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { projectService } from '@/services/api'
 
 export const useProjectStore = defineStore('project', () => {
   // ========== STATE ==========
@@ -45,130 +46,56 @@ export const useProjectStore = defineStore('project', () => {
     'Kaduna'
   ]
   
-  // ========== INITIAL SAMPLE DATA ==========
-  const initSampleData = () => {
-    projects.value = [
-      {
-        id: 1,
-        title: 'Luxury Waterfront Estate - Banana Island',
-        location: 'Banana Island, Lagos',
-        image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=500&fit=crop',
-        description: 'Premium waterfront development featuring 50 luxury apartments with world-class amenities including infinity pool, gym, and private marina.',
-        status: 'In Progress',
-        type: 'Residential',
-        totalUnits: 50,
-        completionPercentage: 65,
-        startDate: '2024-01-15',
-        expectedCompletion: '2026-06-30',
-        budget: 15000000000,
-        featured: true,
-        amenities: ['Swimming Pool', 'Gym', 'Marina', 'Security', '24/7 Power'],
-        createdAt: new Date('2024-01-15').toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 2,
-        title: 'Modern Commercial Hub - Victoria Island',
-        location: 'Victoria Island, Lagos',
-        image: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&h=500&fit=crop',
-        description: 'State-of-the-art commercial complex with office spaces, retail outlets, and conference facilities.',
-        status: 'In Progress',
-        type: 'Commercial',
-        totalUnits: 120,
-        completionPercentage: 40,
-        startDate: '2024-03-01',
-        expectedCompletion: '2026-12-31',
-        budget: 25000000000,
-        featured: true,
-        amenities: ['Conference Rooms', 'Parking', 'Security', 'High-speed Internet'],
-        createdAt: new Date('2024-03-01').toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ]
-    saveToLocalStorage()
-  }
+  const loading = ref(false)
   
   // ========== CRUD OPERATIONS ==========
-  const addProject = (projectData) => {
-    const newId = projects.value.length > 0 
-      ? Math.max(...projects.value.map(p => p.id)) + 1 
-      : 1
-    
-    const newProject = {
-      id: newId,
-      ...projectData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      featured: projectData.featured || false,
-      amenities: projectData.amenities || [],
-      completionPercentage: projectData.completionPercentage || 0
+  const fetchProjects = async () => {
+    loading.value = true
+    try {
+      const response = await projectService.getProjects()
+      projects.value = response.data || []
+      return { success: true, data: projects.value }
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Failed to fetch projects' }
+    } finally {
+      loading.value = false
     }
-    
-    projects.value.unshift(newProject)
-    saveToLocalStorage()
-    
-    return { 
-      success: true, 
-      data: newProject, 
-      message: '✅ Project added successfully!' 
+  }
+
+  const addProject = async (projectData) => {
+    try {
+      const response = await projectService.createProject(projectData)
+      projects.value.unshift(response.data)
+      return { success: true, data: response.data, message: 'Project added successfully!' }
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Failed to add project' }
     }
   }
   
-  const updateProject = (id, updatedData) => {
+  const updateProject = async (id, updatedData) => {
     const index = projects.value.findIndex(p => p.id === id)
-    
-    if (index === -1) {
-      return { success: false, message: '❌ Project not found' }
-    }
-    
-    projects.value[index] = {
-      ...projects.value[index],
-      ...updatedData,
-      updatedAt: new Date().toISOString()
-    }
-    
-    saveToLocalStorage()
-    return { 
-      success: true, 
-      data: projects.value[index], 
-      message: '✅ Project updated successfully!' 
+    try {
+      const response = await projectService.updateProject(id, updatedData)
+      if (index !== -1) projects.value[index] = response.data
+      return { success: true, data: response.data, message: 'Project updated successfully!' }
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Failed to update project' }
     }
   }
   
-  const deleteProject = (id) => {
-    const initialLength = projects.value.length
-    projects.value = projects.value.filter(p => p.id !== id)
-    
-    if (projects.value.length < initialLength) {
-      saveToLocalStorage()
-      return { success: true, message: '✅ Project deleted!' }
-    }
-    
-    return { success: false, message: '❌ Project not found' }
-  }
-  
-  const deleteAllProjects = () => {
-    projects.value = []
-    localStorage.removeItem('projectManager_projects')
-    return { success: true, message: '✅ All projects cleared!' }
-  }
-  
-  // ========== LOCAL STORAGE ==========
-  const saveToLocalStorage = () => {
-    localStorage.setItem('projectManager_projects', JSON.stringify(projects.value))
-  }
-  
-  const loadFromLocalStorage = () => {
-    const saved = localStorage.getItem('projectManager_projects')
-    if (saved) {
-      try {
-        projects.value = JSON.parse(saved)
-      } catch (error) {
-        console.error('Error loading projects from localStorage:', error)
-        projects.value = []
-      }
+  const deleteProject = async (id) => {
+    try {
+      await projectService.deleteProject(id)
+      projects.value = projects.value.filter(p => p.id !== id)
+      return { success: true, message: 'Project deleted!' }
+    } catch (err) {
+      return { success: false, message: err.response?.data?.message || 'Failed to delete project' }
     }
   }
+  
+  const deleteAllProjects = async () => ({ success: false, message: 'Bulk delete is disabled.' })
+  const saveToLocalStorage = () => undefined
+  const loadFromLocalStorage = () => undefined
   
   // ========== GETTERS / COMPUTED ==========
   const totalProjects = computed(() => projects.value.length)
@@ -267,10 +194,7 @@ export const useProjectStore = defineStore('project', () => {
   }
   
   // ========== INITIALIZE ==========
-  loadFromLocalStorage()
-  if (projects.value.length === 0) {
-    initSampleData()
-  }
+  fetchProjects()
   
   // ========== RETURN ==========
   return {
@@ -291,7 +215,8 @@ export const useProjectStore = defineStore('project', () => {
     deleteAllProjects,
     loadFromLocalStorage,
     saveToLocalStorage,
-    initSampleData,
+    fetchProjects,
+    loading,
     
     // Getters
     totalProjects,

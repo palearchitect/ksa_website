@@ -1,80 +1,57 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { bookingService } from '@/services/api'
 
 export const useBookingStore = defineStore('bookings', () => {
   // State
   const bookings = ref([])
   const loading = ref(false)
 
-  // Load bookings from localStorage on init
-  const loadBookings = () => {
-    const saved = localStorage.getItem('ksaBookings')
-    if (saved) {
-      try {
-        bookings.value = JSON.parse(saved)
-      } catch (e) {
-        console.error('Error loading bookings:', e)
-        bookings.value = []
-      }
+  const error = ref(null)
+  const loadBookings = async () => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await bookingService.getBookings()
+      bookings.value = response.data || []
+    } catch (e) {
+      bookings.value = []
+      error.value = e.response?.data?.message || 'Failed to load bookings'
+    } finally {
+      loading.value = false
     }
   }
-
-  // Save bookings to localStorage
-  const saveBookings = () => {
-    localStorage.setItem('ksaBookings', JSON.stringify(bookings.value))
-  }
+  const saveBookings = () => undefined
 
   // Create new booking
-  const createBooking = (bookingData) => {
-    const newBooking = {
-      id: `BOOK-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`.toUpperCase(),
-      ...bookingData,
-      status: bookingData.status || 'pending',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }
-
-    bookings.value.unshift(newBooking)
-    saveBookings()
-    return newBooking
+  const createBooking = async (bookingData) => {
+    const response = await bookingService.createBooking(bookingData)
+    if (response?.data) bookings.value.unshift(response.data)
+    return response.data
   }
 
   // Update booking status
-  const updateBookingStatus = (id, status) => {
+  const updateBookingStatus = async (id, status) => {
+    const response = await bookingService.updateBookingStatus(id, status)
+    const updated = response?.data
+    if (!updated) return false
     const booking = bookings.value.find(b => b.id === id)
-    if (booking) {
-      booking.status = status
-      booking.updatedAt = new Date().toISOString()
-      saveBookings()
-      return true
-    }
-    return false
+    if (booking) Object.assign(booking, updated)
+    return true
   }
 
   // Update booking
-  const updateBooking = (id, updates) => {
-    const index = bookings.value.findIndex(b => b.id === id)
-    if (index !== -1) {
-      bookings.value[index] = {
-        ...bookings.value[index],
-        ...updates,
-        updatedAt: new Date().toISOString()
-      }
-      saveBookings()
-      return bookings.value[index]
-    }
-    return null
+  const updateBooking = async (id, updates) => {
+    const response = await bookingService.updateBookingStatus(id, updates.status || 'pending', updates.notes || '')
+    return response?.data || null
   }
 
   // Delete booking
-  const deleteBooking = (id) => {
+  const deleteBooking = async (id) => {
+    await bookingService.deleteBooking(id)
     const index = bookings.value.findIndex(b => b.id === id)
-    if (index !== -1) {
-      bookings.value.splice(index, 1)
-      saveBookings()
-      return true
-    }
-    return false
+    if (index !== -1) bookings.value.splice(index, 1)
+    return true
   }
 
   // Get booking by ID
@@ -144,86 +121,7 @@ export const useBookingStore = defineStore('bookings', () => {
       .sort((a, b) => new Date(b.date) - new Date(a.date))
   })
 
-  // Load sample data for demo
-  const loadSampleData = () => {
-    if (bookings.value.length === 0) {
-      const sampleBookings = [
-        {
-          id: 'BOOK-001',
-          name: 'John Doe',
-          email: 'john.doe@example.com',
-          phone: '+234 803 123 4567',
-          date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          time: '10:00 AM',
-          guests: 2,
-          notes: 'Interested in 3-bedroom apartments',
-          status: 'pending',
-          property: null,
-          createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'BOOK-002',
-          name: 'Jane Smith',
-          email: 'jane.smith@example.com',
-          phone: '+234 805 987 6543',
-          date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          time: '2:00 PM',
-          guests: 1,
-          notes: 'Looking for investment property',
-          status: 'confirmed',
-          property: null,
-          createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'BOOK-003',
-          name: 'Michael Johnson',
-          email: 'mjohnson@example.com',
-          phone: '+234 807 456 7890',
-          date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          time: '11:00 AM',
-          guests: 3,
-          notes: 'Family viewing',
-          status: 'completed',
-          property: null,
-          createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'BOOK-004',
-          name: 'Sarah Williams',
-          email: 'sarah.w@example.com',
-          phone: '+234 809 234 5678',
-          date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          time: '3:00 PM',
-          guests: 2,
-          notes: '',
-          status: 'confirmed',
-          property: null,
-          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'BOOK-005',
-          name: 'David Brown',
-          email: 'dbrown@example.com',
-          phone: '+234 806 345 6789',
-          date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          time: '9:00 AM',
-          guests: 1,
-          notes: 'Cancelled due to schedule conflict',
-          status: 'cancelled',
-          property: null,
-          createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-          updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ]
-
-      bookings.value = sampleBookings
-      saveBookings()
-    }
-  }
+  const loadSampleData = () => undefined
 
   // Initialize
   loadBookings()
@@ -249,7 +147,7 @@ export const useBookingStore = defineStore('bookings', () => {
     deleteBooking,
     getBookingById,
     getBookingsByDateRange,
-    loadSampleData,
+    error,
     loadBookings,
     saveBookings
   }
