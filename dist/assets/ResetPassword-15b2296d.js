@@ -1,1 +1,0 @@
-import{_ as s,o as t,c as o,a as c}from"./index-1c1bacc4.js";const r={},a={class:"flex flex-col items-center justify-center min-h-[60vh]"};function n(l,e){return t(),o("div",a,[...e[0]||(e[0]=[c("h1",{class:"text-4xl font-bold"},"Reset Password Page",-1)])])}const d=s(r,[["render",n]]);export{d as default};

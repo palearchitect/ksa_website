@@ -1,1 +1,0 @@
-import{_ as o,o as s,c as t,a as n}from"./index-1c1bacc4.js";const c={},r={class:"flex flex-col items-center justify-center min-h-[60vh]"};function a(l,e){return s(),t("div",r,[...e[0]||(e[0]=[n("h1",{class:"text-4xl font-bold"},"My Bookings Page",-1)])])}const i=o(c,[["render",a]]);export{i as default};
