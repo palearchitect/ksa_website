@@ -206,8 +206,48 @@ const validateBookingPayload = (payload) => {
   return null;
 };
 
+const validatePasswordPolicy = (password) => {
+  if (!password) return 'Password is required';
+  if (password.length < 12) return `Password must be at least 12 characters (got ${password.length})`;
+  if (!/[A-Z]/.test(password)) return 'Password must contain uppercase letters (A-Z)';
+  if (!/[a-z]/.test(password)) return 'Password must contain lowercase letters (a-z)';
+  if (!/[0-9]/.test(password)) return 'Password must contain numbers (0-9)';
+  if (!/[!@#$%^&*_\-+=\[\]{};:'",.<>?/\\|`~]/.test(password)) return 'Password must contain special characters (!@#$%^&* etc.)';
+  return null;
+};
+
 const initializeDatabase = async () => {
   try {
+    // Check if ADMIN_PASSWORD is configured
+    if (!process.env.ADMIN_PASSWORD) {
+      throw new Error(
+        'ADMIN_PASSWORD environment variable is not set.\n' +
+        '\n   ❌ ERROR: Admin account cannot be created without a password.\n' +
+        '\n   📋 To fix this:\n' +
+        '      1. Set ADMIN_PASSWORD in backend/.env\n' +
+        '      2. Password must be at least 12 characters with uppercase, lowercase, numbers, and special chars\n' +
+        '         Example: MySecure_Pass123\n' +
+        '      3. Run: npm run db:setup\n' +
+        '\n   ℹ️  On first run, you can also use npm run db:seed to auto-generate a secure password.\n'
+      );
+    }
+
+    // Validate password policy
+    const passwordError = validatePasswordPolicy(process.env.ADMIN_PASSWORD);
+    if (passwordError) {
+      throw new Error(
+        `ADMIN_PASSWORD does not meet security requirements:\n` +
+        `   ${passwordError}\n` +
+        `\n   Password must:\n` +
+        `   - Be at least 12 characters long\n` +
+        `   - Contain uppercase letters (A-Z)\n` +
+        `   - Contain lowercase letters (a-z)\n` +
+        `   - Contain numbers (0-9)\n` +
+        `   - Contain special characters (!@#$%^&*)\n` +
+        `\n   Example: MySecure_Pass123\n`
+      );
+    }
+    
     // Test database connection
     console.log('🔌 Testing database connection...');
     const testConnection = await pool.query('SELECT NOW()');
@@ -229,13 +269,13 @@ const initializeDatabase = async () => {
     // Seed admin user if needed
     const existingAdmin = await pool.query(`SELECT id FROM users WHERE email = $1 LIMIT 1`, ['admin@ksavaluers.com']);
     if (existingAdmin.rowCount === 0) {
-      const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeMeNow_123';
-      const hash = await bcrypt.hash(adminPassword, 12);
+      const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
       await pool.query(
         `INSERT INTO users (email, password_hash, role, name) VALUES ($1, $2, $3, $4)`,
         ['admin@ksavaluers.com', hash, 'admin', 'Admin User']
       );
-      console.log('✅ Seeded default admin user (admin@ksavaluers.com)');
+      console.log('✅ Seeded admin user (admin@ksavaluers.com)');
+      console.log('⚠️  Keep your ADMIN_PASSWORD secure. Do not share it or commit it to version control.');
     }
     
     return true;
@@ -247,7 +287,9 @@ const initializeDatabase = async () => {
     console.error('   2. Create a database: createdb ksa_valuers');
     console.error('   3. Add DATABASE_URL to backend/.env:');
     console.error('      DATABASE_URL=postgres://user:password@localhost:5432/ksa_valuers');
-    console.error('   4. Run migrations: npm run db:migrate');
+    console.error('   4. Set ADMIN_PASSWORD (min 12 chars with uppercase, lowercase, numbers, special chars):');
+    console.error('      ADMIN_PASSWORD=MySecurePass123!');
+    console.error('   5. Run: npm run db:setup');
     throw error;
   }
 };
