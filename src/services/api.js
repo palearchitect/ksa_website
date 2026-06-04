@@ -11,15 +11,80 @@ const api = axios.create({
   }
 })
 
+// Track if we're currently refreshing to prevent multiple refresh requests
+let isRefreshing = false
+let failedQueue = []
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error)
+    } else {
+      prom.resolve(token)
+    }
+  })
+  
+  isRefreshing = false
+  failedQueue = []
+}
+
 api.interceptors.response.use(
   response => response,
-  error => {
-    if (error.response && error.response.status === 401) {
+  async error => {
+    const { config } = error
+    
+    // Only handle 401 responses (unauthorized)
+    if (error.response?.status === 401) {
+      // Check if this is an admin route
       const onAdminRoute = window.location.pathname.startsWith('/admin')
+      
       if (onAdminRoute && window.location.pathname !== '/admin/login') {
-        window.location.href = '/admin/login'
+        // Don't retry login endpoint itself
+        if (config.url.includes('/auth/login')) {
+          window.location.href = '/admin/login'
+          return Promise.reject(error)
+        }
+
+        // Try to refresh token if not already refreshing
+        if (!isRefreshing) {
+          isRefreshing = true
+
+          try {
+            // Call refresh endpoint
+            const response = await axios.post(
+              `${API_BASE_URL}/api/v1/auth/refresh`,
+              {},
+              {
+                withCredentials: true,
+                timeout: 5000
+              }
+            )
+
+            if (response.status === 200 || response.status === 201) {
+              // Token refreshed successfully
+              processQueue(null, response.data)
+              
+              // Retry the original request
+              return api(config)
+            }
+          } catch (refreshError) {
+            // Refresh failed - redirect to login
+            processQueue(refreshError, null)
+            window.location.href = '/admin/login'
+            return Promise.reject(refreshError)
+          }
+        } else {
+          // Already refreshing - queue this request
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject })
+          }).then(() => api(config))
+        }
+      } else if (!onAdminRoute) {
+        // Not on admin route, just reject
+        return Promise.reject(error)
       }
     }
+    
     return Promise.reject(error)
   }
 )

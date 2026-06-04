@@ -27,6 +27,49 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
+// CORS Configuration
+const getAllowedOrigins = () => {
+  const nodeEnv = process.env.NODE_ENV || 'development';
+  
+  // Development - allow localhost
+  if (nodeEnv !== 'production') {
+    return [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5173'
+    ];
+  }
+  
+  // Production - require explicit ALLOWED_ORIGINS
+  const allowedOrigins = process.env.ALLOWED_ORIGINS;
+  if (!allowedOrigins) {
+    console.warn(
+      '⚠️  WARNING: ALLOWED_ORIGINS environment variable not set in production!\n' +
+      '   Set ALLOWED_ORIGINS=https://example.com,https://api.example.com'
+    );
+    return []; // No origins allowed if not configured
+  }
+  
+  // Parse comma-separated origins and validate they're https in production
+  return allowedOrigins
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(origin => {
+      if (!origin.startsWith('https://') && !origin.startsWith('http://')) {
+        console.warn(`⚠️  Skipping invalid origin: ${origin} (must be https:// or http://)`);
+        return false;
+      }
+      if (nodeEnv === 'production' && !origin.startsWith('https://')) {
+        console.warn(`⚠️  Skipping insecure origin in production: ${origin} (must be https://)`);
+        return false;
+      }
+      return true;
+    });
+};
+
+const allowedOrigins = getAllowedOrigins();
+
 // Rate limiting for AI endpoint
 const aiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -39,8 +82,10 @@ const aiLimiter = rateLimit({
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
-  credentials: true
+  origin: allowedOrigins.length > 0 ? allowedOrigins : false,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(cookieParser());
