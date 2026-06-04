@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
 const axios = require('axios');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
@@ -9,6 +8,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 const { runMigrations } = require('./migrations/init');
+const { createEmailService } = require('./services/emailService');
+const { getTemplate } = require('./services/emailTemplates');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -206,23 +207,24 @@ const initializeDatabase = async () => {
   }
 };
 
-// Email transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// Email Service Setup
+let emailService;
 
-// Test email connection
-transporter.verify((error) => {
-  if (error) {
-    console.error('❌ Email config error:', error.message);
-  } else {
-    console.log('✅ Email server ready');
+const initializeEmailService = async () => {
+  try {
+    emailService = createEmailService();
+    const testResult = await emailService.testConnection();
+    
+    if (testResult.success) {
+      console.log(`✅ Email service ready (${testResult.provider})`);
+    } else {
+      console.error(`⚠️  Email service test failed: ${testResult.error}`);
+    }
+  } catch (error) {
+    console.error(`❌ Failed to initialize email service: ${error.message}`);
+    console.error('   Continuing without email service. Configure EMAIL_PROVIDER in .env to enable.');
   }
-});
+};
 
 // ============================================
 // CONTACT ENDPOINT
@@ -238,27 +240,60 @@ app.post('/api/contact', async (req, res) => {
       });
     }
 
-    const mailOptions = {
-      from: `"KSA Website" <${process.env.EMAIL_USER}>`,
-      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
-      replyTo: email,
-      subject: `Website Contact: ${subject}`,
-      html: `
-        <h3>New Contact from KSA Website</h3>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-        <p><strong>Subject:</strong> ${subject}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
+    // Save to database first
     await pool.query(
       `INSERT INTO contact_messages (name, email, phone, subject, message) VALUES ($1, $2, $3, $4, $5)`,
       [name, email, phone || null, subject, message]
     );
+
+    // Send confirmation to user if email service is available
+    if (emailService) {
+      try {
+        const confirmationTemplate = getTemplate('contact-confirmation', {
+          name,
+          email,
+          subject,
+          message
+        });
+        
+        await emailService.send({
+          to: email,
+          subject: confirmationTemplate.subject,
+          html: confirmationTemplate.html
+        });
+      } catch (emailError) {
+        console.error('Confirmation email failed:', emailError.message);
+        // Continue - message was saved to database
+      }
+    }
+
+    // Send notification to admin if email service is available
+    if (emailService && process.env.ADMIN_EMAIL) {
+      try {
+        const adminTemplate = getTemplate('admin-notification', {
+          type: 'Contact Message',
+          subject: subject,
+          content: `
+            <p><strong>From:</strong> ${name}</p>
+            <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+            <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+            <p><strong>Subject:</strong> ${subject}</p>
+            <hr>
+            <p><strong>Message:</strong></p>
+            <p>${message.replace(/\n/g, '<br>')}</p>
+          `
+        });
+
+        await emailService.send({
+          to: process.env.ADMIN_EMAIL,
+          subject: adminTemplate.subject,
+          html: adminTemplate.html,
+          replyTo: email
+        });
+      } catch (emailError) {
+        console.error('Admin notification email failed:', emailError.message);
+      }
+    }
     
     res.json({ 
       success: true, 
@@ -266,7 +301,7 @@ app.post('/api/contact', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Email error:', error);
+    console.error('Contact endpoint error:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Server error. Please try again later.' 
@@ -844,61 +879,83 @@ app.put('/api/appointments/cancel/:id', requireAuth, requireRole('admin', 'manag
 });
 
 // ============================================
-// EMAIL STUB ENDPOINTS (for BookTour.vue)
+// EMAIL ENDPOINTS (for BookTour.vue)
 // ============================================
 
 app.post('/email/booking-confirmation', async (req, res) => {
   const { booking } = req.body;
   try {
-    if (process.env.EMAIL_USER) {
-      await transporter.sendMail({
-        from: `"KSA Bookings" <${process.env.EMAIL_USER}>`,
-        to: booking.email,
-        subject: `Booking Confirmation - ${booking.bookingId}`,
-        html: `
-          <h3>Tour Booking Confirmation</h3>
-          <p>Dear ${booking.name},</p>
-          <p>Your property tour has been scheduled:</p>
-          <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
-          <p><strong>Date:</strong> ${booking.formattedDate || booking.date}</p>
-          <p><strong>Time:</strong> ${booking.time}</p>
-          <p>We will contact you shortly to confirm. Thank you!</p>
-          <p>- KSA Valuers Team</p>
-        `
+    if (!emailService) {
+      return res.status(503).json({ 
+        success: false, 
+        message: 'Email service not configured. Configure EMAIL_PROVIDER in .env' 
       });
     }
+
+    const template = getTemplate('booking-confirmation', {
+      name: booking.name,
+      propertyTitle: booking.propertyTitle || 'Property',
+      date: booking.date || booking.formattedDate,
+      time: booking.time,
+      location: booking.location || ''
+    });
+
+    await emailService.send({
+      to: booking.email,
+      subject: template.subject,
+      html: template.html
+    });
+
     res.json({ success: true, message: 'Confirmation email sent' });
   } catch (error) {
-    console.error('Booking confirmation email error:', error);
-    res.json({ success: true, message: 'Booking saved (email delivery pending)' });
+    console.error('Booking confirmation email error:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to send confirmation email. Your booking is still saved.' 
+    });
   }
 });
 
 app.post('/email/admin-notification', async (req, res) => {
   const { booking } = req.body;
   try {
-    if (process.env.EMAIL_USER && process.env.ADMIN_EMAIL) {
-      await transporter.sendMail({
-        from: `"KSA Website" <${process.env.EMAIL_USER}>`,
-        to: process.env.ADMIN_EMAIL,
-        subject: `New Tour Booking - ${booking.bookingId}`,
-        html: `
-          <h3>New Tour Booking Received</h3>
-          <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
-          <p><strong>Name:</strong> ${booking.name}</p>
-          <p><strong>Email:</strong> ${booking.email}</p>
-          <p><strong>Phone:</strong> ${booking.phone}</p>
-          <p><strong>Date:</strong> ${booking.formattedDate || booking.date}</p>
-          <p><strong>Time:</strong> ${booking.time}</p>
-          <p><strong>Guests:</strong> ${booking.guests || 1}</p>
-          <p><strong>Notes:</strong> ${booking.notes || 'None'}</p>
-        `
+    if (!emailService || !process.env.ADMIN_EMAIL) {
+      return res.status(503).json({ 
+        success: false, 
+        message: 'Email service not configured. Configure EMAIL_PROVIDER and ADMIN_EMAIL in .env' 
       });
     }
+
+    const template = getTemplate('admin-notification', {
+      type: 'New Booking',
+      subject: `Booking from ${booking.name}`,
+      content: `
+        <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+        <p><strong>Name:</strong> ${booking.name}</p>
+        <p><strong>Email:</strong> <a href="mailto:${booking.email}">${booking.email}</a></p>
+        <p><strong>Phone:</strong> ${booking.phone}</p>
+        <p><strong>Date:</strong> ${booking.formattedDate || booking.date}</p>
+        <p><strong>Time:</strong> ${booking.time}</p>
+        <p><strong>Guests:</strong> ${booking.guests || 1}</p>
+        <p><strong>Property:</strong> ${booking.propertyTitle || 'Not specified'}</p>
+        <p><strong>Notes:</strong> ${booking.notes || 'None'}</p>
+      `
+    });
+
+    await emailService.send({
+      to: process.env.ADMIN_EMAIL,
+      subject: template.subject,
+      html: template.html,
+      replyTo: booking.email
+    });
+
     res.json({ success: true, message: 'Admin notification sent' });
   } catch (error) {
-    console.error('Admin notification email error:', error);
-    res.json({ success: true, message: 'Notification pending' });
+    console.error('Admin notification email error:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to send notification. Please contact admin manually.' 
+    });
   }
 });
 
@@ -960,18 +1017,25 @@ app.get('/api/status', async (req, res) => {
 // ============================================
 // START SERVER
 // ============================================
-initializeDatabase()
-  .then(() => {
+(async () => {
+  try {
+    // Initialize database
+    await initializeDatabase();
+
+    // Initialize email service
+    await initializeEmailService();
+
+    // Start listening
     app.listen(PORT, () => {
       console.log('=================================');
       console.log(`🚀 Backend running on http://localhost:${PORT}`);
       console.log(`🗄️ PostgreSQL: ✅`);
-      console.log(`📧 Email: ${process.env.EMAIL_USER ? '✅' : '❌'}`);
+      console.log(`📧 Email: ${emailService ? `✅ (${process.env.EMAIL_PROVIDER || 'gmail'})` : '⚠️  Not configured'}`);
       console.log(`🤖 Gemini AI: ${process.env.GEMINI_API_KEY ? '✅' : '❌'}`);
       console.log('=================================');
     });
-  })
-  .catch((error) => {
-    console.error('❌ Failed to initialize database:', error.message);
+  } catch (error) {
+    console.error('❌ Failed to start server:', error.message);
     process.exit(1);
-  });
+  }
+})();
