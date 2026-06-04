@@ -8,6 +8,7 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const { runMigrations } = require('./migrations/init');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,8 +18,12 @@ const ACCESS_TOKEN_TTL = process.env.JWT_ACCESS_TTL || '15m';
 const REFRESH_TOKEN_TTL = process.env.JWT_REFRESH_TTL || '7d';
 const IS_PROD = process.env.NODE_ENV === 'production';
 
+// Database connection pool
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
+  // Connection timeout and limits
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
 // Rate limiting for AI endpoint
@@ -156,97 +161,48 @@ const validateBookingPayload = (payload) => {
 };
 
 const initializeDatabase = async () => {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'admin',
-      name TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'active',
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS properties (
-      id SERIAL PRIMARY KEY,
-      title TEXT NOT NULL,
-      location TEXT NOT NULL,
-      image TEXT,
-      images JSONB NOT NULL DEFAULT '[]'::jsonb,
-      price NUMERIC NOT NULL DEFAULT 0,
-      status TEXT NOT NULL DEFAULT 'sale',
-      type TEXT,
-      bedrooms INTEGER,
-      bathrooms INTEGER,
-      square_footage INTEGER,
-      description TEXT,
-      featured BOOLEAN NOT NULL DEFAULT false,
-      tags JSONB NOT NULL DEFAULT '[]'::jsonb,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS projects (
-      id SERIAL PRIMARY KEY,
-      title TEXT NOT NULL,
-      location TEXT NOT NULL,
-      image TEXT,
-      description TEXT,
-      status TEXT NOT NULL,
-      type TEXT NOT NULL,
-      total_units INTEGER,
-      completion_percentage INTEGER DEFAULT 0,
-      start_date DATE,
-      expected_completion DATE,
-      budget NUMERIC DEFAULT 0,
-      featured BOOLEAN DEFAULT false,
-      amenities JSONB NOT NULL DEFAULT '[]'::jsonb,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS bookings (
-      id TEXT PRIMARY KEY,
-      property_id INTEGER,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      booking_date DATE NOT NULL,
-      booking_time TEXT NOT NULL,
-      guests INTEGER NOT NULL DEFAULT 1,
-      notes TEXT DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'pending',
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS contact_messages (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      phone TEXT,
-      subject TEXT NOT NULL,
-      message TEXT NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_bookings_date_time ON bookings (booking_date, booking_time);`);
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_bookings_property_date_time ON bookings (property_id, booking_date, booking_time);`);
-
-  const existingAdmin = await pool.query(`SELECT id FROM users WHERE email = $1 LIMIT 1`, ['admin@ksavaluers.com']);
-  if (existingAdmin.rowCount === 0) {
-    const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'ChangeMeNow_123', 12);
-    await pool.query(
-      `INSERT INTO users (email, password_hash, role, name) VALUES ($1, $2, $3, $4)`,
-      ['admin@ksavaluers.com', hash, 'admin', 'Admin User']
-    );
-    console.log('✅ Seeded default admin user');
+  try {
+    // Test database connection
+    console.log('🔌 Testing database connection...');
+    const testConnection = await pool.query('SELECT NOW()');
+    console.log('✅ Database connection successful');
+    
+    // Check if DATABASE_URL is configured
+    if (!process.env.DATABASE_URL) {
+      throw new Error(
+        'DATABASE_URL environment variable is not set. ' +
+        'Please add DATABASE_URL to your .env file (e.g., postgres://user:password@localhost:5432/ksa_valuers)'
+      );
+    }
+    
+    // Run migrations
+    console.log('\n🔧 Running database migrations...');
+    await runMigrations();
+    console.log('✅ Database migrations completed\n');
+    
+    // Seed admin user if needed
+    const existingAdmin = await pool.query(`SELECT id FROM users WHERE email = $1 LIMIT 1`, ['admin@ksavaluers.com']);
+    if (existingAdmin.rowCount === 0) {
+      const adminPassword = process.env.ADMIN_PASSWORD || 'ChangeMeNow_123';
+      const hash = await bcrypt.hash(adminPassword, 12);
+      await pool.query(
+        `INSERT INTO users (email, password_hash, role, name) VALUES ($1, $2, $3, $4)`,
+        ['admin@ksavaluers.com', hash, 'admin', 'Admin User']
+      );
+      console.log('✅ Seeded default admin user (admin@ksavaluers.com)');
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('\n❌ Database initialization error:');
+    console.error(`   ${error.message}`);
+    console.error('\n📖 Setup Instructions:');
+    console.error('   1. Install PostgreSQL locally or use a cloud provider (Heroku, AWS RDS, etc.)');
+    console.error('   2. Create a database: createdb ksa_valuers');
+    console.error('   3. Add DATABASE_URL to backend/.env:');
+    console.error('      DATABASE_URL=postgres://user:password@localhost:5432/ksa_valuers');
+    console.error('   4. Run migrations: npm run db:migrate');
+    throw error;
   }
 };
 
@@ -943,6 +899,61 @@ app.post('/email/admin-notification', async (req, res) => {
   } catch (error) {
     console.error('Admin notification email error:', error);
     res.json({ success: true, message: 'Notification pending' });
+  }
+});
+
+// ============================================
+// HEALTH CHECK & STATUS ENDPOINTS
+// ============================================
+app.get('/api/health', async (req, res) => {
+  try {
+    // Test database connection
+    await pool.query('SELECT NOW()');
+    res.json({
+      success: true,
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: 'connected',
+      version: '1.0.0'
+    });
+  } catch (error) {
+    res.status(503).json({
+      success: false,
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      database: 'disconnected',
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/status', async (req, res) => {
+  try {
+    await pool.query('SELECT NOW()');
+    const stats = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM properties'),
+      pool.query('SELECT COUNT(*) FROM projects'),
+      pool.query('SELECT COUNT(*) FROM bookings'),
+      pool.query('SELECT COUNT(*) FROM users')
+    ]);
+    
+    res.json({
+      success: true,
+      database: 'connected',
+      stats: {
+        properties: parseInt(stats[0].rows[0].count),
+        projects: parseInt(stats[1].rows[0].count),
+        bookings: parseInt(stats[2].rows[0].count),
+        users: parseInt(stats[3].rows[0].count)
+      },
+      environment: process.env.NODE_ENV || 'development'
+    });
+  } catch (error) {
+    res.status(503).json({
+      success: false,
+      database: 'disconnected',
+      error: error.message
+    });
   }
 });
 

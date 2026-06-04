@@ -1,0 +1,187 @@
+/**
+ * Database Migrations System
+ * 
+ * This script handles all database schema migrations.
+ * Run with: node backend/migrations/init.js
+ * 
+ * Migrations are automatically applied in order on server startup.
+ */
+
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+const { Pool } = require('pg');
+const fs = require('fs');
+const path = require('path');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+const migrations = [
+  {
+    name: '001-create-users-table',
+    up: `
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        email TEXT UNIQUE NOT NULL,
+        password_hash TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'admin',
+        name TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
+    `,
+    down: `DROP TABLE IF EXISTS users;`
+  },
+  {
+    name: '002-create-properties-table',
+    up: `
+      CREATE TABLE IF NOT EXISTS properties (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        location TEXT NOT NULL,
+        image TEXT,
+        images JSONB NOT NULL DEFAULT '[]'::jsonb,
+        price NUMERIC NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'sale',
+        type TEXT,
+        bedrooms INTEGER,
+        bathrooms INTEGER,
+        square_footage INTEGER,
+        description TEXT,
+        featured BOOLEAN NOT NULL DEFAULT false,
+        tags JSONB NOT NULL DEFAULT '[]'::jsonb,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_properties_status ON properties (status);
+      CREATE INDEX IF NOT EXISTS idx_properties_featured ON properties (featured);
+    `,
+    down: `DROP TABLE IF EXISTS properties;`
+  },
+  {
+    name: '003-create-projects-table',
+    up: `
+      CREATE TABLE IF NOT EXISTS projects (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        location TEXT NOT NULL,
+        image TEXT,
+        description TEXT,
+        status TEXT NOT NULL,
+        type TEXT NOT NULL,
+        total_units INTEGER,
+        completion_percentage INTEGER DEFAULT 0,
+        start_date DATE,
+        expected_completion DATE,
+        budget NUMERIC DEFAULT 0,
+        featured BOOLEAN DEFAULT false,
+        amenities JSONB NOT NULL DEFAULT '[]'::jsonb,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_projects_status ON projects (status);
+      CREATE INDEX IF NOT EXISTS idx_projects_featured ON projects (featured);
+    `,
+    down: `DROP TABLE IF EXISTS projects;`
+  },
+  {
+    name: '004-create-bookings-table',
+    up: `
+      CREATE TABLE IF NOT EXISTS bookings (
+        id TEXT PRIMARY KEY,
+        property_id INTEGER,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        booking_date DATE NOT NULL,
+        booking_time TEXT NOT NULL,
+        guests INTEGER NOT NULL DEFAULT 1,
+        notes TEXT DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_bookings_date_time ON bookings (booking_date, booking_time);
+      CREATE INDEX IF NOT EXISTS idx_bookings_property_date_time ON bookings (property_id, booking_date, booking_time);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_bookings_unique_slot ON bookings (property_id, booking_date, booking_time);
+    `,
+    down: `DROP TABLE IF EXISTS bookings;`
+  },
+  {
+    name: '005-create-contact-messages-table',
+    up: `
+      CREATE TABLE IF NOT EXISTS contact_messages (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        phone TEXT,
+        subject TEXT NOT NULL,
+        message TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_contact_messages_email ON contact_messages (email);
+    `,
+    down: `DROP TABLE IF EXISTS contact_messages;`
+  },
+  {
+    name: '006-create-migrations-table',
+    up: `
+      CREATE TABLE IF NOT EXISTS migrations (
+        id SERIAL PRIMARY KEY,
+        name TEXT UNIQUE NOT NULL,
+        applied_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `,
+    down: `DROP TABLE IF EXISTS migrations;`
+  }
+];
+
+async function runMigrations() {
+  const client = await pool.connect();
+  
+  try {
+    console.log('🔧 Starting database migrations...\n');
+    
+    // Create migrations table first if it doesn't exist
+    await client.query(migrations[migrations.length - 1].up);
+    
+    for (const migration of migrations) {
+      const result = await client.query(
+        'SELECT * FROM migrations WHERE name = $1',
+        [migration.name]
+      );
+      
+      if (result.rows.length === 0) {
+        console.log(`⬆️  Running migration: ${migration.name}`);
+        await client.query(migration.up);
+        await client.query(
+          'INSERT INTO migrations (name) VALUES ($1)',
+          [migration.name]
+        );
+        console.log(`✅ Migration applied: ${migration.name}\n`);
+      } else {
+        console.log(`⏭️  Skipped (already applied): ${migration.name}\n`);
+      }
+    }
+    
+    console.log('✨ All migrations completed successfully!');
+  } catch (error) {
+    console.error('❌ Migration failed:', error.message);
+    process.exit(1);
+  } finally {
+    client.release();
+    await pool.end();
+  }
+}
+
+// Run migrations if this file is executed directly
+if (require.main === module) {
+  runMigrations().catch(err => {
+    console.error('Fatal error:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = { runMigrations, migrations };
