@@ -4,7 +4,7 @@
   "description": "KSA Valuers - Real Estate Valuation in Nigeria",
   "main": "index.js",
   "scripts": {
-    "prebuild": "chmod +x node_modules/.bin/vite || true",
+    "prebuild": "node -e \"try{require('fs').chmodSync('node_modules/.bin/vite', 0o755)}catch(e){}\"",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
