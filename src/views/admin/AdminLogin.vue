@@ -33,38 +33,43 @@
           </button>
           <button
             @click="activeTab = 'signup'"
+            disabled
             :class="[
-              'flex-1 py-3 px-4 text-center font-semibold transition-colors',
+              'flex-1 py-3 px-4 text-center font-semibold transition-colors cursor-not-allowed opacity-50',
               activeTab === 'signup' 
-                ? 'text-blue-600 border-b-2 border-blue-600' 
-                : 'text-gray-500 hover:text-gray-700'
+                ? 'text-gray-400 border-b-2 border-gray-300' 
+                : 'text-gray-400 hover:text-gray-500'
             ]"
+            title="Self-service signup is disabled"
           >
-            Sign Up
+            Sign Up (Disabled)
           </button>
         </div>
 
         <!-- Error/Success Messages -->
-        <div v-if="errorMessage" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p class="text-sm text-red-600 flex items-center">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div v-if="errorMessage" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div class="flex items-start">
+            <svg class="w-5 h-5 mr-3 mt-0.5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            {{ errorMessage }}
-          </p>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-red-800">{{ errorMessage }}</p>
+              <p class="text-xs text-red-600 mt-1">Please check your email and password and try again.</p>
+            </div>
+          </div>
         </div>
 
-        <div v-if="successMessage" class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <p class="text-sm text-green-600 flex items-center">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div v-if="successMessage" class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div class="flex items-start">
+            <svg class="w-5 h-5 mr-3 mt-0.5 text-green-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            {{ successMessage }}
-          </p>
+            <p class="text-sm font-medium text-green-800">{{ successMessage }}</p>
+          </div>
         </div>
 
         <!-- Login Form -->
-        <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="space-y-6">
+        <form @submit.prevent="handleLogin" class="space-y-6">
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
               Email Address
@@ -141,87 +146,24 @@
           </button>
         </form>
 
-        <!-- Signup Form -->
-        <form v-if="activeTab === 'signup'" @submit.prevent="handleSignup" class="space-y-6">
+        <!-- Signup Form (Disabled) -->
+        <div v-if="activeTab === 'signup'" class="space-y-6 text-center py-8">
+          <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
           <div>
-            <label for="signup-name" class="block text-sm font-medium text-gray-700 mb-2">
-              Full Name
-            </label>
-            <input
-              id="signup-name"
-              v-model="signupForm.name"
-              type="text"
-              required
-              placeholder="John Doe"
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-            >
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Sign Up is Disabled</h3>
+            <p class="text-gray-600 mb-4">Self-service registration is not currently available.</p>
+            <p class="text-sm text-gray-500">Please contact your administrator if you need an account.</p>
           </div>
+        </div>
 
-          <div>
-            <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-2">
-              Email Address
-            </label>
-            <input
-              id="signup-email"
-              v-model="signupForm.email"
-              type="email"
-              required
-              placeholder="john.doe@ksavaluers.com"
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-            >
-          </div>
-
-          <div>
-            <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-2">
-              Password
-            </label>
-            <input
-              id="signup-password"
-              v-model="signupForm.password"
-              type="password"
-              required
-              placeholder="Create a strong password"
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-            >
-          </div>
-
-          <div>
-            <label for="department" class="block text-sm font-medium text-gray-700 mb-2">
-              Department
-            </label>
-            <select
-              id="department"
-              v-model="signupForm.department"
-              required
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-            >
-              <option value="">Select Department</option>
-              <option value="valuation">Valuation</option>
-              <option value="management">Estate Management</option>
-              <option value="sales">Sales & Agency</option>
-              <option value="hr">Human Resources</option>
-              <option value="consulting">Cost Consulting</option>
-            </select>
-          </div>
-
-          <button
-            type="submit"
-            :disabled="loading"
-            class="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <span v-if="!loading">Create Account</span>
-            <span v-else class="flex items-center justify-center">
-              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Creating account...
-            </span>
-          </button>
-        </form>
-
-        <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700">
-          Use your provisioned admin account. Credentials are no longer hardcoded in the frontend.
+        <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+          <p class="font-semibold mb-2">Admin Access Only</p>
+          <p class="text-xs leading-relaxed">
+            This is the admin portal for KSA Valuers staff. Use your assigned credentials to sign in.
+            If you don't have an account or have forgotten your password, please contact your administrator.
+          </p>
         </div>
       </div>
 
@@ -296,16 +238,20 @@ const handleLogin = async () => {
         router.push(redirect)
       }, 1000)
     } else {
-      errorMessage.value = result.error || 'Login failed. Please check your credentials.'
+      errorMessage.value = result.error || 'Login failed. Please check your credentials and try again.'
+      // Auto-clear error after 6 seconds
+      setTimeout(() => {
+        errorMessage.value = ''
+      }, 6000)
     }
   } catch (error) {
-    errorMessage.value = 'An error occurred. Please try again.'
+    errorMessage.value = 'An unexpected error occurred. Please try again.'
+    // Auto-clear error after 6 seconds
+    setTimeout(() => {
+      errorMessage.value = ''
+    }, 6000)
   } finally {
     loading.value = false
   }
-}
-
-const handleSignup = async () => {
-  errorMessage.value = 'Self-service signup is disabled. Please contact an administrator.'
 }
 </script>

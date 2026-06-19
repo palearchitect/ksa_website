@@ -3,6 +3,9 @@
     <!-- Hero Banner Section -->
     <HeroBanner />
 
+    <!-- Featured Properties Carousel Section -->
+    <FeaturedPropertiesCarousel />
+
     <!-- Service Highlights Section -->
     <ServiceHighlights />
 
@@ -106,6 +109,7 @@
 
 <script setup>
 import HeroBanner from '@/components/sections/HeroBanner.vue'
+import FeaturedPropertiesCarousel from '@/components/sections/FeaturedPropertiesCarousel.vue'
 import ServiceHighlights from '@/components/sections/ServiceHighlights.vue'
 </script>
 

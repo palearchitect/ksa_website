@@ -6,10 +6,44 @@ This document describes all the autonomous agents, services, and state managemen
 
 ## ≡ƒôï Table of Contents
 
+- [Recent Fixes & Current Status](#recent-fixes--current-status)
 - [Frontend Services & Stores](#frontend-services--stores)
 - [Backend Services & Agents](#backend-services--agents)
 - [Communication Patterns](#communication-patterns)
 - [Data Flow](#data-flow)
+- [Critical Issues Tracker](#critical-issues-tracker)
+
+---
+
+## ≡ƒôè Recent Fixes & Current Status
+
+### ✅ **FIXED in Latest Session (2026-06-19)**
+
+1. **Navigation Z-Index Issue** ✅ FIXED
+   - **Problem:** AppHeader appeared behind content
+   - **Solution:** Added `relative z-40` to header element
+   - **File:** `src/components/global/AppHeader.vue` (line 2)
+   - **Status:** Complete
+
+2. **Missing Properties Carousel** ✅ FIXED
+   - **Problem:** Home page had no carousel displaying featured properties
+   - **Solution:** Created new `FeaturedPropertiesCarousel.vue` component with navigation and favorites
+   - **Files:** 
+     - Created: `src/components/sections/FeaturedPropertiesCarousel.vue`
+     - Updated: `src/views/Home.vue` - Added carousel import and component
+   - **Features:** Swipe navigation, indicators, responsive design
+   - **Status:** Complete
+
+3. **Admin Login Page UX** ✅ FIXED
+   - **Problem:** Poor error handling, confusing signup disabled message
+   - **Solutions:**
+     - Better error messages with helpful context
+     - Disabled signup tab visually (disabled button state)
+     - Replaced signup form with disabled state explanation
+     - Auto-clear error messages after 6 seconds
+     - Improved info box with clearer instructions
+   - **Files:** `src/views/admin/AdminLogin.vue`
+   - **Status:** Complete
 
 ---
 
@@ -1240,7 +1274,157 @@ app.get('/api/properties', async (_req, res) => {
 
 ---
 
-## ≡ƒô¥ Notes on File Editability
+## ≡ƒö¥ CODE AUDIT FINDINGS (Comprehensive)
+
+### **21 Code Quality Issues Identified**
+
+Based on comprehensive codebase audit, here are all issues organized by severity:
+
+#### **CRITICAL (3 issues)**
+
+1. **Missing Error Handling - API Response Parsing**
+   - **File:** `src/services/contactService.js` (line 17)
+   - **Problem:** `const data = await response.json()` without try-catch for JSON parsing errors
+   - **Impact:** Silent failures, unhandled promise rejections
+   - **Fix:** Wrap JSON parsing in try-catch block
+
+2. **Race Condition in Token Refresh**
+   - **File:** `src/services/api.js` (lines 49-81)
+   - **Problem:** Multiple 401 responses could trigger multiple token refresh attempts
+   - **Impact:** Duplicate API calls, potential auth failures
+   - **Fix:** Use atomic operation or mutex pattern for `isRefreshing` flag
+
+3. **Unguarded window.location Access**
+   - **File:** `src/services/api.js` (lines 39, 44, 73), `src/components/global/ErrorBoundary.vue` (line 17)
+   - **Problem:** Direct window.location access without checking if window exists
+   - **Impact:** Breaks in non-browser environments (SSR, testing)
+   - **Fix:** Add `typeof window !== 'undefined'` guard
+
+#### **HIGH (8 issues)**
+
+4. **Missing Input Validation**
+   - **File:** `src/views/admin/AdminPropertyForm.vue` (lines 10-34)
+   - **Problem:** Form accepts user input without validation before submission
+   - **Impact:** Invalid data in database, API errors
+   - **Fix:** Add form validation before submit
+
+5. **Unhandled Promise Rejection in Logout**
+   - **File:** `src/stores/authStore.js` (line 63)
+   - **Problem:** `.catch(() => undefined)` silently ignores logout errors
+   - **Impact:** Errors swallowed, debugging difficult
+   - **Fix:** Proper error logging instead of silent catch
+
+6. **Missing Null Check in Computed Property**
+   - **File:** `src/stores/propertyStore.js` (line 96)
+   - **Problem:** `p.featured` accessed without null/undefined check
+   - **Impact:** Runtime errors if property malformed
+   - **Fix:** Add optional chaining: `p?.featured`
+
+7. **No Error Handling in Store Initialization**
+   - **File:** `src/stores/propertyStore.js` (line 197), `src/stores/projectStore.js`, `src/stores/bookingStore.js`
+   - **Problem:** Async initialization called without error handling
+   - **Impact:** Silent failures on startup
+   - **Fix:** Add try-catch blocks or error state
+
+8. **Missing Response Data Validation**
+   - **File:** `src/stores/propertyStore.js` (lines 45, 58, 68)
+   - **Problem:** Assumes `response.data` structure without validation
+   - **Impact:** Crashes if API returns unexpected structure
+   - **Fix:** Validate API response schema
+
+9. **No CSRF Protection**
+   - **File:** `src/services/api.js` (entire file)
+   - **Problem:** No CSRF token handling in state-changing requests
+   - **Impact:** Vulnerable to CSRF attacks
+   - **Fix:** Add CSRF token to request headers
+
+10. **Broken Dynamic Import in Route Guard**
+    - **File:** `src/router/index.js` (line 150)
+    - **Problem:** Dynamic import of authStore without error handling
+    - **Impact:** Silent failures if import fails
+    - **Fix:** Add try-catch around dynamic imports
+
+11. **Race Condition in Multiple API Calls**
+    - **File:** `src/services/api.js` (response interceptor)
+    - **Problem:** Queue of failed requests not atomic-safe
+    - **Impact:** Request order may be wrong after refresh
+    - **Fix:** Use proper queue mechanism or async/await lock
+
+#### **MEDIUM (9 issues)**
+
+12. **Hardcoded API Endpoint**
+    - **File:** `src/services/api.js` (line 55)
+    - **Problem:** `/api/v1/auth/refresh` hardcoded in token refresh
+    - **Impact:** Not configurable, inconsistent with other endpoints
+    - **Fix:** Use `BASE_URL` or config constant
+
+13. **Hardcoded Phone Numbers**
+    - **Files:** `src/views/BookTour.vue` (lines 304, 353)
+    - **Problem:** `+234 800 123 4567` hardcoded in multiple places
+    - **Impact:** Hard to update, scattered throughout code
+    - **Fix:** Move to config constants or env variables
+
+14. **Hardcoded Contact Email**
+    - **File:** `src/views/BookTour.vue` (line 360)
+    - **Problem:** `bookings@ksavaluers.com` hardcoded
+    - **Impact:** Hard to change, not centralized
+    - **Fix:** Move to config/constants
+
+15. **No Form Reset After Submit**
+    - **File:** `src/views/admin/AdminPropertyForm.vue` (line 94)
+    - **Problem:** Form data not cleared after successful submission
+    - **Impact:** User can accidentally resubmit same data
+    - **Fix:** Call `resetForm()` after success
+
+16. **Missing Loading State in API Calls**
+    - **File:** `src/views/admin/AdminBookings.vue`
+    - **Problem:** No loading state tracking for list operations
+    - **Impact:** UI doesn't indicate loading, poor UX
+    - **Fix:** Add loading ref and loading state management
+
+17. **Unvalidated Route Parameters**
+    - **File:** `src/router/index.js` (lines 75, 80)
+    - **Problem:** Route parameter `id` used without validation
+    - **Impact:** Invalid IDs could cause errors
+    - **Fix:** Validate ID format in route guard
+
+18. **Missing Null Check on Optional Property**
+    - **File:** `src/views/BookTour.vue` (line 47)
+    - **Problem:** `selectedPropertyDetails.address` accessed without null-safety
+    - **Impact:** Display "undefined" in UI
+    - **Fix:** Use optional chaining: `selectedPropertyDetails?.address`
+
+19. **Magic String Constants**
+    - **File:** `src/services/api.js` (multiple lines)
+    - **Problem:** HTTP status codes, paths hardcoded (400, 401, 403, etc.)
+    - **Impact:** Hard to maintain, scattered constants
+    - **Fix:** Extract to constants file
+
+20. **Console Methods in Production**
+    - **Files:** `src/services/contactService.js` (lines 25, 35)
+    - **Problem:** `console.error()` left in production code
+    - **Impact:** Should use proper logging service
+    - **Fix:** Replace with logger service or remove
+
+#### **LOW (1 issue)**
+
+21. **Missing Accessibility Attributes**
+    - **File:** `src/views/admin/AdminBookings.vue` (line 84)
+    - **Problem:** Tab buttons missing `role="tab"` and `aria-selected`
+    - **Impact:** WCAG accessibility violations
+    - **Fix:** Add `role="tab"`, `aria-selected`, `aria-controls`
+
+---
+
+**Summary:** 
+- **CRITICAL:** 3 issues blocking stability
+- **HIGH:** 8 issues affecting data integrity and error handling
+- **MEDIUM:** 9 issues affecting maintainability and UX
+- **LOW:** 1 issue affecting accessibility
+
+**Priority Order:** Fix all CRITICAL and HIGH issues before production.
+
+---
 
 **Can Edit Freely:**
 - Γ£à `backend/server.js` - All endpoints, middleware, config
@@ -1263,7 +1447,16 @@ app.get('/api/properties', async (_req, res) => {
 
 ---
 
-**Last Updated:** June 4, 2026  
-**Version:** 2.0.0 (Production Readiness Audit)  
+**Last Updated:** June 19, 2026  
+**Version:** 3.0.0 (Post-Fix Audit)  
 **Architecture Pattern:** Service-oriented with Pinia state management  
-**Production Status:** ≡ƒö┤ BLOCKED - Waiting on Priority 1 fixes
+**Production Status:** ⚠️ **PARTIAL** - Critical UI/UX issues fixed, but code quality issues remain
+
+### **Next Steps:**
+1. ✅ DONE: Fix navigation z-index (prevents content overlap)
+2. ✅ DONE: Add properties carousel (improves home page)
+3. ✅ DONE: Improve admin login UX (better error messages)
+4. 🔲 TODO: Fix 3 CRITICAL code issues (error handling, race conditions)
+5. 🔲 TODO: Fix 8 HIGH priority issues (validation, null checks)
+6. 🔲 TODO: Address 9 MEDIUM issues (hardcoded values, missing states)
+7. 🔲 TODO: Fix 1 LOW accessibility issue
