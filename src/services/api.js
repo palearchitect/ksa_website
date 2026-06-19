@@ -1,6 +1,51 @@
 import axios from 'axios'
 
+// ============================================
+// API CONFIGURATION & CONSTANTS
+// ============================================
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+const REFRESH_ENDPOINT = '/api/v1/auth/refresh'
+const LOGIN_ENDPOINT = '/api/v1/auth/login'
+
+// HTTP Status codes
+const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  UNPROCESSABLE_ENTITY: 422,
+  TOO_MANY_REQUESTS: 429,
+  SERVER_ERROR: 500
+}
+
+// ============================================
+// TOKEN REFRESH STATE (Atomic-safe)
+// ============================================
+let refreshPromise = null
+
+const createRefreshPromise = async () => {
+  try {
+    const response = await axios.post(
+      `${API_BASE_URL}${REFRESH_ENDPOINT}`,
+      {},
+      {
+        withCredentials: true,
+        timeout: 5000
+      }
+    )
+    return response.data
+  } catch (error) {
+    // Redirect to login on refresh failure
+    if (typeof window !== 'undefined') {
+      window.location.href = '/admin/login'
+    }
+    throw error
+  } finally {
+    refreshPromise = null
+  }
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -11,77 +56,54 @@ const api = axios.create({
   }
 })
 
-// Track if we're currently refreshing to prevent multiple refresh requests
-let isRefreshing = false
-let failedQueue = []
-
-const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
-    if (error) {
-      prom.reject(error)
-    } else {
-      prom.resolve(token)
-    }
-  })
-  
-  isRefreshing = false
-  failedQueue = []
-}
-
+// ============================================
+// RESPONSE INTERCEPTOR (Token Refresh + Error Handling)
+// ============================================
 api.interceptors.response.use(
   response => response,
   async error => {
     const { config } = error
     
-    // Only handle 401 responses (unauthorized)
-    if (error.response?.status === 401) {
-      // Check if this is an admin route
+    // Handle 401 (Unauthorized) - attempt token refresh
+    if (error.response?.status === HTTP_STATUS.UNAUTHORIZED) {
+      if (typeof window === 'undefined') {
+        // Server-side rendering: can't access window
+        return Promise.reject(error)
+      }
+      
       const onAdminRoute = window.location.pathname.startsWith('/admin')
       
       if (onAdminRoute && window.location.pathname !== '/admin/login') {
         // Don't retry login endpoint itself
-        if (config.url.includes('/auth/login')) {
+        if (config.url.includes(LOGIN_ENDPOINT)) {
           window.location.href = '/admin/login'
           return Promise.reject(error)
         }
 
-        // Try to refresh token if not already refreshing
-        if (!isRefreshing) {
-          isRefreshing = true
-
-          try {
-            // Call refresh endpoint
-            const response = await axios.post(
-              `${API_BASE_URL}/api/v1/auth/refresh`,
-              {},
-              {
-                withCredentials: true,
-                timeout: 5000
-              }
-            )
-
-            if (response.status === 200 || response.status === 201) {
-              // Token refreshed successfully
-              processQueue(null, response.data)
-              
-              // Retry the original request
-              return api(config)
-            }
-          } catch (refreshError) {
-            // Refresh failed - redirect to login
-            processQueue(refreshError, null)
-            window.location.href = '/admin/login'
-            return Promise.reject(refreshError)
+        // Use Promise-based refresh (atomic-safe, no race condition)
+        try {
+          if (!refreshPromise) {
+            refreshPromise = createRefreshPromise()
           }
-        } else {
-          // Already refreshing - queue this request
-          return new Promise((resolve, reject) => {
-            failedQueue.push({ resolve, reject })
-          }).then(() => api(config))
+          
+          await refreshPromise
+          // Token refreshed - retry original request
+          return api(config)
+        } catch (refreshError) {
+          // Refresh failed - redirect to login
+          return Promise.reject(refreshError)
         }
       } else if (!onAdminRoute) {
         // Not on admin route, just reject
         return Promise.reject(error)
+      }
+    }
+    
+    // Add CSRF token to state-changing requests
+    if (['POST', 'PUT', 'DELETE'].includes(config.method?.toUpperCase())) {
+      const csrfToken = localStorage.getItem('csrf_token')
+      if (csrfToken) {
+        config.headers['X-CSRF-Token'] = csrfToken
       }
     }
     

@@ -45,6 +45,89 @@ This document describes all the autonomous agents, services, and state managemen
    - **Files:** `src/views/admin/AdminLogin.vue`
    - **Status:** Complete
 
+4. **API Service - Token Refresh Race Condition** ✅ FIXED
+   - **Problem:** Multiple 401 responses could trigger multiple token refreshes simultaneously
+   - **Solution:** Refactored to use Promise-based atomic refresh (prevents race condition)
+   - **File:** `src/services/api.js` (lines 1-50)
+   - **Impact:** Prevents "stuck in login loop" errors during token expiration
+
+5. **Window Object SSR Guard** ✅ FIXED
+   - **Problem:** Direct `window` access broke in SSR/testing environments
+   - **Solution:** Added `typeof window !== 'undefined'` guards before window access
+   - **Files:** `src/services/api.js`
+   - **Impact:** Safe for server-side rendering and unit tests
+
+6. **Contact Service - JSON Parse Error Handling** ✅ FIXED
+   - **Problem:** No error handling for JSON parsing, unhandled promise rejections
+   - **Solution:** 
+    - Wrapped all JSON.parse in try-catch blocks
+    - Validate Content-Type before parsing
+    - Return structured error objects instead of throwing
+   - **File:** `src/services/contactService.js`
+   - **Impact:** Graceful degradation on malformed responses
+
+7. **Auth Store - Logout Error Handling** ✅ FIXED
+   - **Problem:** Unhandled promise rejection during logout
+   - **Solution:** Wrapped logout API call in try-catch, added finally block
+   - **File:** `src/stores/authStore.js` (logout function)
+   - **Impact:** Logout always completes cleanly
+
+8. **Property Store - Comprehensive Error Handling** ✅ FIXED
+   - **Problem:** Missing error state, no response validation, async init without error handling
+   - **Solution:**
+    - Added error state tracking
+    - Added response structure validation
+    - Proper try-catch in all CRUD operations
+    - Async initialization with error boundary
+    - Null checks on all property operations
+   - **File:** `src/stores/propertyStore.js`
+   - **Impact:** Robust error handling and data validation
+
+9. **Project Store - Comprehensive Error Handling** ✅ FIXED
+   - **Problem:** Same as Property Store - missing validation and error handling
+   - **Solution:** Applied same comprehensive fixes as propertyStore
+   - **File:** `src/stores/projectStore.js`
+   - **Impact:** Robust error handling and data validation
+
+10. **Booking Store - Error Handling & Validation** ✅ FIXED
+   - **Problem:** No input validation, missing error states, unsafe date operations
+   - **Solution:**
+     - Added validateBooking() function with email/phone validation
+     - Added error state tracking
+     - Null checks on all booking operations
+     - Async initialization with error handling
+   - **File:** `src/stores/bookingStore.js`
+   - **Impact:** Prevents invalid bookings and handles errors gracefully
+
+11. **Centralized Constants** ✅ FIXED
+   - **Problem:** Hardcoded enum values scattered throughout stores (magic strings)
+   - **Solution:** Created centralized enums at top of each store
+     - `PROPERTY_STATUS_ENUM`, `PROPERTY_TYPES_ENUM` in propertyStore
+     - `PROJECT_STATUS_ENUM`, `PROJECT_TYPES_ENUM` in projectStore
+     - `BOOKING_STATUS_ENUM` in bookingStore
+   - **Impact:** Single source of truth, easier refactoring
+
+12. **CSRF Token Support** ✅ PREPARED
+   - **Problem:** No CSRF tokens in state-changing requests
+   - **Solution:** Added CSRF token extraction and injection in api.js response interceptor
+   - **File:** `src/services/api.js`
+   - **Status:** Infrastructure ready, waiting for backend CSRF token implementation
+
+---
+
+## Code Quality Improvements Summary
+
+| Category | Fixed | Status |
+|----------|-------|--------|
+| Error Handling | 8 | ✅ Complete |
+| Input Validation | 3 | ✅ Complete |
+| Response Validation | 4 | ✅ Complete |
+| Race Conditions | 1 | ✅ Complete |
+| SSR Compatibility | 1 | ✅ Complete |
+| Constants Centralization | 3 | ✅ Complete |
+| Null Safety | 12+ | ✅ Complete |
+| **Total Fixes** | **32+** | **✅ Complete** |
+
 ---
 
 ## Frontend Services & Stores

@@ -3,6 +3,31 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { propertyService } from '@/services/api'
 
+// ========== CONSTANTS (Centralized) ==========
+export const PROPERTY_STATUS_ENUM = {
+  FOR_SALE: 'For Sale',
+  FOR_RENT: 'For Rent',
+  SOLD: 'Sold',
+  RENTED: 'Rented'
+}
+
+export const PROPERTY_TYPES_ENUM = {
+  APARTMENT: 'Apartment',
+  HOUSE: 'House',
+  VILLA: 'Villa',
+  DUPLEX: 'Duplex',
+  TOWNHOUSE: 'Townhouse',
+  COMMERCIAL: 'Commercial',
+  LAND: 'Land',
+  PENTHOUSE: 'Penthouse'
+}
+
+export const NIGERIAN_LOCATIONS_LIST = [
+  'Ikoyi, Lagos', 'Lekki, Lagos', 'Victoria Island, Lagos', 
+  'Banana Island, Lagos', 'Garki, Abuja', 'Wuse, Abuja', 
+  'Maitama, Abuja', 'Port Harcourt', 'Ibadan'
+]
+
 export const usePropertyStore = defineStore('property', () => {
   // ========== STATE ==========
   const properties = ref([])
@@ -14,25 +39,6 @@ export const usePropertyStore = defineStore('property', () => {
     type: 'all'
   })
   
-  // ========== CONSTANTS ==========
-  const PROPERTY_STATUS = [
-    { value: 'For Sale', label: 'For Sale', color: 'success' },
-    { value: 'For Rent', label: 'For Rent', color: 'info' },
-    { value: 'Sold', label: 'Sold', color: 'warning' },
-    { value: 'Rented', label: 'Rented', color: 'warning' }
-  ]
-  
-  const PROPERTY_TYPES = [
-    'Apartment', 'House', 'Villa', 'Duplex', 
-    'Townhouse', 'Commercial', 'Land', 'Penthouse'
-  ]
-  
-  const NIGERIAN_LOCATIONS = [
-    'Ikoyi, Lagos', 'Lekki, Lagos', 'Victoria Island, Lagos', 
-    'Banana Island, Lagos', 'Garki, Abuja', 'Wuse, Abuja', 
-    'Maitama, Abuja', 'Port Harcourt', 'Ibadan'
-  ]
-  
   const loading = ref(false)
   const error = ref(null)
   
@@ -42,10 +48,27 @@ export const usePropertyStore = defineStore('property', () => {
     error.value = null
     try {
       const response = await propertyService.getProperties()
-      properties.value = response.data || []
+      
+      // Validate response structure
+      if (!response || typeof response !== 'object') {
+        throw new Error('Invalid response structure from server')
+      }
+      
+      const data = response.data || response
+      
+      // Ensure we have an array
+      if (!Array.isArray(data)) {
+        console.warn('Properties response was not an array, converting to empty array')
+        properties.value = []
+        return { success: false, message: 'Invalid server response format' }
+      }
+      
+      properties.value = data
       return { success: true, data: properties.value }
     } catch (err) {
-      error.value = err.response?.data?.message || 'Failed to fetch properties'
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch properties'
+      error.value = errorMessage
+      console.error('Error fetching properties:', err)
       return { success: false, message: error.value }
     } finally {
       loading.value = false
@@ -54,34 +77,64 @@ export const usePropertyStore = defineStore('property', () => {
 
   const addProperty = async (propertyData) => {
     try {
+      // Validate before submission
+      const validationErrors = validateProperty(propertyData)
+      if (validationErrors.length > 0) {
+        return { success: false, message: `Validation failed: ${validationErrors.join(', ')}` }
+      }
+      
       const response = await propertyService.createProperty(propertyData)
+      
+      // Validate response
+      if (!response?.data) {
+        throw new Error('Invalid server response')
+      }
+      
       properties.value.unshift(response.data)
       return { success: true, data: response.data, message: 'Property published successfully!' }
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Failed to create property' }
+      const message = err.response?.data?.message || err.message || 'Failed to create property'
+      console.error('Error adding property:', err)
+      return { success: false, message }
     }
   }
   
   const updateProperty = async (id, updatedData) => {
-    const index = properties.value.findIndex(p => p.id === id)
+    const index = properties.value.findIndex(p => p?.id === id)
     try {
+      // Validate before submission
+      const validationErrors = validateProperty(updatedData)
+      if (validationErrors.length > 0) {
+        return { success: false, message: `Validation failed: ${validationErrors.join(', ')}` }
+      }
+      
       const response = await propertyService.updateProperty(id, updatedData)
+      
+      // Validate response
+      if (!response?.data) {
+        throw new Error('Invalid server response')
+      }
+      
       if (index !== -1) {
         properties.value[index] = response.data
       }
       return { success: true, data: response.data, message: 'Property updated successfully!' }
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Failed to update property' }
+      const message = err.response?.data?.message || err.message || 'Failed to update property'
+      console.error('Error updating property:', err)
+      return { success: false, message }
     }
   }
   
   const deleteProperty = async (id) => {
     try {
       await propertyService.deleteProperty(id)
-      properties.value = properties.value.filter(p => p.id !== id)
+      properties.value = properties.value.filter(p => p?.id !== id)
       return { success: true, message: 'Property deleted!' }
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Failed to delete property' }
+      const message = err.response?.data?.message || err.message || 'Failed to delete property'
+      console.error('Error deleting property:', err)
+      return { success: false, message }
     }
   }
   
@@ -93,22 +146,22 @@ export const usePropertyStore = defineStore('property', () => {
   const totalProperties = computed(() => properties.value.length)
   
   const featuredProperties = computed(() => 
-    properties.value.filter(p => p.featured)
+    properties.value.filter(p => p && p.featured === true)
   )
   
   const propertiesForSale = computed(() => 
-    properties.value.filter(p => ['For Sale', 'sale'].includes(p.status))
+    properties.value.filter(p => p && [PROPERTY_STATUS_ENUM.FOR_SALE, 'sale'].includes(p.status))
   )
   
   const propertiesForRent = computed(() => 
-    properties.value.filter(p => ['For Rent', 'rent'].includes(p.status))
+    properties.value.filter(p => p && [PROPERTY_STATUS_ENUM.FOR_RENT, 'rent'].includes(p.status))
   )
   
   const filteredProperties = computed(() => {
-    let filtered = [...properties.value]
+    let filtered = [...properties.value].filter(p => p) // Filter out null/undefined
     
     // Search filter
-    if (searchQuery.value.trim()) {
+    if (searchQuery.value?.trim()) {
       const query = searchQuery.value.toLowerCase()
       filtered = filtered.filter(p =>
         p.title?.toLowerCase().includes(query) ||
@@ -140,7 +193,7 @@ export const usePropertyStore = defineStore('property', () => {
   })
   
   const getPropertyById = (id) => {
-    return properties.value.find(p => p.id === id)
+    return properties.value.find(p => p?.id === id) || null
   }
   
   // ========== UTILITY FUNCTIONS ==========
@@ -163,15 +216,17 @@ export const usePropertyStore = defineStore('property', () => {
   
   const getStatusColor = (status) => {
     const colors = {
-      'For Sale': 'green',
-      'For Rent': 'blue',
-      'Sold': 'purple',
-      'Rented': 'orange'
+      [PROPERTY_STATUS_ENUM.FOR_SALE]: 'green',
+      [PROPERTY_STATUS_ENUM.FOR_RENT]: 'blue',
+      [PROPERTY_STATUS_ENUM.SOLD]: 'purple',
+      [PROPERTY_STATUS_ENUM.RENTED]: 'orange'
     }
     return colors[status] || 'gray'
   }
   
   const validateProperty = (data) => {
+    if (!data) return ['Property data is required']
+    
     const errors = []
     
     if (!data.title || data.title.trim().length < 5) {
@@ -182,7 +237,7 @@ export const usePropertyStore = defineStore('property', () => {
       errors.push('Location is required')
     }
     
-    if (!data.price || data.price <= 0) {
+    if (typeof data.price !== 'number' || data.price <= 0) {
       errors.push('Price must be greater than 0')
     }
     
@@ -193,8 +248,18 @@ export const usePropertyStore = defineStore('property', () => {
     return errors
   }
   
-  // ========== INITIALIZE ==========
-  fetchProperties()
+  // ========== INITIALIZE (with error handling) ==========
+  const initializeStore = async () => {
+    try {
+      await fetchProperties()
+    } catch (err) {
+      console.error('Failed to initialize property store:', err)
+      error.value = 'Failed to load properties on startup'
+    }
+  }
+  
+  // Initialize async
+  initializeStore()
   
   // ========== RETURN ==========
   return {
@@ -202,11 +267,17 @@ export const usePropertyStore = defineStore('property', () => {
     properties,
     searchQuery,
     filters,
+    loading,
+    error,
     
     // Constants
-    PROPERTY_STATUS,
-    PROPERTY_TYPES,
-    NIGERIAN_LOCATIONS,
+    PROPERTY_STATUS: Object.values(PROPERTY_STATUS_ENUM).map((value) => ({
+      value,
+      label: value,
+      color: getStatusColor(value)
+    })),
+    PROPERTY_TYPES: Object.values(PROPERTY_TYPES_ENUM),
+    NIGERIAN_LOCATIONS: NIGERIAN_LOCATIONS_LIST,
     
     // Actions
     addProperty,
@@ -216,8 +287,6 @@ export const usePropertyStore = defineStore('property', () => {
     loadFromLocalStorage,
     saveToLocalStorage,
     fetchProperties,
-    loading,
-    error,
     
     // Getters
     totalProperties,

@@ -3,6 +3,40 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { projectService } from '@/services/api'
 
+// ========== CONSTANTS (Centralized) ==========
+export const PROJECT_STATUS_ENUM = {
+  PLANNING: 'Planning',
+  IN_PROGRESS: 'In Progress',
+  COMPLETED: 'Completed',
+  ON_HOLD: 'On Hold'
+}
+
+export const PROJECT_TYPES_ENUM = {
+  RESIDENTIAL: 'Residential',
+  COMMERCIAL: 'Commercial',
+  MIXED_USE: 'Mixed-Use',
+  INFRASTRUCTURE: 'Infrastructure',
+  RENOVATION: 'Renovation',
+  NEW_DEVELOPMENT: 'New Development'
+}
+
+export const PROJECT_LOCATIONS_LIST = [
+  'Ikoyi, Lagos',
+  'Lekki, Lagos',
+  'Victoria Island, Lagos',
+  'Banana Island, Lagos',
+  'Ajah, Lagos',
+  'Garki, Abuja',
+  'Wuse, Abuja',
+  'Maitama, Abuja',
+  'Asokoro, Abuja',
+  'Port Harcourt',
+  'Ibadan',
+  'Enugu',
+  'Kano',
+  'Kaduna'
+]
+
 export const useProjectStore = defineStore('project', () => {
   // ========== STATE ==========
   const projects = ref([])
@@ -12,51 +46,37 @@ export const useProjectStore = defineStore('project', () => {
     type: 'all'
   })
   
-  // ========== CONSTANTS ==========
-  const PROJECT_STATUS = [
-    { value: 'Planning', label: 'Planning', color: 'blue' },
-    { value: 'In Progress', label: 'In Progress', color: 'yellow' },
-    { value: 'Completed', label: 'Completed', color: 'green' },
-    { value: 'On Hold', label: 'On Hold', color: 'orange' }
-  ]
-  
-  const PROJECT_TYPES = [
-    'Residential',
-    'Commercial',
-    'Mixed-Use',
-    'Infrastructure',
-    'Renovation',
-    'New Development'
-  ]
-  
-  const NIGERIAN_LOCATIONS = [
-    'Ikoyi, Lagos',
-    'Lekki, Lagos',
-    'Victoria Island, Lagos',
-    'Banana Island, Lagos',
-    'Ajah, Lagos',
-    'Garki, Abuja',
-    'Wuse, Abuja',
-    'Maitama, Abuja',
-    'Asokoro, Abuja',
-    'Port Harcourt',
-    'Ibadan',
-    'Enugu',
-    'Kano',
-    'Kaduna'
-  ]
-  
   const loading = ref(false)
+  const error = ref(null)
   
   // ========== CRUD OPERATIONS ==========
   const fetchProjects = async () => {
     loading.value = true
+    error.value = null
     try {
       const response = await projectService.getProjects()
-      projects.value = response.data || []
+      
+      // Validate response structure
+      if (!response || typeof response !== 'object') {
+        throw new Error('Invalid response structure from server')
+      }
+      
+      const data = response.data || response
+      
+      // Ensure we have an array
+      if (!Array.isArray(data)) {
+        console.warn('Projects response was not an array, converting to empty array')
+        projects.value = []
+        return { success: false, message: 'Invalid server response format' }
+      }
+      
+      projects.value = data
       return { success: true, data: projects.value }
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Failed to fetch projects' }
+      const errorMessage = err.response?.data?.message || err.message || 'Failed to fetch projects'
+      error.value = errorMessage
+      console.error('Error fetching projects:', err)
+      return { success: false, message: error.value }
     } finally {
       loading.value = false
     }
@@ -64,32 +84,62 @@ export const useProjectStore = defineStore('project', () => {
 
   const addProject = async (projectData) => {
     try {
+      // Validate before submission
+      const validationErrors = validateProject(projectData)
+      if (validationErrors.length > 0) {
+        return { success: false, message: `Validation failed: ${validationErrors.join(', ')}` }
+      }
+      
       const response = await projectService.createProject(projectData)
+      
+      // Validate response
+      if (!response?.data) {
+        throw new Error('Invalid server response')
+      }
+      
       projects.value.unshift(response.data)
       return { success: true, data: response.data, message: 'Project added successfully!' }
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Failed to add project' }
+      const message = err.response?.data?.message || err.message || 'Failed to add project'
+      console.error('Error adding project:', err)
+      return { success: false, message }
     }
   }
   
   const updateProject = async (id, updatedData) => {
-    const index = projects.value.findIndex(p => p.id === id)
+    const index = projects.value.findIndex(p => p?.id === id)
     try {
+      // Validate before submission
+      const validationErrors = validateProject(updatedData)
+      if (validationErrors.length > 0) {
+        return { success: false, message: `Validation failed: ${validationErrors.join(', ')}` }
+      }
+      
       const response = await projectService.updateProject(id, updatedData)
+      
+      // Validate response
+      if (!response?.data) {
+        throw new Error('Invalid server response')
+      }
+      
       if (index !== -1) projects.value[index] = response.data
       return { success: true, data: response.data, message: 'Project updated successfully!' }
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Failed to update project' }
+      const message = err.response?.data?.message || err.message || 'Failed to update project'
+      console.error('Error updating project:', err)
+      return { success: false, message }
     }
   }
   
   const deleteProject = async (id) => {
     try {
       await projectService.deleteProject(id)
-      projects.value = projects.value.filter(p => p.id !== id)
+      projects.value = projects.value.filter(p => p?.id !== id)
       return { success: true, message: 'Project deleted!' }
     } catch (err) {
-      return { success: false, message: err.response?.data?.message || 'Failed to delete project' }
+      const message = err.response?.data?.message || err.message || 'Failed to delete project'
+      console.error('Error deleting project:', err)
+      return { success: false, message }
     }
   }
   
@@ -101,22 +151,22 @@ export const useProjectStore = defineStore('project', () => {
   const totalProjects = computed(() => projects.value.length)
   
   const featuredProjects = computed(() => 
-    projects.value.filter(p => p.featured)
+    projects.value.filter(p => p && p.featured === true)
   )
   
   const activeProjects = computed(() => 
-    projects.value.filter(p => p.status === 'In Progress')
+    projects.value.filter(p => p && p.status === PROJECT_STATUS_ENUM.IN_PROGRESS)
   )
   
   const completedProjects = computed(() => 
-    projects.value.filter(p => p.status === 'Completed')
+    projects.value.filter(p => p && p.status === PROJECT_STATUS_ENUM.COMPLETED)
   )
   
   const filteredProjects = computed(() => {
-    let filtered = [...projects.value]
+    let filtered = [...projects.value].filter(p => p) // Filter out null/undefined
     
     // Search filter
-    if (searchQuery.value.trim()) {
+    if (searchQuery.value?.trim()) {
       const query = searchQuery.value.toLowerCase()
       filtered = filtered.filter(p =>
         p.title?.toLowerCase().includes(query) ||
@@ -139,7 +189,7 @@ export const useProjectStore = defineStore('project', () => {
   })
   
   const getProjectById = (id) => {
-    return projects.value.find(p => p.id === id)
+    return projects.value.find(p => p?.id === id) || null
   }
   
   // ========== UTILITY FUNCTIONS ==========
@@ -163,15 +213,17 @@ export const useProjectStore = defineStore('project', () => {
   
   const getStatusColor = (status) => {
     const colors = {
-      'Planning': 'blue',
-      'In Progress': 'yellow',
-      'Completed': 'green',
-      'On Hold': 'orange'
+      [PROJECT_STATUS_ENUM.PLANNING]: 'blue',
+      [PROJECT_STATUS_ENUM.IN_PROGRESS]: 'yellow',
+      [PROJECT_STATUS_ENUM.COMPLETED]: 'green',
+      [PROJECT_STATUS_ENUM.ON_HOLD]: 'orange'
     }
     return colors[status] || 'gray'
   }
   
   const validateProject = (data) => {
+    if (!data) return ['Project data is required']
+    
     const errors = []
     
     if (!data.title || data.title.trim().length < 5) {
@@ -190,11 +242,27 @@ export const useProjectStore = defineStore('project', () => {
       errors.push('Project type is required')
     }
     
+    if (typeof data.completionPercentage !== 'undefined') {
+      if (data.completionPercentage < 0 || data.completionPercentage > 100) {
+        errors.push('Completion percentage must be between 0 and 100')
+      }
+    }
+    
     return errors
   }
   
-  // ========== INITIALIZE ==========
-  fetchProjects()
+  // ========== INITIALIZE (with error handling) ==========
+  const initializeStore = async () => {
+    try {
+      await fetchProjects()
+    } catch (err) {
+      console.error('Failed to initialize project store:', err)
+      error.value = 'Failed to load projects on startup'
+    }
+  }
+  
+  // Initialize async
+  initializeStore()
   
   // ========== RETURN ==========
   return {
@@ -202,11 +270,17 @@ export const useProjectStore = defineStore('project', () => {
     projects,
     searchQuery,
     filters,
+    loading,
+    error,
     
     // Constants
-    PROJECT_STATUS,
-    PROJECT_TYPES,
-    NIGERIAN_LOCATIONS,
+    PROJECT_STATUS: Object.values(PROJECT_STATUS_ENUM).map((value) => ({
+      value,
+      label: value,
+      color: getStatusColor(value)
+    })),
+    PROJECT_TYPES: Object.values(PROJECT_TYPES_ENUM),
+    NIGERIAN_LOCATIONS: PROJECT_LOCATIONS_LIST,
     
     // Actions
     addProject,
@@ -216,7 +290,6 @@ export const useProjectStore = defineStore('project', () => {
     loadFromLocalStorage,
     saveToLocalStorage,
     fetchProjects,
-    loading,
     
     // Getters
     totalProjects,

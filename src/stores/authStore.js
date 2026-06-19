@@ -57,10 +57,17 @@ export const useAuthStore = defineStore('auth', () => {
   const signup = async () => ({ success: false, error: 'Self-service signup is disabled. Contact an administrator.' })
 
   // Logout
-  const logout = () => {
-    user.value = null
-    isAuthenticated.value = false
-    authAPI.logout().catch(() => undefined)
+  const logout = async () => {
+    try {
+      await authAPI.logout()
+    } catch (error) {
+      console.error('Logout failed:', error)
+      // Continue with local logout even if API call fails
+    } finally {
+      user.value = null
+      isAuthenticated.value = false
+      localStorage.removeItem('csrf_token')
+    }
   }
 
   // Check if user has specific role
