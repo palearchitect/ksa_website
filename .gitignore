@@ -1,6 +1,7 @@
 node_modules
 .vscode
 dist/
+backend/test_pg_data
 
 # Ignore environment files containing secrets
 **/.env
