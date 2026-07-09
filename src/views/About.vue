@@ -202,12 +202,22 @@
           <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
             Our Journey So Far
           </h2>
-          <p class="text-xl text-blue-200 max-w-3xl mx-auto">
+          <p class="text-xl text-blue-200 max-w-3xl mx-auto mb-6">
             Trusted by property owners, investors, and institutions across Nigeria.
           </p>
+          <button 
+            @click="showFeedbackModal = true" 
+            class="px-6 py-3 bg-white text-blue-900 font-semibold rounded-lg hover:bg-gray-100 transition shadow-lg inline-flex items-center gap-2"
+          >
+            <svg class="w-5 h-5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Submit Feedback
+          </button>
         </div>
         
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- If testimonials count <= 3, show grid -->
+        <div v-if="testimonials.length <= 3" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           <TestimonialCard
             v-for="(testimonial, index) in testimonials"
             :key="index"
@@ -218,8 +228,120 @@
             :rating="testimonial.rating"
           />
         </div>
+
+        <!-- If testimonials count > 3, show slide carousel -->
+        <div v-else class="relative max-w-3xl mx-auto">
+          <div class="overflow-hidden relative min-h-[300px] bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 shadow-xl text-white">
+            <TransitionGroup name="fade-slide">
+              <div 
+                v-for="(testimonial, index) in displayTestimonials" 
+                v-show="currentTestimonialIndex === index"
+                :key="index"
+                class="absolute inset-0 p-8 flex flex-col justify-between"
+              >
+                <div>
+                  <!-- Rating Stars -->
+                  <div class="flex gap-1 mb-4">
+                    <svg 
+                      v-for="star in testimonial.rating" 
+                      :key="star" 
+                      class="w-5 h-5 text-yellow-400 fill-current" 
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  </div>
+                  <p class="text-xl italic text-blue-100 mb-6 leading-relaxed">"{{ testimonial.content }}"</p>
+                </div>
+                <div>
+                  <h4 class="font-bold text-lg text-white">{{ testimonial.name }}</h4>
+                  <p class="text-sm text-blue-300">{{ testimonial.role }} <span v-if="testimonial.company">at {{ testimonial.company }}</span></p>
+                </div>
+              </div>
+            </TransitionGroup>
+          </div>
+          
+          <!-- Carousel Navigation Controls -->
+          <div class="flex justify-between items-center mt-6">
+            <button @click="prevTestimonial" class="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition hover:scale-110" aria-label="Previous testimonial">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            </button>
+            
+            <div class="flex gap-2">
+              <button 
+                v-for="(t, idx) in displayTestimonials" 
+                :key="idx" 
+                @click="currentTestimonialIndex = idx" 
+                :class="currentTestimonialIndex === idx ? 'bg-white w-4' : 'bg-white/30 w-2'" 
+                class="h-2 rounded-full transition-all duration-300"
+                :aria-label="`Go to testimonial ${idx + 1}`"
+              ></button>
+            </div>
+            
+            <button @click="nextTestimonial" class="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition hover:scale-110" aria-label="Next testimonial">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+            </button>
+          </div>
+        </div>
       </div>
     </section>
+
+    <!-- Submit Feedback Modal -->
+    <Teleport to="body">
+      <div v-if="showFeedbackModal" class="fixed inset-0 z-[150] overflow-y-auto bg-gray-900/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-md w-full relative">
+          <!-- Close Button -->
+          <button @click="showFeedbackModal = false" class="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+          
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">Submit Client Feedback</h3>
+          <p class="text-gray-600 mb-6 text-sm">We value your opinion. Let us know about your experience with KSA Valuers.</p>
+          
+          <form @submit.prevent="submitFeedback" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Your Name *</label>
+              <input v-model="feedbackForm.name" type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Your Email *</label>
+              <input v-model="feedbackForm.email" type="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Your Role / Occupation *</label>
+              <input v-model="feedbackForm.role" type="text" placeholder="e.g. Property Investor, Homeowner" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Company (Optional)</label>
+              <input v-model="feedbackForm.company" type="text" placeholder="e.g. Williams Holdings" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Rating *</label>
+              <div class="flex gap-2">
+                <button v-for="star in 5" :key="star" type="button" @click="feedbackForm.rating = star" class="p-1 hover:scale-110 transition">
+                  <svg :class="feedbackForm.rating >= star ? 'text-yellow-400 fill-current' : 'text-gray-300'" class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Testimonial Content *</label>
+              <textarea v-model="feedbackForm.content" required rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            
+            <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition shadow-lg">
+              Submit Testimonial
+            </button>
+          </form>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Contact CTA -->
     <section class="py-20">
@@ -307,7 +429,8 @@ useSEO({
   title: 'About Us - KSA Valuers',
   description: 'Learn about our mission, values, and team at KSA Valuers, Nigeria’s trusted property valuers.'
 })
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, reactive } from 'vue'
+import { emailService } from '@/services/api'
 import ServiceCard from '@/components/sections/ServiceCard.vue'
 import CityCard from '@/components/sections/CityCard.vue'
 import TestimonialCard from '@/components/sections/TestimonialCard.vue'
@@ -417,6 +540,106 @@ const testimonials = ref([
     rating: 5
   }
 ])
+
+const showFeedbackModal = ref(false)
+const feedbackForm = reactive({
+  name: '',
+  email: '',
+  role: '',
+  company: '',
+  rating: 5,
+  content: ''
+})
+
+const displayTestimonials = ref([])
+const currentTestimonialIndex = ref(0)
+let testimonialInterval = null
+
+const shuffleTestimonials = () => {
+  const arr = [...testimonials.value]
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  displayTestimonials.value = arr
+}
+
+const startTestimonialAutoplay = () => {
+  stopTestimonialAutoplay()
+  if (testimonials.value.length > 3) {
+    testimonialInterval = setInterval(() => {
+      currentTestimonialIndex.value = (currentTestimonialIndex.value + 1) % testimonials.value.length
+    }, 6000)
+  }
+}
+
+const stopTestimonialAutoplay = () => {
+  if (testimonialInterval) clearInterval(testimonialInterval)
+}
+
+const nextTestimonial = () => {
+  currentTestimonialIndex.value = (currentTestimonialIndex.value + 1) % testimonials.value.length
+  startTestimonialAutoplay()
+}
+
+const prevTestimonial = () => {
+  currentTestimonialIndex.value = (currentTestimonialIndex.value - 1 + testimonials.value.length) % testimonials.value.length
+  startTestimonialAutoplay()
+}
+
+const submitFeedback = async () => {
+  try {
+    const subject = `Testimonial: ${feedbackForm.role}${feedbackForm.company ? ' at ' + feedbackForm.company : ''} (Rating: ${feedbackForm.rating}/5)`
+    
+    // Persist to backend database via contact API
+    await emailService.sendContactForm({
+      name: feedbackForm.name,
+      email: feedbackForm.email,
+      phone: null,
+      subject: subject,
+      message: feedbackForm.content
+    })
+
+    // Add to local testimonials array reactively
+    testimonials.value.push({
+      name: feedbackForm.name,
+      role: feedbackForm.role,
+      company: feedbackForm.company || '',
+      content: feedbackForm.content,
+      rating: feedbackForm.rating
+    })
+    
+    // Close modal & reset form
+    showFeedbackModal.value = false
+    Object.assign(feedbackForm, {
+      name: '',
+      email: '',
+      role: '',
+      company: '',
+      rating: 5,
+      content: ''
+    })
+    
+    alert('Thank you! Your feedback has been submitted successfully.')
+  } catch (err) {
+    console.error('Failed to submit testimonial:', err)
+    alert('Failed to submit testimonial. Please try again.')
+  }
+}
+
+watch(testimonials, () => {
+  shuffleTestimonials()
+  startTestimonialAutoplay()
+}, { deep: true })
+
+onMounted(() => {
+  shuffleTestimonials()
+  startTestimonialAutoplay()
+})
+
+onUnmounted(() => {
+  stopTestimonialAutoplay()
+})
 </script>
 
 <style scoped>
@@ -439,5 +662,19 @@ section {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+/* Fade-slide transition for testimonials */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.6s ease-in-out;
+}
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
 }
 </style>
