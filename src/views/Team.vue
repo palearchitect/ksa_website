@@ -135,8 +135,8 @@
                 >
               </div>
               <div>
-                <h3 class="text-xl font-bold text-gray-900">Akinyele Abiodun</h3>
-                <p class="text-green-600 font-medium">Head, Estate Management & Valuation</p>
+                <h3 class="text-xl font-bold text-gray-900">ESV Akinyele Abiodun</h3>
+                <p class="text-green-600 font-medium">Head of Estate Management & Valuation</p>
                 <p class="text-sm text-gray-500">HND, Estate Management</p>
               </div>
             </div>
@@ -173,8 +173,8 @@
                 >
               </div>
               <div>
-                <h3 class="text-xl font-bold text-gray-900">Olaoluwa Isaac Ojewumi</h3>
-                <p class="text-orange-600 font-medium">Head, Sales Department</p>
+                <h3 class="text-xl font-bold text-gray-900">ESV Olaoluwa Isaac Ojewumi</h3>
+                <p class="text-orange-600 font-medium">Head of Sales Department</p>
                 <p class="text-sm text-gray-500">BSc, Estate Management</p>
               </div>
             </div>
