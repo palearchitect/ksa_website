@@ -80,12 +80,17 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Logout
-  const logout = () => {
-    user.value = null
-    isAuthenticated.value = false
-    error.value = null
-    authAPI.logout().catch(() => undefined)
+  const logout = async () => {
+    try {
+      await authAPI.logout()
+    } catch (error) {
+      console.error('Logout failed:', error)
+    } finally {
+      user.value = null
+      isAuthenticated.value = false
+      error.value = null
+      localStorage.removeItem('csrf_token')
+    }
   }
 
   // Check if user has specific role
