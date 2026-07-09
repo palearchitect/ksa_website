@@ -49,22 +49,22 @@
               </div>
               
               <!-- Partner Name & Title -->
-              <h2 class="text-2xl font-bold text-gray-900 mb-2">Kayode Segun</h2>
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">ESV. Segun Kayode, RSV</h2>
               <p class="text-blue-600 font-semibold mb-4">Principal Partner & CEO</p>
               
               <!-- Qualifications -->
               <div class="mb-6 text-center">
-                <div class="inline-flex items-center bg-blue-50 text-blue-700 px-4 py-2 rounded-full mb-2">
+                <div class="inline-flex items-center bg-blue-50 text-blue-700 px-4 py-2 rounded-full mb-2 mr-2">
                   <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
-                  Registered Valuer
+                  ESV
                 </div>
                 <div class="inline-flex items-center bg-blue-50 text-blue-700 px-4 py-2 rounded-full mb-2">
                   <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
-                  FNIVS
+                  RSV
                 </div>
               </div>
 
@@ -189,7 +189,7 @@
             <blockquote class="text-2xl font-light italic mb-4">
               "Our commitment is to deliver accurate, reliable, and professional property valuation services that empower our clients to make informed real estate decisions."
             </blockquote>
-            <p class="font-semibold">— Kayode Segun, Principal Partner</p>
+            <p class="font-semibold">— ESV. Segun Kayode, RSV, Principal Partner</p>
           </div>
 
           <!-- Biography Section -->
@@ -198,12 +198,12 @@
             
             <div class="prose max-w-none text-gray-700">
               <p class="mb-6 text-lg">
-                Kayode Segun is a distinguished professional in the Nigerian real estate sector with over <strong>15 years of experience</strong> in property valuation, real estate consultancy, and asset management. As the Principal Partner of Kayode Segun & Associates, he leads a team of certified valuers dedicated to providing exceptional valuation services across residential, commercial, and industrial properties.
+                ESV. SEGUN KAYODE, RSV is an experienced Estate Surveyor and Registered Valuer with over thirteen (13) years of professional practice in real estate valuation, property consultancy, asset management, and investment advisory services. He is the Principal Partner of Kayode Segun & Associates, a firm of Estate Surveyors and Valuers committed to delivering professional, reliable, and timely real estate solutions to financial institutions, corporate organizations, government agencies, and private clients across Nigeria.
               </p>
 
               <h3 class="text-xl font-bold text-gray-900 mb-4 mt-8">Professional Journey</h3>
               <p class="mb-6">
-                Kayode began his career in 2008 as a junior valuer at a leading property consultancy firm in Lagos. His expertise and dedication saw him rise through the ranks, culminating in the establishment of Kayode Segun & Associates in 2015. Under his leadership, the firm has grown to become one of the most respected valuation practices in Southwest Nigeria.
+                Over the course of his career, he has successfully coordinated and participated in numerous valuation assignments for mortgage financing, loan security, insurance, financial reporting, investment decision-making, compulsory acquisition, and asset management. His practical understanding of the Nigerian property market, combined with sound professional judgment and analytical expertise, enables him to provide credible valuation opinions that comply with the standards and ethics of the valuation profession. Prior to establishing Kayode Segun & Associates, he gained extensive professional experience with Oladipo, Awoeyo & Partners, where he was actively involved in property inspections, market analysis, valuation reporting, insurance claims assessment, and portfolio valuation assignments for a diverse range of clients.
               </p>
 
               <h3 class="text-xl font-bold text-gray-900 mb-4">Areas of Expertise</h3>
@@ -212,65 +212,39 @@
                   <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
-                  <span>Residential Property Valuation</span>
+                  <span>Real estate valuation</span>
                 </div>
                 <div class="flex items-center">
                   <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
-                  <span>Commercial Real Estate Appraisal</span>
+                  <span>Property consultancy</span>
                 </div>
                 <div class="flex items-center">
                   <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
-                  <span>Mortgage Valuation</span>
+                  <span>Asset management</span>
                 </div>
                 <div class="flex items-center">
                   <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
-                  <span>Rental Valuation</span>
-                </div>
-                <div class="flex items-center">
-                  <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                  <span>Compensation & Compulsory Acquisition</span>
-                </div>
-                <div class="flex items-center">
-                  <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                  <span>Feasibility & Viability Studies</span>
+                  <span>Investment advisory services</span>
                 </div>
               </div>
 
               <h3 class="text-xl font-bold text-gray-900 mb-4">Education & Certifications</h3>
               <ul class="list-disc pl-5 mb-8 space-y-2">
-                <li>Bachelor of Science in Estate Management - University of Lagos (First Class Honors)</li>
-                <li>Master of Science in Real Estate - University College London</li>
-                <li>Fellow, Nigerian Institution of Estate Surveyors and Valuers (FNIVS)</li>
-                <li>Registered Estate Surveyor and Valuer - Estate Surveyors and Valuers Registration Board of Nigeria</li>
-                <li>Certified International Property Specialist (CIPS)</li>
-                <li>Member, Royal Institution of Chartered Surveyors (MRICS)</li>
+                <li>Bachelor’s Degree in Estate Management and Valuation, University of Lagos.</li>
+                <li>Executive training in Policy, Strategy and Leadership, National Institute for Policy and Strategic Studies (NIPSS), Kuru, Jos.</li>
+                <li>Certified by the Certified Institute of Auctioneers of Nigeria (CIAN).</li>
               </ul>
 
               <h3 class="text-xl font-bold text-gray-900 mb-4">Notable Projects & Achievements</h3>
-              <div class="space-y-4">
-                <div class="border-l-4 border-blue-500 pl-4 py-2">
-                  <p class="font-semibold">Valuation of Commercial Complex, Victoria Island</p>
-                  <p class="text-gray-600">Led valuation team for a 15-story commercial building worth ₦8.5 billion</p>
-                </div>
-                <div class="border-l-4 border-blue-500 pl-4 py-2">
-                  <p class="font-semibold">Residential Estate Development, Lekki Phase 1</p>
-                  <p class="text-gray-600">Provided comprehensive valuation services for 50-unit luxury estate development</p>
-                </div>
-                <div class="border-l-4 border-blue-500 pl-4 py-2">
-                  <p class="font-semibold">Government Compensation Valuation</p>
-                  <p class="text-gray-600">Served as lead valuer for Lagos State Government road expansion project</p>
-                </div>
-              </div>
+              <p class="mb-6 text-gray-700">
+                Successfully coordinated and participated in numerous valuation assignments for mortgage financing, loan security, insurance, financial reporting, investment decision-making, compulsory acquisition, and asset management.
+              </p>
             </div>
           </div>
 
