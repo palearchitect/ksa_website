@@ -43,6 +43,14 @@
               Appointments
             </router-link>
 
+            <router-link
+              to="/admin/team"
+              class="px-3 py-2 rounded-md text-sm font-medium"
+              :class="isActive('team') ? activeClass : inactiveClass"
+            >
+              Team
+            </router-link>
+
             <button
               @click="logout"
               class="ml-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200"
@@ -96,6 +104,14 @@
             :class="isActive('appointments') ? activeMobileClass : inactiveMobileClass"
           >
             Appointments
+          </router-link>
+
+          <router-link
+            to="/admin/team"
+            class="block px-3 py-2 rounded-md text-base font-medium"
+            :class="isActive('team') ? activeMobileClass : inactiveMobileClass"
+          >
+            Team
           </router-link>
 
           <button @click="logout" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 bg-gray-50 hover:bg-gray-100">

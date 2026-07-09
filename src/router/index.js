@@ -80,7 +80,10 @@ const routes = [
       { path: 'projects/:id', name: 'AdminProjectEdit', component: () => import('../views/admin/AdminProjectForm.vue'), props: true },
       { path: 'slides', name: 'AdminSlideList', component: () => import('../views/admin/AdminSlideList.vue') },
       { path: 'slides/new', name: 'AdminSlideForm', component: () => import('../views/admin/AdminSlideForm.vue') },
-      { path: 'slides/:id', name: 'AdminSlideEdit', component: () => import('../views/admin/AdminSlideForm.vue'), props: true }
+      { path: 'slides/:id', name: 'AdminSlideEdit', component: () => import('../views/admin/AdminSlideForm.vue'), props: true },
+      { path: 'team', name: 'AdminTeamList', component: () => import('../views/admin/AdminTeamList.vue') },
+      { path: 'team/new', name: 'AdminTeamForm', component: () => import('../views/admin/AdminTeamForm.vue') },
+      { path: 'team/:id', name: 'AdminTeamEdit', component: () => import('../views/admin/AdminTeamForm.vue'), props: true }
     ]
   },
   {
