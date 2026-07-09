@@ -1,13 +1,15 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
 const axios = require('axios');
 const rateLimit = require('express-rate-limit');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const { runMigrations } = require('./migrations/init');
+const { createEmailService } = require('./services/emailService');
+const { getTemplate } = require('./services/emailTemplates');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,9 +19,56 @@ const ACCESS_TOKEN_TTL = process.env.JWT_ACCESS_TTL || '15m';
 const REFRESH_TOKEN_TTL = process.env.JWT_REFRESH_TTL || '7d';
 const IS_PROD = process.env.NODE_ENV === 'production';
 
+// Database connection pool
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
+  // Connection timeout and limits
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
+
+// CORS Configuration
+const getAllowedOrigins = () => {
+  const nodeEnv = process.env.NODE_ENV || 'development';
+  
+  // Development - allow localhost
+  if (nodeEnv !== 'production') {
+    return [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:5173'
+    ];
+  }
+  
+  // Production - require explicit ALLOWED_ORIGINS
+  const allowedOrigins = process.env.ALLOWED_ORIGINS;
+  if (!allowedOrigins) {
+    console.warn(
+      '⚠️  WARNING: ALLOWED_ORIGINS environment variable not set in production!\n' +
+      '   Set ALLOWED_ORIGINS=https://example.com,https://api.example.com'
+    );
+    return []; // No origins allowed if not configured
+  }
+  
+  // Parse comma-separated origins and validate they're https in production
+  return allowedOrigins
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(origin => {
+      if (!origin.startsWith('https://') && !origin.startsWith('http://')) {
+        console.warn(`⚠️  Skipping invalid origin: ${origin} (must be https:// or http://)`);
+        return false;
+      }
+      if (nodeEnv === 'production' && !origin.startsWith('https://')) {
+        console.warn(`⚠️  Skipping insecure origin in production: ${origin} (must be https://)`);
+        return false;
+      }
+      return true;
+    });
+};
+
+const allowedOrigins = getAllowedOrigins();
 
 // Rate limiting for AI endpoint
 const aiLimiter = rateLimit({
@@ -33,8 +82,10 @@ const aiLimiter = rateLimit({
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
-  credentials: true
+  origin: allowedOrigins.length > 0 ? allowedOrigins : false,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -155,118 +206,112 @@ const validateBookingPayload = (payload) => {
   return null;
 };
 
+const validatePasswordPolicy = (password) => {
+  if (!password) return 'Password is required';
+  if (password.length < 12) return `Password must be at least 12 characters (got ${password.length})`;
+  if (!/[A-Z]/.test(password)) return 'Password must contain uppercase letters (A-Z)';
+  if (!/[a-z]/.test(password)) return 'Password must contain lowercase letters (a-z)';
+  if (!/[0-9]/.test(password)) return 'Password must contain numbers (0-9)';
+  if (!/[!@#$%^&*_\-+=\[\]{};:'",.<>?/\\|`~]/.test(password)) return 'Password must contain special characters (!@#$%^&* etc.)';
+  return null;
+};
+
 const initializeDatabase = async () => {
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      role TEXT NOT NULL DEFAULT 'admin',
-      name TEXT NOT NULL,
-      status TEXT NOT NULL DEFAULT 'active',
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS properties (
-      id SERIAL PRIMARY KEY,
-      title TEXT NOT NULL,
-      location TEXT NOT NULL,
-      image TEXT,
-      images JSONB NOT NULL DEFAULT '[]'::jsonb,
-      price NUMERIC NOT NULL DEFAULT 0,
-      status TEXT NOT NULL DEFAULT 'sale',
-      type TEXT,
-      bedrooms INTEGER,
-      bathrooms INTEGER,
-      square_footage INTEGER,
-      description TEXT,
-      featured BOOLEAN NOT NULL DEFAULT false,
-      tags JSONB NOT NULL DEFAULT '[]'::jsonb,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS projects (
-      id SERIAL PRIMARY KEY,
-      title TEXT NOT NULL,
-      location TEXT NOT NULL,
-      image TEXT,
-      description TEXT,
-      status TEXT NOT NULL,
-      type TEXT NOT NULL,
-      total_units INTEGER,
-      completion_percentage INTEGER DEFAULT 0,
-      start_date DATE,
-      expected_completion DATE,
-      budget NUMERIC DEFAULT 0,
-      featured BOOLEAN DEFAULT false,
-      amenities JSONB NOT NULL DEFAULT '[]'::jsonb,
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS bookings (
-      id TEXT PRIMARY KEY,
-      property_id INTEGER,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      phone TEXT NOT NULL,
-      booking_date DATE NOT NULL,
-      booking_time TEXT NOT NULL,
-      guests INTEGER NOT NULL DEFAULT 1,
-      notes TEXT DEFAULT '',
-      status TEXT NOT NULL DEFAULT 'pending',
-      created_at TIMESTAMPTZ DEFAULT NOW(),
-      updated_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS contact_messages (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      email TEXT NOT NULL,
-      phone TEXT,
-      subject TEXT NOT NULL,
-      message TEXT NOT NULL,
-      created_at TIMESTAMPTZ DEFAULT NOW()
-    );
-  `);
+  try {
+    // Check if ADMIN_PASSWORD is configured
+    if (!process.env.ADMIN_PASSWORD) {
+      throw new Error(
+        'ADMIN_PASSWORD environment variable is not set.\n' +
+        '\n   ❌ ERROR: Admin account cannot be created without a password.\n' +
+        '\n   📋 To fix this:\n' +
+        '      1. Set ADMIN_PASSWORD in backend/.env\n' +
+        '      2. Password must be at least 12 characters with uppercase, lowercase, numbers, and special chars\n' +
+        '         Example: MySecure_Pass123\n' +
+        '      3. Run: npm run db:setup\n' +
+        '\n   ℹ️  On first run, you can also use npm run db:seed to auto-generate a secure password.\n'
+      );
+    }
 
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_bookings_date_time ON bookings (booking_date, booking_time);`);
-  await pool.query(`CREATE INDEX IF NOT EXISTS idx_bookings_property_date_time ON bookings (property_id, booking_date, booking_time);`);
-
-  const existingAdmin = await pool.query(`SELECT id FROM users WHERE email = $1 LIMIT 1`, ['admin@ksavaluers.com']);
-  if (existingAdmin.rowCount === 0) {
-    const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'ChangeMeNow_123', 12);
-    await pool.query(
-      `INSERT INTO users (email, password_hash, role, name) VALUES ($1, $2, $3, $4)`,
-      ['admin@ksavaluers.com', hash, 'admin', 'Admin User']
-    );
-    console.log('✅ Seeded default admin user');
+    // Validate password policy
+    const passwordError = validatePasswordPolicy(process.env.ADMIN_PASSWORD);
+    if (passwordError) {
+      throw new Error(
+        `ADMIN_PASSWORD does not meet security requirements:\n` +
+        `   ${passwordError}\n` +
+        `\n   Password must:\n` +
+        `   - Be at least 12 characters long\n` +
+        `   - Contain uppercase letters (A-Z)\n` +
+        `   - Contain lowercase letters (a-z)\n` +
+        `   - Contain numbers (0-9)\n` +
+        `   - Contain special characters (!@#$%^&*)\n` +
+        `\n   Example: MySecure_Pass123\n`
+      );
+    }
+    
+    // Test database connection
+    console.log('🔌 Testing database connection...');
+    const testConnection = await pool.query('SELECT NOW()');
+    console.log('✅ Database connection successful');
+    
+    // Check if DATABASE_URL is configured
+    if (!process.env.DATABASE_URL) {
+      throw new Error(
+        'DATABASE_URL environment variable is not set. ' +
+        'Please add DATABASE_URL to your .env file (e.g., postgres://user:password@localhost:5432/ksa_valuers)'
+      );
+    }
+    
+    // Run migrations
+    console.log('\n🔧 Running database migrations...');
+    await runMigrations();
+    console.log('✅ Database migrations completed\n');
+    
+    // Seed admin user if needed
+    const existingAdmin = await pool.query(`SELECT id FROM users WHERE email = $1 LIMIT 1`, ['admin@ksavaluers.com']);
+    if (existingAdmin.rowCount === 0) {
+      const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
+      await pool.query(
+        `INSERT INTO users (email, password_hash, role, name) VALUES ($1, $2, $3, $4)`,
+        ['admin@ksavaluers.com', hash, 'admin', 'Admin User']
+      );
+      console.log('✅ Seeded admin user (admin@ksavaluers.com)');
+      console.log('⚠️  Keep your ADMIN_PASSWORD secure. Do not share it or commit it to version control.');
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('\n❌ Database initialization error:');
+    console.error(`   ${error.message}`);
+    console.error('\n📖 Setup Instructions:');
+    console.error('   1. Install PostgreSQL locally or use a cloud provider (Heroku, AWS RDS, etc.)');
+    console.error('   2. Create a database: createdb ksa_valuers');
+    console.error('   3. Add DATABASE_URL to backend/.env:');
+    console.error('      DATABASE_URL=postgres://user:password@localhost:5432/ksa_valuers');
+    console.error('   4. Set ADMIN_PASSWORD (min 12 chars with uppercase, lowercase, numbers, special chars):');
+    console.error('      ADMIN_PASSWORD=MySecurePass123!');
+    console.error('   5. Run: npm run db:setup');
+    throw error;
   }
 };
 
-// Email transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// Email Service Setup
+let emailService;
 
-// Test email connection
-transporter.verify((error) => {
-  if (error) {
-    console.error('❌ Email config error:', error.message);
-  } else {
-    console.log('✅ Email server ready');
+const initializeEmailService = async () => {
+  try {
+    emailService = createEmailService();
+    const testResult = await emailService.testConnection();
+    
+    if (testResult.success) {
+      console.log(`✅ Email service ready (${testResult.provider})`);
+    } else {
+      console.error(`⚠️  Email service test failed: ${testResult.error}`);
+    }
+  } catch (error) {
+    console.error(`❌ Failed to initialize email service: ${error.message}`);
+    console.error('   Continuing without email service. Configure EMAIL_PROVIDER in .env to enable.');
   }
-});
+};
 
 // ============================================
 // CONTACT ENDPOINT
@@ -282,27 +327,60 @@ app.post('/api/contact', async (req, res) => {
       });
     }
 
-    const mailOptions = {
-      from: `"KSA Website" <${process.env.EMAIL_USER}>`,
-      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
-      replyTo: email,
-      subject: `Website Contact: ${subject}`,
-      html: `
-        <h3>New Contact from KSA Website</h3>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
-        <p><strong>Subject:</strong> ${subject}</p>
-        <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
+    // Save to database first
     await pool.query(
       `INSERT INTO contact_messages (name, email, phone, subject, message) VALUES ($1, $2, $3, $4, $5)`,
       [name, email, phone || null, subject, message]
     );
+
+    // Send confirmation to user if email service is available
+    if (emailService) {
+      try {
+        const confirmationTemplate = getTemplate('contact-confirmation', {
+          name,
+          email,
+          subject,
+          message
+        });
+        
+        await emailService.send({
+          to: email,
+          subject: confirmationTemplate.subject,
+          html: confirmationTemplate.html
+        });
+      } catch (emailError) {
+        console.error('Confirmation email failed:', emailError.message);
+        // Continue - message was saved to database
+      }
+    }
+
+    // Send notification to admin if email service is available
+    if (emailService && process.env.ADMIN_EMAIL) {
+      try {
+        const adminTemplate = getTemplate('admin-notification', {
+          type: 'Contact Message',
+          subject: subject,
+          content: `
+            <p><strong>From:</strong> ${name}</p>
+            <p><strong>Email:</strong> <a href="mailto:${email}">${email}</a></p>
+            <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+            <p><strong>Subject:</strong> ${subject}</p>
+            <hr>
+            <p><strong>Message:</strong></p>
+            <p>${message.replace(/\n/g, '<br>')}</p>
+          `
+        });
+
+        await emailService.send({
+          to: process.env.ADMIN_EMAIL,
+          subject: adminTemplate.subject,
+          html: adminTemplate.html,
+          replyTo: email
+        });
+      } catch (emailError) {
+        console.error('Admin notification email failed:', emailError.message);
+      }
+    }
     
     res.json({ 
       success: true, 
@@ -310,7 +388,7 @@ app.post('/api/contact', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Email error:', error);
+    console.error('Contact endpoint error:', error);
     res.status(500).json({ 
       success: false, 
       message: 'Server error. Please try again later.' 
@@ -888,79 +966,163 @@ app.put('/api/appointments/cancel/:id', requireAuth, requireRole('admin', 'manag
 });
 
 // ============================================
-// EMAIL STUB ENDPOINTS (for BookTour.vue)
+// EMAIL ENDPOINTS (for BookTour.vue)
 // ============================================
 
 app.post('/email/booking-confirmation', async (req, res) => {
   const { booking } = req.body;
   try {
-    if (process.env.EMAIL_USER) {
-      await transporter.sendMail({
-        from: `"KSA Bookings" <${process.env.EMAIL_USER}>`,
-        to: booking.email,
-        subject: `Booking Confirmation - ${booking.bookingId}`,
-        html: `
-          <h3>Tour Booking Confirmation</h3>
-          <p>Dear ${booking.name},</p>
-          <p>Your property tour has been scheduled:</p>
-          <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
-          <p><strong>Date:</strong> ${booking.formattedDate || booking.date}</p>
-          <p><strong>Time:</strong> ${booking.time}</p>
-          <p>We will contact you shortly to confirm. Thank you!</p>
-          <p>- KSA Valuers Team</p>
-        `
+    if (!emailService) {
+      return res.status(503).json({ 
+        success: false, 
+        message: 'Email service not configured. Configure EMAIL_PROVIDER in .env' 
       });
     }
+
+    const template = getTemplate('booking-confirmation', {
+      name: booking.name,
+      propertyTitle: booking.propertyTitle || 'Property',
+      date: booking.date || booking.formattedDate,
+      time: booking.time,
+      location: booking.location || ''
+    });
+
+    await emailService.send({
+      to: booking.email,
+      subject: template.subject,
+      html: template.html
+    });
+
     res.json({ success: true, message: 'Confirmation email sent' });
   } catch (error) {
-    console.error('Booking confirmation email error:', error);
-    res.json({ success: true, message: 'Booking saved (email delivery pending)' });
+    console.error('Booking confirmation email error:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to send confirmation email. Your booking is still saved.' 
+    });
   }
 });
 
 app.post('/email/admin-notification', async (req, res) => {
   const { booking } = req.body;
   try {
-    if (process.env.EMAIL_USER && process.env.ADMIN_EMAIL) {
-      await transporter.sendMail({
-        from: `"KSA Website" <${process.env.EMAIL_USER}>`,
-        to: process.env.ADMIN_EMAIL,
-        subject: `New Tour Booking - ${booking.bookingId}`,
-        html: `
-          <h3>New Tour Booking Received</h3>
-          <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
-          <p><strong>Name:</strong> ${booking.name}</p>
-          <p><strong>Email:</strong> ${booking.email}</p>
-          <p><strong>Phone:</strong> ${booking.phone}</p>
-          <p><strong>Date:</strong> ${booking.formattedDate || booking.date}</p>
-          <p><strong>Time:</strong> ${booking.time}</p>
-          <p><strong>Guests:</strong> ${booking.guests || 1}</p>
-          <p><strong>Notes:</strong> ${booking.notes || 'None'}</p>
-        `
+    if (!emailService || !process.env.ADMIN_EMAIL) {
+      return res.status(503).json({ 
+        success: false, 
+        message: 'Email service not configured. Configure EMAIL_PROVIDER and ADMIN_EMAIL in .env' 
       });
     }
+
+    const template = getTemplate('admin-notification', {
+      type: 'New Booking',
+      subject: `Booking from ${booking.name}`,
+      content: `
+        <p><strong>Booking ID:</strong> ${booking.bookingId}</p>
+        <p><strong>Name:</strong> ${booking.name}</p>
+        <p><strong>Email:</strong> <a href="mailto:${booking.email}">${booking.email}</a></p>
+        <p><strong>Phone:</strong> ${booking.phone}</p>
+        <p><strong>Date:</strong> ${booking.formattedDate || booking.date}</p>
+        <p><strong>Time:</strong> ${booking.time}</p>
+        <p><strong>Guests:</strong> ${booking.guests || 1}</p>
+        <p><strong>Property:</strong> ${booking.propertyTitle || 'Not specified'}</p>
+        <p><strong>Notes:</strong> ${booking.notes || 'None'}</p>
+      `
+    });
+
+    await emailService.send({
+      to: process.env.ADMIN_EMAIL,
+      subject: template.subject,
+      html: template.html,
+      replyTo: booking.email
+    });
+
     res.json({ success: true, message: 'Admin notification sent' });
   } catch (error) {
-    console.error('Admin notification email error:', error);
-    res.json({ success: true, message: 'Notification pending' });
+    console.error('Admin notification email error:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to send notification. Please contact admin manually.' 
+    });
+  }
+});
+
+// ============================================
+// HEALTH CHECK & STATUS ENDPOINTS
+// ============================================
+app.get('/api/health', async (req, res) => {
+  try {
+    // Test database connection
+    await pool.query('SELECT NOW()');
+    res.json({
+      success: true,
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: 'connected',
+      version: '1.0.0'
+    });
+  } catch (error) {
+    res.status(503).json({
+      success: false,
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      database: 'disconnected',
+      error: error.message
+    });
+  }
+});
+
+app.get('/api/status', async (req, res) => {
+  try {
+    await pool.query('SELECT NOW()');
+    const stats = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM properties'),
+      pool.query('SELECT COUNT(*) FROM projects'),
+      pool.query('SELECT COUNT(*) FROM bookings'),
+      pool.query('SELECT COUNT(*) FROM users')
+    ]);
+    
+    res.json({
+      success: true,
+      database: 'connected',
+      stats: {
+        properties: parseInt(stats[0].rows[0].count),
+        projects: parseInt(stats[1].rows[0].count),
+        bookings: parseInt(stats[2].rows[0].count),
+        users: parseInt(stats[3].rows[0].count)
+      },
+      environment: process.env.NODE_ENV || 'development'
+    });
+  } catch (error) {
+    res.status(503).json({
+      success: false,
+      database: 'disconnected',
+      error: error.message
+    });
   }
 });
 
 // ============================================
 // START SERVER
 // ============================================
-initializeDatabase()
-  .then(() => {
+(async () => {
+  try {
+    // Initialize database
+    await initializeDatabase();
+
+    // Initialize email service
+    await initializeEmailService();
+
+    // Start listening
     app.listen(PORT, () => {
       console.log('=================================');
       console.log(`🚀 Backend running on http://localhost:${PORT}`);
       console.log(`🗄️ PostgreSQL: ✅`);
-      console.log(`📧 Email: ${process.env.EMAIL_USER ? '✅' : '❌'}`);
+      console.log(`📧 Email: ${emailService ? `✅ (${process.env.EMAIL_PROVIDER || 'gmail'})` : '⚠️  Not configured'}`);
       console.log(`🤖 Gemini AI: ${process.env.GEMINI_API_KEY ? '✅' : '❌'}`);
       console.log('=================================');
     });
-  })
-  .catch((error) => {
-    console.error('❌ Failed to initialize database:', error.message);
+  } catch (error) {
+    console.error('❌ Failed to start server:', error.message);
     process.exit(1);
-  });
+  }
+})();

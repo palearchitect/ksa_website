@@ -35,6 +35,24 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Refresh access token
+  const refreshAccessToken = async () => {
+    try {
+      const response = await authAPI.refresh()
+      if (response.data) {
+        user.value = response.data
+        isAuthenticated.value = true
+        return { success: true, user: response.data }
+      }
+      return { success: false, error: 'Invalid refresh response' }
+    } catch (error) {
+      // Token refresh failed - logout user
+      user.value = null
+      isAuthenticated.value = false
+      return { success: false, error: error.response?.data?.message || error.message }
+    }
+  }
+
   // Signup/Register
   const signup = async () => ({ success: false, error: 'Self-service signup is disabled. Contact an administrator.' })
 
@@ -68,6 +86,7 @@ export const useAuthStore = defineStore('auth', () => {
     signup,
     logout,
     loadSession,
+    refreshAccessToken,
     hasRole
   }
 })
