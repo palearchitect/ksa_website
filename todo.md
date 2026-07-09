@@ -9,25 +9,30 @@
   - [ ] Implement randomized slide carousel for testimonials (if >3 entries).
 
 ## Phase 2: Team & Identity Management
-- [ ] **Team Management:** Add CRUD (Create, Read, Update, Delete) interface in `Team.vue` for managing staff.
-- [ ] **Authentication/Hierarchy:**
-  - [ ] Expand Signup/Login to support hierarchy: `Admin`, `Management`, `Tenant`, `PropertyOwner`.
-  - [ ] Implement Role-Based Access Control (RBAC) to differentiate dashboard views based on login hierarchy.
+- [x] **Team Management:** Add CRUD (Create, Read, Update, Delete) interface in `Team.vue` for managing staff.
+- [x] **Authentication/Hierarchy:**
+  - [x] Expand Signup/Login to support hierarchy: `Admin`, `Management`, `Tenant`, `PropertyOwner`.
+  - [x] Implement Role-Based Access Control (RBAC) to differentiate dashboard views based on login hierarchy.
 
-## Phase 3: Property Management System (PMS) Core
-- [ ] **Admin Dashboard:** Create central hub for PMS:
-  - [ ] Tenant Management.
-  - [ ] Property & Lease tracking.
+## Phase 3: Multi-Portal Property Management System (PMS)
+- [ ] **Core Infrastructure:**
+  - [ ] Implement Role-Based Redirects in `router.js` (Login redirects to `/dashboard/:role`).
+  - [ ] Configure Backend Middleware to scope all API requests based on `user_id` / `property_id`.
+- [ ] **Admin Dashboard (`/dashboard/admin`):**
+  - [ ] Maintain existing site-wide controls (Team, Content, Site Config).
+  - [ ] Add "PMS Gateway" to access Property, Tenant, and Financial modules.
+- [ ] **Management Dashboard (`/dashboard/management`):**
+  - [ ] Operational hub: Tenant Management & Lease Tracking.
   - [ ] Maintenance Request tracking.
   - [ ] Financial Reporting (Expenses/Income).
-- [ ] **Owner Dashboard:** Build read-only view for property owners:
-  - [ ] Occupancy status.
-  - [ ] Rent payment status.
-  - [ ] High-level financial summary (net income).
-- [ ] **Tenant Dashboard:**
-  - [ ] Payment gateway integration (Card payments via Nigerian-compatible processor + Wire Transfer instructions).
-  - [ ] Dispute/Maintenance complaint ticketing system.
-
+- [ ] **Owner Dashboard (`/dashboard/owner`):**
+  - [ ] Read-only asset view: Occupancy status per property.
+  - [ ] Rent payment status & Net Income summary.
+  - [ ] *Constraint: Strictly hide all tenant PII.*
+- [ ] **Tenant Dashboard (`/dashboard/tenant`):**
+  - [ ] Payment gateway integration (Paystack/Flutterwave for cards + Bank Transfer details).
+  - [ ] Maintenance & Dispute ticketing system.
+  
 ## Phase 4: Maintenance & Optimization
 - [ ] Linting & Code Refactoring.
 - [ ] Database Schema updates to support multi-tenant/owner relations.

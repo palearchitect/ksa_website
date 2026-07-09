@@ -164,6 +164,15 @@ router.beforeEach(async (to, from, next) => {
     })
     return
   }
+
+  // Check role authorization
+  if (to.meta.requiresAuth && to.meta.allowedRoles) {
+    const userRole = authStore.user?.role
+    if (!to.meta.allowedRoles.includes(userRole)) {
+      next({ name: 'Home' })
+      return
+    }
+  }
   
   // Redirect to dashboard if already logged in and trying to access login
   if (to.name === 'AdminLogin' && isAuth) {

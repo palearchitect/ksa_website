@@ -33,16 +33,14 @@
           </button>
           <button
             @click="activeTab = 'signup'"
-            disabled
             :class="[
-              'flex-1 py-3 px-4 text-center font-semibold transition-colors cursor-not-allowed opacity-50',
+              'flex-1 py-3 px-4 text-center font-semibold transition-colors',
               activeTab === 'signup' 
-                ? 'text-gray-400 border-b-2 border-gray-300' 
-                : 'text-gray-400 hover:text-gray-500'
+                ? 'text-blue-600 border-b-2 border-blue-600' 
+                : 'text-gray-500 hover:text-gray-700'
             ]"
-            title="Self-service signup is disabled"
           >
-            Sign Up (Disabled)
+            Sign Up
           </button>
         </div>
 
@@ -69,7 +67,7 @@
         </div>
 
         <!-- Login Form -->
-        <form @submit.prevent="handleLogin" class="space-y-6">
+        <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="space-y-6">
           <div>
             <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
               Email Address
@@ -146,17 +144,83 @@
           </button>
         </form>
 
-        <!-- Signup Form (Disabled) -->
-        <div v-if="activeTab === 'signup'" class="space-y-6 text-center py-8">
-          <svg class="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
+        <!-- Signup Form -->
+        <form v-if="activeTab === 'signup'" @submit.prevent="handleSignup" class="space-y-6">
           <div>
-            <h3 class="text-lg font-semibold text-gray-900 mb-2">Sign Up is Disabled</h3>
-            <p class="text-gray-600 mb-4">Self-service registration is not currently available.</p>
-            <p class="text-sm text-gray-500">Please contact your administrator if you need an account.</p>
+            <label for="signup-name" class="block text-sm font-medium text-gray-700 mb-2">
+              Full Name
+            </label>
+            <input
+              id="signup-name"
+              v-model="signupForm.name"
+              type="text"
+              required
+              placeholder="Segun Kayode"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            >
           </div>
-        </div>
+
+          <div>
+            <label for="signup-email" class="block text-sm font-medium text-gray-700 mb-2">
+              Email Address
+            </label>
+            <input
+              id="signup-email"
+              v-model="signupForm.email"
+              type="email"
+              required
+              placeholder="segun@ksavaluers.com"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            >
+          </div>
+
+          <div>
+            <label for="signup-role" class="block text-sm font-medium text-gray-700 mb-2">
+              Select Role
+            </label>
+            <select
+              id="signup-role"
+              v-model="signupForm.role"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white"
+            >
+              <option value="admin">Admin</option>
+              <option value="management">Management</option>
+              <option value="tenant">Tenant</option>
+              <option value="propertyowner">PropertyOwner</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-2">
+              Password
+            </label>
+            <input
+              id="signup-password"
+              v-model="signupForm.password"
+              type="password"
+              required
+              placeholder="Minimum 12 chars, Mixed Case, Symbols"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            >
+            <p class="text-xs text-gray-500 mt-1">Must be >= 12 chars, mixed case, numbers & special chars.</p>
+          </div>
+
+          <button
+            type="submit"
+            :disabled="loading"
+            class="w-full px-4 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span v-if="!loading">Sign Up</span>
+            <span v-else class="flex items-center justify-center">
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Creating Account...
+            </span>
+          </button>
+        </form>
 
         <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
           <p class="font-semibold mb-2">Admin Access Only</p>
@@ -214,7 +278,7 @@ const signupForm = ref({
   name: '',
   email: '',
   password: '',
-  department: ''
+  role: 'admin'
 })
 
 // If already authenticated, redirect to admin
@@ -264,7 +328,7 @@ const handleSignup = async () => {
       signupForm.value.name,
       signupForm.value.email,
       signupForm.value.password,
-      signupForm.value.department
+      signupForm.value.role
     )
     
     if (result.success) {

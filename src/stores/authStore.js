@@ -64,11 +64,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Signup/Register
-  const signup = async (name, email, password, department) => {
+  const signup = async (name, email, password, role) => {
     loading.value = true
     error.value = null
     try {
-      const response = await authAPI.register({ name, email, password, department })
+      const response = await authAPI.register({ name, email, password, role })
       user.value = response.data
       isAuthenticated.value = true
       return { success: true, user: response.data }
@@ -86,10 +86,12 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {
+      // Full state reset
       user.value = null
       isAuthenticated.value = false
       error.value = null
       localStorage.removeItem('csrf_token')
+      sessionStorage.clear()
     }
   }
 

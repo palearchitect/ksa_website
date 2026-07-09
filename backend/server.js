@@ -217,7 +217,16 @@ const requireAuth = (req, res, next) => {
 };
 
 const requireRole = (...roles) => (req, res, next) => {
-  if (!req.user || !roles.includes(req.user.role)) {
+  // Support both 'manager' and 'management' as equivalent roles
+  const effectiveRoles = [...roles];
+  if (roles.includes('manager') && !effectiveRoles.includes('management')) {
+    effectiveRoles.push('management');
+  }
+  if (roles.includes('management') && !effectiveRoles.includes('manager')) {
+    effectiveRoles.push('manager');
+  }
+
+  if (!req.user || !effectiveRoles.includes(req.user.role)) {
     return res.status(403).json({ success: false, message: 'Insufficient permissions' });
   }
   return next();

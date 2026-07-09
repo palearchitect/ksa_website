@@ -36,6 +36,14 @@
       </div>
     </div>
 
+    <!-- Auth Status Banner -->
+    <div v-if="authStore.isAuthenticated" class="bg-blue-50 border-b border-blue-200 py-3 text-center">
+      <p class="text-sm text-blue-800">
+        Logged in as <strong>{{ authStore.user?.name }}</strong> (Role: <span class="uppercase font-semibold text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">{{ authStore.user?.role }}</span>).
+        <span v-if="isAdmin" class="ml-2 font-bold text-green-700">✓ Admin CRUD Enabled</span>
+      </p>
+    </div>
+
     <!-- Team Section -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <!-- Section Header -->
@@ -50,158 +58,91 @@
 
       <!-- Team Grid -->
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Team Member 1 -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+        <!-- Dynamic Team Member Cards -->
+        <div 
+          v-for="member in teamMembers" 
+          :key="member.id"
+          class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 relative group"
+        >
+          <!-- Admin Actions -->
+          <div v-if="isAdmin" class="absolute top-4 right-4 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <button 
+              @click="openEditModal(member)" 
+              class="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow transition hover:scale-110"
+              title="Edit Member"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+            <button 
+              @click="deleteMember(member.id)" 
+              class="p-2 bg-red-600 hover:bg-red-700 text-white rounded-full shadow transition hover:scale-110"
+              title="Delete Member"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          </div>
+
           <div class="p-8">
             <div class="flex items-center mb-6">
-              <div class="w-40 h-40 rounded-full overflow-hidden border-4 border-blue-100 mb-6">
+              <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-100 flex-shrink-0">
                 <img 
-                  src="../assets/images/IMG-20240405-WA0009-233x300.jpg"
+                  :src="getImageUrl(member.image)"
                   class="w-full h-full object-cover"
+                  @error="handleImageError"
                 >
               </div>
-              <div>
-                <h3 class="text-xl font-bold text-gray-900">ESV. Markson Ajiboye</h3>
-                <p class="text-blue-600 font-medium">Head Business Unit</p>
+              <div class="ml-4">
+                <h3 class="text-xl font-bold text-gray-900">{{ member.name }}</h3>
+                <p class="text-blue-600 font-semibold text-sm">{{ member.role }}</p>
               </div>
             </div>
             <div class="mb-6">
-              <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 mb-3">
-                Certified Estate Surveyor & Valuer
+              <div v-if="member.tag" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 mb-3">
+                {{ member.tag }}
               </div>
-              <p class="text-gray-600">
-                With extensive experience in real estate, Markson leads our agency and sales division. His expertise ensures optimal property valuations and successful client transactions across major Nigerian markets.
+              <p class="text-gray-600 text-sm leading-relaxed line-clamp-4">
+                {{ member.description }}
               </p>
             </div>
-            <div class="border-t border-gray-100 pt-6">
-              <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact</h4>
+            <div class="border-t border-gray-100 pt-6 mt-auto">
+              <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Contact</h4>
               <div class="space-y-2">
-                <a href="mailto:info@ksavaluers.com" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors">
-                  <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <a :href="`mailto:${member.email}`" class="flex items-center text-sm text-gray-700 hover:text-blue-600 transition-colors">
+                  <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                  info@ksavaluers.com
+                  {{ member.email }}
                 </a>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Team Member 2 -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-          <div class="p-8">
-            <div class="flex items-center mb-6">
-             <div class="w-40 h-40 rounded-full overflow-hidden border-4 border-purple-100 mb-6">
-                <img 
-                  src="../assets/images/IMG-20240405-WA0011-e1712320368546-300x268.jpg"
-                  class="w-full h-full object-cover"
-                >
-              </div>
-              <div>
-                <h3 class="text-xl font-bold text-gray-900">Eniola Abiola Kayode</h3>
-                <p class="text-purple-600 font-medium">Human Resource Manager</p>
-              </div>
+        <!-- Add Member Card (Admins only) -->
+        <div 
+          v-if="isAdmin" 
+          class="bg-white border-2 border-dashed border-gray-300 rounded-2xl shadow-sm overflow-hidden hover:border-blue-500 hover:shadow-md transition-all duration-300 flex items-center justify-center min-h-[300px]"
+        >
+          <button 
+            @click="openAddModal" 
+            class="p-8 w-full h-full flex flex-col justify-center items-center text-center focus:outline-none"
+          >
+            <div class="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-4 transition-transform hover:scale-110">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
             </div>
-            <div class="mb-6">
-              <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 mb-3">
-                HR Specialist
-              </div>
-              <p class="text-gray-600">
-                A dynamic HR professional skilled in recruitment, employee relations, training, and development. Eniola ensures our team maintains the highest standards of professionalism and client service.
-              </p>
-            </div>
-            <div class="border-t border-gray-100 pt-6">
-              <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact</h4>
-              <div class="space-y-2">
-                <a href="mailto:info@ksavaluers.com" class="flex items-center text-gray-700 hover:text-purple-600 transition-colors">
-                  <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  info@ksavaluers.com
-                </a>
-              </div>
-            </div>
-          </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-1">Add Team Member</h3>
+            <p class="text-sm text-gray-500">Add a new professional profile to the roster.</p>
+          </button>
         </div>
 
-        <!-- Team Member 3 -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-          <div class="p-8">
-            <div class="flex items-center mb-6">
-              <div class="w-40 h-40 rounded-full overflow-hidden border-4 border-green-100 mb-6">
-                <img 
-                  src="../assets/images/DSC00129-240x300.jpeg"
-                  class="w-full h-full object-cover"
-                >
-              </div>
-              <div>
-                <h3 class="text-xl font-bold text-gray-900">ESV Akinyele Abiodun</h3>
-                <p class="text-green-600 font-medium">Head of Estate Management & Valuation</p>
-                <p class="text-sm text-gray-500">HND, Estate Management</p>
-              </div>
-            </div>
-            <div class="mb-6">
-              <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 mb-3">
-                Estate Surveyor
-              </div>
-              <p class="text-gray-600">
-                A seasoned estate surveyor with strong problem-solving and communication skills. Akinyele specializes in property valuation, estate management, and ensuring compliance with regulatory standards.
-              </p>
-            </div>
-            <div class="border-t border-gray-100 pt-6">
-              <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact</h4>
-              <div class="space-y-2">
-                <a href="mailto:abiodun@ksavaluers.com" class="flex items-center text-gray-700 hover:text-green-600 transition-colors">
-                  <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  abiodun@ksavaluers.com
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Team Member 4 -->
-        <div class="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-          <div class="p-8">
-            <div class="flex items-center mb-6">
-              <div class="w-40 h-40 rounded-full overflow-hidden border-4 border-orange-100 mb-6">
-                <img 
-                  src="../assets/images/DSC00141-scaled.jpeg"
-                  class="w-full h-full object-cover"
-                >
-              </div>
-              <div>
-                <h3 class="text-xl font-bold text-gray-900">ESV Olaoluwa Isaac Ojewumi</h3>
-                <p class="text-orange-600 font-medium">Head of Sales Department</p>
-                <p class="text-sm text-gray-500">BSc, Estate Management</p>
-              </div>
-            </div>
-            <div class="mb-6">
-              <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800 mb-3">
-                Sales & Agency Expert
-              </div>
-              <p class="text-gray-600">
-                Experienced in real estate sales and agency leadership. Olaoluwa drives our sales initiatives with strategic market insights and exceptional client relationship management.
-              </p>
-            </div>
-            <div class="border-t border-gray-100 pt-6">
-              <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Contact</h4>
-              <div class="space-y-2">
-                <a href="mailto:olaoluwaisaac@ksavaluers.com" class="flex items-center text-gray-700 hover:text-orange-600 transition-colors">
-                  <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  olaoluwaisaac@ksavaluers.com
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Join Our Team Card -->
-        <div class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-lg overflow-hidden">
+        <!-- Join Our Team Card (Non-admins/guests) -->
+        <div v-else class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl shadow-lg overflow-hidden">
           <div class="p-8 h-full flex flex-col justify-center items-center text-center">
             <div class="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mb-6">
               <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -412,22 +353,78 @@
           </div>
         </div>
       </div>
+
+      <!-- Team Member CRUD Modal (Admins only) -->
+      <div v-if="showMemberModal" class="fixed inset-0 z-[150] overflow-y-auto bg-gray-900/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 md:p-8 max-w-lg w-full relative">
+          <!-- Close Button -->
+          <button @click="showMemberModal = false" class="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition text-gray-500 hover:text-gray-700">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+          
+          <h3 class="text-2xl font-bold text-gray-900 mb-2">
+            {{ isEditing ? 'Edit Team Member' : 'Add Team Member' }}
+          </h3>
+          <p class="text-gray-600 mb-6 text-sm">Fill in the professional details of the team member.</p>
+          
+          <form @submit.prevent="saveMember" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+              <input v-model="memberForm.name" type="text" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Role / Job Title *</label>
+              <input v-model="memberForm.role" type="text" placeholder="e.g. Head of Valuation" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Professional Tag *</label>
+              <input v-model="memberForm.tag" type="text" placeholder="e.g. Certified Estate Surveyor, HR Specialist" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email Address *</label>
+              <input v-model="memberForm.email" type="email" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Image URL / Filename (Optional)</label>
+              <input v-model="memberForm.image" type="text" placeholder="e.g. DSC00129-240x300.jpeg" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Biography / Professional Profile *</label>
+              <textarea v-model="memberForm.description" required rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            
+            <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition shadow-lg">
+              {{ isEditing ? 'Save Changes' : 'Create Profile' }}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
     </div>
   </ErrorBoundary>
 </template>
 
 <script setup>
+import { ref, computed, onMounted, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
 import ErrorBoundary from '../components/global/ErrorBoundary.vue'
 import { useSEO } from '../hooks/useSEO'
+
 useSEO({
   title: 'Our Team',
   description: 'Meet the professionals behind KSA Valuers.'
 })
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const authStore = useAuthStore()
+
+const isAdmin = computed(() => authStore.isAuthenticated && authStore.user?.role === 'admin')
 
 // State
 const showAuthModal = ref(false)
@@ -442,27 +439,157 @@ const loginForm = ref({
 const signupForm = ref({
   name: '',
   email: '',
-  department: ''
+  role: 'admin'
 })
 
-// Methods
-const handleLogin = () => {
-  // For demo purposes - redirect to admin dashboard
-  // In production, this would validate credentials
-  router.push('/admin')
-  showAuthModal.value = false
+// Team CRUD State
+const teamMembers = ref([])
+const showMemberModal = ref(false)
+const isEditing = ref(false)
+const memberForm = reactive({
+  id: null,
+  name: '',
+  role: '',
+  tag: '',
+  image: '',
+  description: '',
+  email: ''
+})
+
+const defaultTeamMembers = [
+  {
+    id: 1,
+    name: 'ESV. Markson Ajiboye',
+    role: 'Head Business Unit',
+    tag: 'Certified Estate Surveyor & Valuer',
+    image: 'IMG-20240405-WA0009-233x300.jpg',
+    description: 'With extensive experience in real estate, Markson leads our agency and sales division. His expertise ensures optimal property valuations and successful client transactions across major Nigerian markets.',
+    email: 'info@ksavaluers.com'
+  },
+  {
+    id: 2,
+    name: 'Eniola Abiola Kayode',
+    role: 'Human Resource Manager',
+    tag: 'HR Specialist',
+    image: 'IMG-20240405-WA0011-e1712320368546-300x268.jpg',
+    description: 'A dynamic HR professional skilled in recruitment, employee relations, training, and development. Eniola ensures our team maintains the highest standards of professionalism and client service.',
+    email: 'info@ksavaluers.com'
+  },
+  {
+    id: 3,
+    name: 'ESV Akinyele Abiodun',
+    role: 'Head of Estate Management & Valuation',
+    tag: 'Estate Surveyor',
+    image: 'DSC00129-240x300.jpeg',
+    description: 'A seasoned estate surveyor with strong problem-solving and communication skills. Akinyele specializes in property valuation, estate management, and ensuring compliance with regulatory standards.',
+    email: 'abiodun@ksavaluers.com'
+  },
+  {
+    id: 4,
+    name: 'ESV Olaoluwa Isaac Ojewumi',
+    role: 'Head of Sales Department',
+    tag: 'Sales & Agency Expert',
+    image: 'DSC00141-scaled.jpeg',
+    description: 'Experienced in real estate sales and agency leadership. Olaoluwa drives our sales initiatives with strategic market insights and exceptional client relationship management.',
+    email: 'olaoluwaisaac@ksavaluers.com'
+  }
+]
+
+onMounted(() => {
+  const stored = localStorage.getItem('ksa_team_members')
+  if (stored) {
+    teamMembers.value = JSON.parse(stored)
+  } else {
+    teamMembers.value = [...defaultTeamMembers]
+    localStorage.setItem('ksa_team_members', JSON.stringify(defaultTeamMembers))
+  }
+})
+
+const getImageUrl = (image) => {
+  if (!image) return 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop'
+  if (image.startsWith('http') || image.startsWith('data:')) return image
+  try {
+    return new URL(`../assets/images/${image}`, import.meta.url).href
+  } catch {
+    return 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop'
+  }
 }
 
-const handleSignup = () => {
-  // In production, this would send an access request
-  alert(`Access request sent for ${signupForm.value.name}. HR will contact you shortly.`)
-  showAuthModal.value = false
-  
-  // Reset form
-  signupForm.value = {
+const handleImageError = (e) => {
+  e.target.src = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop'
+}
+
+// CRUD actions
+const openAddModal = () => {
+  isEditing.value = false
+  Object.assign(memberForm, {
+    id: null,
     name: '',
-    email: '',
-    department: ''
+    role: '',
+    tag: '',
+    image: '',
+    description: '',
+    email: ''
+  })
+  showMemberModal.value = true
+}
+
+const openEditModal = (member) => {
+  isEditing.value = true
+  Object.assign(memberForm, { ...member })
+  showMemberModal.value = true
+}
+
+const saveMember = () => {
+  if (isEditing.value) {
+    const idx = teamMembers.value.findIndex(m => m.id === memberForm.id)
+    if (idx !== -1) {
+      teamMembers.value[idx] = { ...memberForm }
+    }
+  } else {
+    const nextId = teamMembers.value.length ? Math.max(...teamMembers.value.map(m => m.id)) + 1 : 1
+    teamMembers.value.push({
+      ...memberForm,
+      id: nextId,
+      image: memberForm.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop'
+    })
+  }
+  localStorage.setItem('ksa_team_members', JSON.stringify(teamMembers.value))
+  showMemberModal.value = false
+}
+
+const deleteMember = (id) => {
+  if (confirm('Are you sure you want to remove this team member?')) {
+    teamMembers.value = teamMembers.value.filter(m => m.id !== id)
+    localStorage.setItem('ksa_team_members', JSON.stringify(teamMembers.value))
+  }
+}
+
+// Authentication Methods
+const handleLogin = async () => {
+  try {
+    const result = await authStore.login(loginForm.value.email, loginForm.value.password)
+    if (result.success) {
+      showAuthModal.value = false
+    } else {
+      alert(result.error || 'Login failed')
+    }
+  } catch (err) {
+    alert('An error occurred during sign in')
+  }
+}
+
+const handleSignup = async () => {
+  try {
+    const result = await authStore.signup(signupForm.value.name, signupForm.value.email, signupForm.value.password || 'KSAPassword123!', signupForm.value.role)
+    if (result.success) {
+      alert(`Account created for ${signupForm.value.name} as ${signupForm.value.role}!`)
+      showAuthModal.value = false
+    } else {
+      alert(result.error || 'Signup failed')
+    }
+  } catch (err) {
+    alert('An error occurred during signup')
   }
 }
 </script>
