@@ -118,6 +118,48 @@ async function seedDatabase() {
       console.log(`⏭️  Sample projects already exist\n`);
     }
     
+    // Seed sample hero slides
+    const existingSlides = await client.query('SELECT COUNT(*) FROM hero_slides');
+    if (existingSlides.rows[0].count == 0) {
+      const sampleSlides = [
+        {
+          image_url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&h=900&fit=crop',
+          title: "Nigeria's Premier Property Valuers",
+          tagline: 'Expert property valuations and comprehensive real estate solutions across Nigeria',
+          cta_text: 'Explore Properties',
+          cta_link: '/properties',
+          sort_order: 1
+        },
+        {
+          image_url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1600&h=900&fit=crop',
+          title: 'Smart Real Estate Investments',
+          tagline: 'Discover high-yield properties in prime locations across Lagos, Abuja, and Port Harcourt',
+          cta_text: 'View Ongoing Projects',
+          cta_link: '/ongoing-projects',
+          sort_order: 2
+        },
+        {
+          image_url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&h=900&fit=crop',
+          title: 'Expert Valuation Reports',
+          tagline: 'Get fast, accurate, and bank-recognized valuation reports for your assets',
+          cta_text: 'Schedule an Appointment',
+          cta_link: '/book-a-tour',
+          sort_order: 3
+        }
+      ];
+
+      for (const slide of sampleSlides) {
+        await client.query(
+          `INSERT INTO hero_slides (image_url, title, tagline, cta_text, cta_link, sort_order)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [slide.image_url, slide.title, slide.tagline, slide.cta_text, slide.cta_link, slide.sort_order]
+        );
+      }
+      console.log(`✅ Seeded ${sampleSlides.length} sample hero slides\n`);
+    } else {
+      console.log(`⏭️  Sample hero slides already exist\n`);
+    }
+    
     console.log('✨ Database seeding completed!');
   } catch (error) {
     console.error('❌ Seeding failed:', error.message);

@@ -306,6 +306,30 @@ const handleLogin = async () => {
 }
 
 const handleSignup = async () => {
-  errorMessage.value = 'Self-service signup is disabled. Please contact an administrator.'
+  loading.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
+
+  try {
+    const result = await authStore.signup(
+      signupForm.value.name,
+      signupForm.value.email,
+      signupForm.value.password,
+      signupForm.value.department
+    )
+    
+    if (result.success) {
+      successMessage.value = 'Account created successfully! Redirecting...'
+      setTimeout(() => {
+        router.push('/admin')
+      }, 1000)
+    } else {
+      errorMessage.value = result.error || 'Failed to create account. Please try again.'
+    }
+  } catch (error) {
+    errorMessage.value = 'An error occurred during sign up. Please try again.'
+  } finally {
+    loading.value = false
+  }
 }
 </script>

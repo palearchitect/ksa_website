@@ -765,7 +765,7 @@ onUnmounted(() => {
     right: 0;
     width: 300px;
     height: 100vh;
-    z-index: 50;
+    z-index: 110;
     box-shadow: -5px 0 25px rgba(0, 0, 0, 0.1);
   }
 }

@@ -135,6 +135,57 @@ const migrations = [
       );
     `,
     down: `DROP TABLE IF EXISTS migrations;`
+  },
+  {
+    name: '007-add-check-constraints-and-audit-logs',
+    up: `
+      -- Add constraints to properties if they don't exist
+      ALTER TABLE properties DROP CONSTRAINT IF EXISTS chk_properties_price;
+      ALTER TABLE properties ADD CONSTRAINT chk_properties_price CHECK (price >= 0);
+
+      -- Add constraints to projects
+      ALTER TABLE projects DROP CONSTRAINT IF EXISTS chk_projects_completion;
+      ALTER TABLE projects ADD CONSTRAINT chk_projects_completion CHECK (completion_percentage BETWEEN 0 AND 100);
+      
+      ALTER TABLE projects DROP CONSTRAINT IF EXISTS chk_projects_budget;
+      ALTER TABLE projects ADD CONSTRAINT chk_projects_budget CHECK (budget >= 0);
+
+      -- Create audit_logs table
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id SERIAL PRIMARY KEY,
+        user_email TEXT,
+        action TEXT NOT NULL,
+        table_name TEXT NOT NULL,
+        record_id TEXT NOT NULL,
+        before_data JSONB,
+        after_data JSONB,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_audit_logs_table_record ON audit_logs (table_name, record_id);
+    `,
+    down: `
+      ALTER TABLE properties DROP CONSTRAINT IF EXISTS chk_properties_price;
+      ALTER TABLE projects DROP CONSTRAINT IF EXISTS chk_projects_completion;
+      ALTER TABLE projects DROP CONSTRAINT IF EXISTS chk_projects_budget;
+      DROP TABLE IF EXISTS audit_logs;
+    `
+  },
+  {
+    name: '008-create-hero-slides-table',
+    up: `
+      CREATE TABLE IF NOT EXISTS hero_slides (
+        id SERIAL PRIMARY KEY,
+        image_url TEXT NOT NULL,
+        title TEXT NOT NULL,
+        tagline TEXT,
+        cta_text TEXT DEFAULT 'Explore Properties',
+        cta_link TEXT DEFAULT '/properties',
+        sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+    `,
+    down: `DROP TABLE IF EXISTS hero_slides;`
   }
 ];
 
@@ -145,7 +196,8 @@ async function runMigrations() {
     console.log('🔧 Starting database migrations...\n');
     
     // Create migrations table first if it doesn't exist
-    await client.query(migrations[migrations.length - 1].up);
+    const migrationsTableSetup = migrations.find(m => m.name === '006-create-migrations-table');
+    await client.query(migrationsTableSetup.up);
     
     for (const migration of migrations) {
       const result = await client.query(

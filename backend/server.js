@@ -82,7 +82,18 @@ const aiLimiter = rateLimit({
 
 // Middleware
 app.use(cors({
-  origin: allowedOrigins.length > 0 ? allowedOrigins : false,
+  origin: (origin, callback) => {
+    // In development, allow any origin (e.g. ngrok, LAN) to prevent CORS blocker errors
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    // In production, enforce ALLOWED_ORIGINS
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -152,6 +163,18 @@ const mapBooking = (row) => ({
   updatedAt: row.updated_at
 });
 
+const mapHeroSlide = (row) => ({
+  id: row.id,
+  imageUrl: row.image_url,
+  title: row.title,
+  tagline: row.tagline,
+  ctaText: row.cta_text,
+  ctaLink: row.cta_link,
+  sortOrder: Number(row.sort_order || 0),
+  createdAt: row.created_at,
+  updatedAt: row.updated_at
+});
+
 const requireFields = (payload, fields) => {
   const missing = fields.filter((field) => {
     const value = payload[field];
@@ -214,6 +237,100 @@ const validatePasswordPolicy = (password) => {
   if (!/[0-9]/.test(password)) return 'Password must contain numbers (0-9)';
   if (!/[!@#$%^&*_\-+=\[\]{};:'",.<>?/\\|`~]/.test(password)) return 'Password must contain special characters (!@#$%^&* etc.)';
   return null;
+};
+
+// Rate limiter for public forms (contact, booking)
+const publicFormLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // limit each IP to 10 submissions per hour
+  message: {
+    success: false,
+    message: 'Too many submissions. Please try again after an hour.'
+  }
+});
+
+// Custom validation helpers for input boundaries
+const validatePropertyInput = (payload) => {
+  const errors = [];
+  if (payload.price !== undefined && payload.price !== null) {
+    const price = Number(payload.price);
+    if (isNaN(price) || price < 0) {
+      errors.push('Price must be a non-negative number');
+    }
+  }
+  if (payload.bedrooms !== undefined && payload.bedrooms !== null) {
+    const br = Number(payload.bedrooms);
+    if (isNaN(br) || br < 0) {
+      errors.push('Bedrooms must be a non-negative integer');
+    }
+  }
+  if (payload.bathrooms !== undefined && payload.bathrooms !== null) {
+    const ba = Number(payload.bathrooms);
+    if (isNaN(ba) || ba < 0) {
+      errors.push('Bathrooms must be a non-negative integer');
+    }
+  }
+  if (payload.squareFootage !== undefined && payload.squareFootage !== null) {
+    const sf = Number(payload.squareFootage);
+    if (isNaN(sf) || sf < 0) {
+      errors.push('Square footage must be a non-negative integer');
+    }
+  }
+  return errors.length > 0 ? errors.join(', ') : null;
+};
+
+const validateProjectInput = (payload) => {
+  const errors = [];
+  if (payload.completionPercentage !== undefined && payload.completionPercentage !== null) {
+    const cp = Number(payload.completionPercentage);
+    if (isNaN(cp) || cp < 0 || cp > 100) {
+      errors.push('Completion percentage must be an integer between 0 and 100');
+    }
+  }
+  if (payload.budget !== undefined && payload.budget !== null) {
+    const budget = Number(payload.budget);
+    if (isNaN(budget) || budget < 0) {
+      errors.push('Budget must be a non-negative number');
+    }
+  }
+  if (payload.totalUnits !== undefined && payload.totalUnits !== null) {
+    const tu = Number(payload.totalUnits);
+    if (isNaN(tu) || tu < 0) {
+      errors.push('Total units must be a non-negative integer');
+    }
+  }
+  return errors.length > 0 ? errors.join(', ') : null;
+};
+
+const validateHeroSlideInput = (payload) => {
+  const errors = [];
+  if (payload.sortOrder !== undefined && payload.sortOrder !== null) {
+    const so = Number(payload.sortOrder);
+    if (isNaN(so) || so < 0) {
+      errors.push('Sort order must be a non-negative integer');
+    }
+  }
+  return errors.length > 0 ? errors.join(', ') : null;
+};
+
+// Audit logging helper
+const logAudit = async (userEmail, action, tableName, recordId, beforeData, afterData) => {
+  try {
+    await pool.query(
+      `INSERT INTO audit_logs (user_email, action, table_name, record_id, before_data, after_data)
+       VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb)`,
+      [
+        userEmail || 'system',
+        action,
+        tableName,
+        String(recordId),
+        beforeData ? JSON.stringify(beforeData) : null,
+        afterData ? JSON.stringify(afterData) : null
+      ]
+    );
+  } catch (err) {
+    console.error(`⚠️ Audit log failed: ${err.message}`);
+  }
 };
 
 const initializeDatabase = async () => {
@@ -316,7 +433,7 @@ const initializeEmailService = async () => {
 // ============================================
 // CONTACT ENDPOINT
 // ============================================
-app.post('/api/contact', async (req, res) => {
+app.post('/api/contact', publicFormLimiter, async (req, res) => {
   try {
     const { name, email, phone, subject, message } = req.body;
 
@@ -424,6 +541,47 @@ app.post('/api/v1/auth/login', async (req, res) => {
   } catch (error) {
     console.error('Auth login error:', error);
     return res.status(500).json({ success: false, message: 'Failed to login' });
+  }
+});
+
+app.post('/api/v1/auth/register', async (req, res) => {
+  try {
+    const { name, email, password, role } = req.body || {};
+    const missing = requireFields(req.body || {}, ['name', 'email', 'password']);
+    if (missing.length > 0) {
+      return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
+    }
+
+    if (!email.includes('@') || email.length < 5) {
+      return res.status(400).json({ success: false, message: 'Invalid email address' });
+    }
+
+    const checkUser = await pool.query('SELECT id FROM users WHERE email = $1 LIMIT 1', [String(email).toLowerCase().trim()]);
+    if (checkUser.rowCount > 0) {
+      return res.status(400).json({ success: false, message: 'Email address already registered' });
+    }
+
+    const passError = validatePasswordPolicy(password);
+    if (passError) {
+      return res.status(400).json({ success: false, message: passError });
+    }
+
+    const hash = await bcrypt.hash(String(password), 12);
+    const resolvedRole = role || 'admin';
+    const result = await pool.query(
+      `INSERT INTO users (name, email, password_hash, role, status)
+       VALUES ($1, $2, $3, $4, $5) RETURNING id, email, role, name`,
+      [name, String(email).toLowerCase().trim(), hash, resolvedRole, 'active']
+    );
+
+    const newUser = result.rows[0];
+    await logAudit('system', 'REGISTER', 'users', newUser.id, null, { name: newUser.name, email: newUser.email, role: newUser.role });
+
+    setAuthCookies(res, signAccessToken(newUser), signRefreshToken(newUser));
+    return res.json({ success: true, data: newUser });
+  } catch (error) {
+    console.error('Auth register error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to register account' });
   }
 });
 
@@ -687,142 +845,345 @@ app.get('/api/list-models', async (req, res) => {
 // ============================================
 // PROPERTIES, PROJECTS, BOOKINGS API ENDPOINTS
 // ============================================
-app.get('/api/properties', async (_req, res) => {
-  const result = await pool.query(`SELECT * FROM properties ORDER BY created_at DESC`);
-  res.json({ success: true, data: result.rows.map(mapProperty) });
+app.get('/api/properties', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = req.query.limit ? parseInt(req.query.limit) : (req.query.page ? 20 : 100000);
+    const offset = (page - 1) * limit;
+
+    const { search, status, type } = req.query;
+
+    const params = [];
+    let countQuery = `SELECT COUNT(*) FROM properties`;
+    let query = `SELECT * FROM properties`;
+    let whereClauses = [];
+
+    if (search) {
+      params.push(`%${search}%`);
+      whereClauses.push(`(title ILIKE $${params.length} OR location ILIKE $${params.length} OR description ILIKE $${params.length})`);
+    }
+
+    if (status && status !== 'all') {
+      const normStatus = normalizePropertyStatus(status);
+      params.push(normStatus);
+      whereClauses.push(`status = $${params.length}`);
+    }
+
+    if (type && type !== 'all') {
+      params.push(type);
+      whereClauses.push(`type = $${params.length}`);
+    }
+
+    if (whereClauses.length > 0) {
+      const clause = ` WHERE ` + whereClauses.join(' AND ');
+      countQuery += clause;
+      query += clause;
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+
+    const countResult = await pool.query(countQuery, params);
+    const total = parseInt(countResult.rows[0].count);
+
+    const queryParams = [...params, limit, offset];
+    const result = await pool.query(query, queryParams);
+
+    res.json({
+      success: true,
+      data: result.rows.map(mapProperty),
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit) || 1
+      }
+    });
+  } catch (error) {
+    console.error('Failed to get properties:', error);
+    res.status(500).json({ success: false, message: 'Failed to get properties' });
+  }
 });
 
 app.get('/api/properties/:id', async (req, res) => {
-  const id = parseId(req.params.id);
-  if (!id) return res.status(400).json({ success: false, message: 'Invalid property id' });
-  const result = await pool.query(`SELECT * FROM properties WHERE id = $1 LIMIT 1`, [id]);
-  if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Property not found' });
-  res.json({ success: true, data: mapProperty(result.rows[0]) });
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid property id' });
+    const result = await pool.query(`SELECT * FROM properties WHERE id = $1 LIMIT 1`, [id]);
+    if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Property not found' });
+    res.json({ success: true, data: mapProperty(result.rows[0]) });
+  } catch (error) {
+    console.error('Failed to get property:', error);
+    res.status(500).json({ success: false, message: 'Failed to get property' });
+  }
 });
 
 app.post('/api/properties', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
-  const missing = requireFields(req.body || {}, ['title', 'location', 'price']);
-  if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
-  const payload = req.body;
-  const result = await pool.query(
-    `INSERT INTO properties (title, location, image, images, price, status, type, bedrooms, bathrooms, square_footage, description, featured, tags)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
-    [
-      payload.title, payload.location, payload.image || null, JSON.stringify(payload.images || []),
-      Number(payload.price || 0), normalizePropertyStatus(payload.status), payload.type || null,
-      payload.bedrooms || null, payload.bathrooms || null, payload.squareFootage || null,
-      payload.description || null, Boolean(payload.featured), JSON.stringify(payload.tags || [])
-    ]
-  );
-  res.json({ success: true, data: mapProperty(result.rows[0]) });
+  try {
+    const missing = requireFields(req.body || {}, ['title', 'location', 'price']);
+    if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
+    
+    const payload = req.body;
+    const valError = validatePropertyInput(payload);
+    if (valError) return res.status(400).json({ success: false, message: valError });
+
+    const result = await pool.query(
+      `INSERT INTO properties (title, location, image, images, price, status, type, bedrooms, bathrooms, square_footage, description, featured, tags)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+      [
+        payload.title, payload.location, payload.image || null, JSON.stringify(payload.images || []),
+        Number(payload.price || 0), normalizePropertyStatus(payload.status), payload.type || null,
+        payload.bedrooms || null, payload.bathrooms || null, payload.squareFootage || null,
+        payload.description || null, Boolean(payload.featured), JSON.stringify(payload.tags || [])
+      ]
+    );
+    
+    const newProperty = mapProperty(result.rows[0]);
+    await logAudit(req.user.email, 'CREATE', 'properties', newProperty.id, null, newProperty);
+
+    res.json({ success: true, data: newProperty });
+  } catch (error) {
+    console.error('Failed to create property:', error);
+    res.status(500).json({ success: false, message: 'Failed to create property' });
+  }
 });
 
 app.put('/api/properties/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
-  const id = parseId(req.params.id);
-  if (!id) return res.status(400).json({ success: false, message: 'Invalid property id' });
-  const payload = req.body || {};
-  const result = await pool.query(
-    `UPDATE properties SET
-      title = COALESCE($2, title),
-      location = COALESCE($3, location),
-      image = COALESCE($4, image),
-      images = COALESCE($5::jsonb, images),
-      price = COALESCE($6, price),
-      status = COALESCE($7, status),
-      type = COALESCE($8, type),
-      bedrooms = COALESCE($9, bedrooms),
-      bathrooms = COALESCE($10, bathrooms),
-      square_footage = COALESCE($11, square_footage),
-      description = COALESCE($12, description),
-      featured = COALESCE($13, featured),
-      tags = COALESCE($14::jsonb, tags),
-      updated_at = NOW()
-      WHERE id = $1 RETURNING *`,
-    [id, payload.title, payload.location, payload.image, payload.images ? JSON.stringify(payload.images) : null,
-      payload.price !== undefined ? Number(payload.price) : null,
-      payload.status ? normalizePropertyStatus(payload.status) : null,
-      payload.type, payload.bedrooms, payload.bathrooms, payload.squareFootage, payload.description,
-      payload.featured !== undefined ? Boolean(payload.featured) : null,
-      payload.tags ? JSON.stringify(payload.tags) : null
-    ]
-  );
-  if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Property not found' });
-  res.json({ success: true, data: mapProperty(result.rows[0]) });
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid property id' });
+    
+    const payload = req.body || {};
+    const valError = validatePropertyInput(payload);
+    if (valError) return res.status(400).json({ success: false, message: valError });
+
+    // Get before data for audit
+    const beforeResult = await pool.query(`SELECT * FROM properties WHERE id = $1 LIMIT 1`, [id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Property not found' });
+    const beforeData = mapProperty(beforeResult.rows[0]);
+
+    const result = await pool.query(
+      `UPDATE properties SET
+        title = COALESCE($2, title),
+        location = COALESCE($3, location),
+        image = COALESCE($4, image),
+        images = COALESCE($5::jsonb, images),
+        price = COALESCE($6, price),
+        status = COALESCE($7, status),
+        type = COALESCE($8, type),
+        bedrooms = COALESCE($9, bedrooms),
+        bathrooms = COALESCE($10, bathrooms),
+        square_footage = COALESCE($11, square_footage),
+        description = COALESCE($12, description),
+        featured = COALESCE($13, featured),
+        tags = COALESCE($14::jsonb, tags),
+        updated_at = NOW()
+        WHERE id = $1 RETURNING *`,
+      [id, payload.title, payload.location, payload.image, payload.images ? JSON.stringify(payload.images) : null,
+        payload.price !== undefined ? Number(payload.price) : null,
+        payload.status ? normalizePropertyStatus(payload.status) : null,
+        payload.type, payload.bedrooms, payload.bathrooms, payload.squareFootage, payload.description,
+        payload.featured !== undefined ? Boolean(payload.featured) : null,
+        payload.tags ? JSON.stringify(payload.tags) : null
+      ]
+    );
+    
+    const updatedProperty = mapProperty(result.rows[0]);
+    await logAudit(req.user.email, 'UPDATE', 'properties', id, beforeData, updatedProperty);
+
+    res.json({ success: true, data: updatedProperty });
+  } catch (error) {
+    console.error('Failed to update property:', error);
+    res.status(500).json({ success: false, message: 'Failed to update property' });
+  }
 });
 
 app.delete('/api/properties/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
-  const id = parseId(req.params.id);
-  if (!id) return res.status(400).json({ success: false, message: 'Invalid property id' });
-  const result = await pool.query(`DELETE FROM properties WHERE id = $1`, [id]);
-  if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Property not found' });
-  res.json({ success: true });
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid property id' });
+    
+    // Get before data for audit
+    const beforeResult = await pool.query(`SELECT * FROM properties WHERE id = $1 LIMIT 1`, [id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Property not found' });
+    const beforeData = mapProperty(beforeResult.rows[0]);
+
+    await pool.query(`DELETE FROM properties WHERE id = $1`, [id]);
+    
+    await logAudit(req.user.email, 'DELETE', 'properties', id, beforeData, null);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Failed to delete property:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete property' });
+  }
 });
 
-app.get('/api/projects', async (_req, res) => {
-  const result = await pool.query(`SELECT * FROM projects ORDER BY created_at DESC`);
-  res.json({ success: true, data: result.rows.map(mapProject) });
+app.get('/api/projects', async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = req.query.limit ? parseInt(req.query.limit) : (req.query.page ? 20 : 100000);
+    const offset = (page - 1) * limit;
+
+    const { search, status, type } = req.query;
+
+    const params = [];
+    let countQuery = `SELECT COUNT(*) FROM projects`;
+    let query = `SELECT * FROM projects`;
+    let whereClauses = [];
+
+    if (search) {
+      params.push(`%${search}%`);
+      whereClauses.push(`(title ILIKE $${params.length} OR location ILIKE $${params.length} OR description ILIKE $${params.length})`);
+    }
+
+    if (status && status !== 'all') {
+      params.push(status);
+      whereClauses.push(`status = $${params.length}`);
+    }
+
+    if (type && type !== 'all') {
+      params.push(type);
+      whereClauses.push(`type = $${params.length}`);
+    }
+
+    if (whereClauses.length > 0) {
+      const clause = ` WHERE ` + whereClauses.join(' AND ');
+      countQuery += clause;
+      query += clause;
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+
+    const countResult = await pool.query(countQuery, params);
+    const total = parseInt(countResult.rows[0].count);
+
+    const queryParams = [...params, limit, offset];
+    const result = await pool.query(query, queryParams);
+
+    res.json({
+      success: true,
+      data: result.rows.map(mapProject),
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit) || 1
+      }
+    });
+  } catch (error) {
+    console.error('Failed to get projects:', error);
+    res.status(500).json({ success: false, message: 'Failed to get projects' });
+  }
 });
 
 app.get('/api/projects/:id', async (req, res) => {
-  const id = parseId(req.params.id);
-  if (!id) return res.status(400).json({ success: false, message: 'Invalid project id' });
-  const result = await pool.query(`SELECT * FROM projects WHERE id = $1 LIMIT 1`, [id]);
-  if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Project not found' });
-  res.json({ success: true, data: mapProject(result.rows[0]) });
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid project id' });
+    const result = await pool.query(`SELECT * FROM projects WHERE id = $1 LIMIT 1`, [id]);
+    if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Project not found' });
+    res.json({ success: true, data: mapProject(result.rows[0]) });
+  } catch (error) {
+    console.error('Failed to get project:', error);
+    res.status(500).json({ success: false, message: 'Failed to get project' });
+  }
 });
 
 app.post('/api/projects', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
-  const missing = requireFields(req.body || {}, ['title', 'location', 'status', 'type']);
-  if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
-  const payload = req.body || {};
-  const result = await pool.query(
-    `INSERT INTO projects (title, location, image, description, status, type, total_units, completion_percentage, start_date, expected_completion, budget, featured, amenities)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
-    [payload.title, payload.location, payload.image || null, payload.description || null, payload.status, payload.type,
-      payload.totalUnits || null, payload.completionPercentage || 0, payload.startDate || null, payload.expectedCompletion || null,
-      Number(payload.budget || 0), Boolean(payload.featured), JSON.stringify(payload.amenities || [])
-    ]
-  );
-  res.json({ success: true, data: mapProject(result.rows[0]) });
+  try {
+    const missing = requireFields(req.body || {}, ['title', 'location', 'status', 'type']);
+    if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
+    
+    const payload = req.body || {};
+    const valError = validateProjectInput(payload);
+    if (valError) return res.status(400).json({ success: false, message: valError });
+
+    const result = await pool.query(
+      `INSERT INTO projects (title, location, image, description, status, type, total_units, completion_percentage, start_date, expected_completion, budget, featured, amenities)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+      [payload.title, payload.location, payload.image || null, payload.description || null, payload.status, payload.type,
+        payload.totalUnits || null, payload.completionPercentage || 0, payload.startDate || null, payload.expectedCompletion || null,
+        Number(payload.budget || 0), Boolean(payload.featured), JSON.stringify(payload.amenities || [])
+      ]
+    );
+    
+    const newProject = mapProject(result.rows[0]);
+    await logAudit(req.user.email, 'CREATE', 'projects', newProject.id, null, newProject);
+
+    res.json({ success: true, data: newProject });
+  } catch (error) {
+    console.error('Failed to create project:', error);
+    res.status(500).json({ success: false, message: 'Failed to create project' });
+  }
 });
 
 app.put('/api/projects/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
-  const id = parseId(req.params.id);
-  if (!id) return res.status(400).json({ success: false, message: 'Invalid project id' });
-  const payload = req.body || {};
-  const result = await pool.query(
-    `UPDATE projects SET
-      title = COALESCE($2, title),
-      location = COALESCE($3, location),
-      image = COALESCE($4, image),
-      description = COALESCE($5, description),
-      status = COALESCE($6, status),
-      type = COALESCE($7, type),
-      total_units = COALESCE($8, total_units),
-      completion_percentage = COALESCE($9, completion_percentage),
-      start_date = COALESCE($10, start_date),
-      expected_completion = COALESCE($11, expected_completion),
-      budget = COALESCE($12, budget),
-      featured = COALESCE($13, featured),
-      amenities = COALESCE($14::jsonb, amenities),
-      updated_at = NOW()
-      WHERE id = $1 RETURNING *`,
-    [id, payload.title, payload.location, payload.image, payload.description, payload.status, payload.type,
-      payload.totalUnits, payload.completionPercentage, payload.startDate || null, payload.expectedCompletion || null,
-      payload.budget !== undefined ? Number(payload.budget) : null,
-      payload.featured !== undefined ? Boolean(payload.featured) : null,
-      payload.amenities ? JSON.stringify(payload.amenities) : null]
-  );
-  if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Project not found' });
-  res.json({ success: true, data: mapProject(result.rows[0]) });
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid project id' });
+    
+    const payload = req.body || {};
+    const valError = validateProjectInput(payload);
+    if (valError) return res.status(400).json({ success: false, message: valError });
+
+    // Get before data for audit
+    const beforeResult = await pool.query(`SELECT * FROM projects WHERE id = $1 LIMIT 1`, [id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Project not found' });
+    const beforeData = mapProject(beforeResult.rows[0]);
+
+    const result = await pool.query(
+      `UPDATE projects SET
+        title = COALESCE($2, title),
+        location = COALESCE($3, location),
+        image = COALESCE($4, image),
+        description = COALESCE($5, description),
+        status = COALESCE($6, status),
+        type = COALESCE($7, type),
+        total_units = COALESCE($8, total_units),
+        completion_percentage = COALESCE($9, completion_percentage),
+        start_date = COALESCE($10, start_date),
+        expected_completion = COALESCE($11, expected_completion),
+        budget = COALESCE($12, budget),
+        featured = COALESCE($13, featured),
+        amenities = COALESCE($14::jsonb, amenities),
+        updated_at = NOW()
+        WHERE id = $1 RETURNING *`,
+      [id, payload.title, payload.location, payload.image, payload.description, payload.status, payload.type,
+        payload.totalUnits, payload.completionPercentage, payload.startDate || null, payload.expectedCompletion || null,
+        payload.budget !== undefined ? Number(payload.budget) : null,
+        payload.featured !== undefined ? Boolean(payload.featured) : null,
+        payload.amenities ? JSON.stringify(payload.amenities) : null]
+    );
+    
+    const updatedProject = mapProject(result.rows[0]);
+    await logAudit(req.user.email, 'UPDATE', 'projects', id, beforeData, updatedProject);
+
+    res.json({ success: true, data: updatedProject });
+  } catch (error) {
+    console.error('Failed to update project:', error);
+    res.status(500).json({ success: false, message: 'Failed to update project' });
+  }
 });
 
 app.delete('/api/projects/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
-  const id = parseId(req.params.id);
-  if (!id) return res.status(400).json({ success: false, message: 'Invalid project id' });
-  const result = await pool.query(`DELETE FROM projects WHERE id = $1`, [id]);
-  if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Project not found' });
-  res.json({ success: true });
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid project id' });
+    
+    // Get before data for audit
+    const beforeResult = await pool.query(`SELECT * FROM projects WHERE id = $1 LIMIT 1`, [id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Project not found' });
+    const beforeData = mapProject(beforeResult.rows[0]);
+
+    await pool.query(`DELETE FROM projects WHERE id = $1`, [id]);
+    
+    await logAudit(req.user.email, 'DELETE', 'projects', id, beforeData, null);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Failed to delete project:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete project' });
+  }
 });
 
 app.get('/api/bookings', requireAuth, requireRole('admin', 'manager'), async (_req, res) => {
@@ -867,54 +1228,89 @@ app.get('/api/bookings/:id', requireAuth, requireRole('admin', 'manager'), async
 });
 
 // Create a new booking
-app.post('/api/bookings', async (req, res) => {
-  const data = req.body.data || req.body;
-  const validationError = validateBookingPayload(data);
-  if (validationError) return res.status(400).json({ success: false, message: validationError });
-  const id = data.bookingId || `BOOK-${Date.now()}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
+app.post('/api/bookings', publicFormLimiter, async (req, res) => {
+  try {
+    const data = req.body.data || req.body;
+    const validationError = validateBookingPayload(data);
+    if (validationError) return res.status(400).json({ success: false, message: validationError });
+    const id = data.bookingId || `BOOK-${Date.now()}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
 
-  const conflict = await pool.query(
-    `SELECT id FROM bookings WHERE booking_date = $1 AND booking_time = $2
-     AND status <> 'cancelled' AND (($3::int IS NULL AND property_id IS NULL) OR property_id = $3::int) LIMIT 1`,
-    [data.date, data.time, data.property ? Number(data.property) : null]
-  );
-  if (conflict.rowCount > 0) {
-    return res.status(409).json({ success: false, message: 'This time slot is already booked.' });
+    const conflict = await pool.query(
+      `SELECT id FROM bookings WHERE booking_date = $1 AND booking_time = $2
+       AND status <> 'cancelled' AND (($3::int IS NULL AND property_id IS NULL) OR property_id = $3::int) LIMIT 1`,
+      [data.date, data.time, data.property ? Number(data.property) : null]
+    );
+    if (conflict.rowCount > 0) {
+      return res.status(409).json({ success: false, message: 'This time slot is already booked.' });
+    }
+    const result = await pool.query(
+      `INSERT INTO bookings (id, property_id, name, email, phone, booking_date, booking_time, guests, notes, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [id, data.property ? Number(data.property) : null, data.name, data.email, data.phone, data.date, data.time, data.guests || 1, data.notes || '', data.status || 'pending']
+    );
+    
+    const newBooking = mapBooking(result.rows[0]);
+    await logAudit(data.email || 'anonymous', 'CREATE', 'bookings', id, null, newBooking);
+
+    res.json({ success: true, data: newBooking, message: 'Booking created successfully!' });
+  } catch (error) {
+    console.error('Failed to create booking:', error);
+    res.status(500).json({ success: false, message: 'Failed to create booking' });
   }
-  const result = await pool.query(
-    `INSERT INTO bookings (id, property_id, name, email, phone, booking_date, booking_time, guests, notes, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-    [id, data.property ? Number(data.property) : null, data.name, data.email, data.phone, data.date, data.time, data.guests || 1, data.notes || '', data.status || 'pending']
-  );
-  res.json({ success: true, data: mapBooking(result.rows[0]), message: 'Booking created successfully!' });
 });
 
 // Update booking (status, notes, etc.)
 app.put('/api/bookings/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
-  const updates = req.body.data || req.body || {};
-  const result = await pool.query(
-    `UPDATE bookings SET
-      name = COALESCE($2, name),
-      email = COALESCE($3, email),
-      phone = COALESCE($4, phone),
-      booking_date = COALESCE($5, booking_date),
-      booking_time = COALESCE($6, booking_time),
-      guests = COALESCE($7, guests),
-      notes = COALESCE($8, notes),
-      status = COALESCE($9, status),
-      updated_at = NOW()
-      WHERE id = $1 RETURNING *`,
-    [req.params.id, updates.name, updates.email, updates.phone, updates.date, updates.time, updates.guests, updates.notes, updates.status]
-  );
-  if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Booking not found' });
-  res.json({ success: true, data: mapBooking(result.rows[0]), message: 'Booking updated successfully!' });
+  try {
+    const updates = req.body.data || req.body || {};
+    
+    // Get before data for audit
+    const beforeResult = await pool.query(`SELECT * FROM bookings WHERE id = $1 LIMIT 1`, [req.params.id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Booking not found' });
+    const beforeData = mapBooking(beforeResult.rows[0]);
+
+    const result = await pool.query(
+      `UPDATE bookings SET
+        name = COALESCE($2, name),
+        email = COALESCE($3, email),
+        phone = COALESCE($4, phone),
+        booking_date = COALESCE($5, booking_date),
+        booking_time = COALESCE($6, booking_time),
+        guests = COALESCE($7, guests),
+        notes = COALESCE($8, notes),
+        status = COALESCE($9, status),
+        updated_at = NOW()
+        WHERE id = $1 RETURNING *`,
+      [req.params.id, updates.name, updates.email, updates.phone, updates.date, updates.time, updates.guests, updates.notes, updates.status]
+    );
+    
+    const updatedBooking = mapBooking(result.rows[0]);
+    await logAudit(req.user.email, 'UPDATE', 'bookings', req.params.id, beforeData, updatedBooking);
+
+    res.json({ success: true, data: updatedBooking, message: 'Booking updated successfully!' });
+  } catch (error) {
+    console.error('Failed to update booking:', error);
+    res.status(500).json({ success: false, message: 'Failed to update booking' });
+  }
 });
 
 // Delete booking
 app.delete('/api/bookings/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
-  const result = await pool.query(`DELETE FROM bookings WHERE id = $1`, [req.params.id]);
-  if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Booking not found' });
-  res.json({ success: true, message: 'Booking deleted successfully!' });
+  try {
+    // Get before data for audit
+    const beforeResult = await pool.query(`SELECT * FROM bookings WHERE id = $1 LIMIT 1`, [req.params.id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Booking not found' });
+    const beforeData = mapBooking(beforeResult.rows[0]);
+
+    await pool.query(`DELETE FROM bookings WHERE id = $1`, [req.params.id]);
+    
+    await logAudit(req.user.email, 'DELETE', 'bookings', req.params.id, beforeData, null);
+
+    res.json({ success: true, message: 'Booking deleted successfully!' });
+  } catch (error) {
+    console.error('Failed to delete booking:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete booking' });
+  }
 });
 
 // ============================================
@@ -931,38 +1327,74 @@ app.get('/api/appointments/all', requireAuth, requireRole('admin', 'manager'), a
   res.json({ success: true, data: result.rows.map(mapBooking) });
 });
 
-app.post('/api/appointments/schedule', async (req, res) => {
-  const data = req.body || {};
-  const validationError = validateBookingPayload(data);
-  if (validationError) return res.status(400).json({ success: false, message: validationError });
-  const id = `BOOK-${Date.now()}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
-  const conflict = await pool.query(
-    `SELECT id FROM bookings WHERE booking_date = $1 AND booking_time = $2
-     AND status <> 'cancelled' AND (($3::int IS NULL AND property_id IS NULL) OR property_id = $3::int) LIMIT 1`,
-    [data.date, data.time, data.property ? Number(data.property) : null]
-  );
-  if (conflict.rowCount > 0) {
-    return res.status(409).json({ success: false, message: 'This time slot is already booked.' });
+app.post('/api/appointments/schedule', publicFormLimiter, async (req, res) => {
+  try {
+    const data = req.body || {};
+    const validationError = validateBookingPayload(data);
+    if (validationError) return res.status(400).json({ success: false, message: validationError });
+    const id = `BOOK-${Date.now()}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
+    const conflict = await pool.query(
+      `SELECT id FROM bookings WHERE booking_date = $1 AND booking_time = $2
+       AND status <> 'cancelled' AND (($3::int IS NULL AND property_id IS NULL) OR property_id = $3::int) LIMIT 1`,
+      [data.date, data.time, data.property ? Number(data.property) : null]
+    );
+    if (conflict.rowCount > 0) {
+      return res.status(409).json({ success: false, message: 'This time slot is already booked.' });
+    }
+    const result = await pool.query(
+      `INSERT INTO bookings (id, property_id, name, email, phone, booking_date, booking_time, guests, notes, status)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
+      [id, data.property ? Number(data.property) : null, data.name, data.email, data.phone, data.date, data.time, data.guests || 1, data.notes || '', 'pending']
+    );
+    
+    const newBooking = mapBooking(result.rows[0]);
+    await logAudit(data.email || 'anonymous', 'CREATE', 'bookings', id, null, newBooking);
+
+    res.json({ success: true, data: newBooking });
+  } catch (error) {
+    console.error('Failed to schedule appointment:', error);
+    res.status(500).json({ success: false, message: 'Failed to schedule appointment' });
   }
-  const result = await pool.query(
-    `INSERT INTO bookings (id, property_id, name, email, phone, booking_date, booking_time, guests, notes, status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
-    [id, data.property ? Number(data.property) : null, data.name, data.email, data.phone, data.date, data.time, data.guests || 1, data.notes || '', 'pending']
-  );
-  res.json({ success: true, data: mapBooking(result.rows[0]) });
 });
 
 app.put('/api/appointments/status', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
-  const { id, status } = req.body;
-  const result = await pool.query(`UPDATE bookings SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING *`, [id, status]);
-  if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Appointment not found' });
-  res.json({ success: true, data: mapBooking(result.rows[0]) });
+  try {
+    const { id, status } = req.body;
+    
+    // Get before data for audit
+    const beforeResult = await pool.query(`SELECT * FROM bookings WHERE id = $1 LIMIT 1`, [id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Appointment not found' });
+    const beforeData = mapBooking(beforeResult.rows[0]);
+
+    const result = await pool.query(`UPDATE bookings SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING *`, [id, status]);
+    
+    const updated = mapBooking(result.rows[0]);
+    await logAudit(req.user.email, 'UPDATE', 'bookings', id, beforeData, updated);
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Failed to update appointment status:', error);
+    res.status(500).json({ success: false, message: 'Failed to update appointment status' });
+  }
 });
 
 app.put('/api/appointments/cancel/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
-  const result = await pool.query(`UPDATE bookings SET status = 'cancelled', updated_at = NOW() WHERE id = $1 RETURNING *`, [req.params.id]);
-  if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Appointment not found' });
-  res.json({ success: true, data: mapBooking(result.rows[0]) });
+  try {
+    // Get before data for audit
+    const beforeResult = await pool.query(`SELECT * FROM bookings WHERE id = $1 LIMIT 1`, [req.params.id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Appointment not found' });
+    const beforeData = mapBooking(beforeResult.rows[0]);
+
+    const result = await pool.query(`UPDATE bookings SET status = 'cancelled', updated_at = NOW() WHERE id = $1 RETURNING *`, [req.params.id]);
+    
+    const updated = mapBooking(result.rows[0]);
+    await logAudit(req.user.email, 'UPDATE', 'bookings', req.params.id, beforeData, updated);
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Failed to cancel appointment:', error);
+    res.status(500).json({ success: false, message: 'Failed to cancel appointment' });
+  }
 });
 
 // ============================================
@@ -1098,6 +1530,116 @@ app.get('/api/status', async (req, res) => {
       database: 'disconnected',
       error: error.message
     });
+  }
+});
+
+// ============================================
+// HERO SLIDES ENDPOINTS
+// ============================================
+
+app.get('/api/hero-slides', async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT * FROM hero_slides ORDER BY sort_order ASC, created_at DESC`);
+    res.json({ success: true, data: result.rows.map(mapHeroSlide) });
+  } catch (error) {
+    console.error('Failed to get hero slides:', error);
+    res.status(500).json({ success: false, message: 'Failed to get hero slides' });
+  }
+});
+
+app.get('/api/hero-slides/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid slide id' });
+    const result = await pool.query(`SELECT * FROM hero_slides WHERE id = $1 LIMIT 1`, [id]);
+    if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Hero slide not found' });
+    res.json({ success: true, data: mapHeroSlide(result.rows[0]) });
+  } catch (error) {
+    console.error('Failed to get hero slide:', error);
+    res.status(500).json({ success: false, message: 'Failed to get hero slide' });
+  }
+});
+
+app.post('/api/hero-slides', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+  try {
+    const missing = requireFields(req.body || {}, ['imageUrl', 'title']);
+    if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
+    
+    const payload = req.body || {};
+    const valError = validateHeroSlideInput(payload);
+    if (valError) return res.status(400).json({ success: false, message: valError });
+
+    const result = await pool.query(
+      `INSERT INTO hero_slides (image_url, title, tagline, cta_text, cta_link, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [payload.imageUrl, payload.title, payload.tagline || null, payload.ctaText || 'Explore Properties', payload.ctaLink || '/properties', Number(payload.sortOrder || 0)]
+    );
+    
+    const newSlide = mapHeroSlide(result.rows[0]);
+    await logAudit(req.user.email, 'CREATE', 'hero_slides', newSlide.id, null, newSlide);
+
+    res.json({ success: true, data: newSlide });
+  } catch (error) {
+    console.error('Failed to create hero slide:', error);
+    res.status(500).json({ success: false, message: 'Failed to create hero slide' });
+  }
+});
+
+app.put('/api/hero-slides/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid slide id' });
+    
+    const payload = req.body || {};
+    const valError = validateHeroSlideInput(payload);
+    if (valError) return res.status(400).json({ success: false, message: valError });
+
+    // Get before data for audit
+    const beforeResult = await pool.query(`SELECT * FROM hero_slides WHERE id = $1 LIMIT 1`, [id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Hero slide not found' });
+    const beforeData = mapHeroSlide(beforeResult.rows[0]);
+
+    const result = await pool.query(
+      `UPDATE hero_slides SET
+        image_url = COALESCE($2, image_url),
+        title = COALESCE($3, title),
+        tagline = COALESCE($4, tagline),
+        cta_text = COALESCE($5, cta_text),
+        cta_link = COALESCE($6, cta_link),
+        sort_order = COALESCE($7, sort_order),
+        updated_at = NOW()
+        WHERE id = $1 RETURNING *`,
+      [id, payload.imageUrl, payload.title, payload.tagline, payload.ctaText, payload.ctaLink, payload.sortOrder !== undefined ? Number(payload.sortOrder) : null]
+    );
+    
+    const updatedSlide = mapHeroSlide(result.rows[0]);
+    await logAudit(req.user.email, 'UPDATE', 'hero_slides', id, beforeData, updatedSlide);
+
+    res.json({ success: true, data: updatedSlide });
+  } catch (error) {
+    console.error('Failed to update hero slide:', error);
+    res.status(500).json({ success: false, message: 'Failed to update hero slide' });
+  }
+});
+
+app.delete('/api/hero-slides/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid slide id' });
+    
+    // Get before data for audit
+    const beforeResult = await pool.query(`SELECT * FROM hero_slides WHERE id = $1 LIMIT 1`, [id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Hero slide not found' });
+    const beforeData = mapHeroSlide(beforeResult.rows[0]);
+
+    await pool.query(`DELETE FROM hero_slides WHERE id = $1`, [id]);
+    
+    await logAudit(req.user.email, 'DELETE', 'hero_slides', id, beforeData, null);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Failed to delete hero slide:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete hero slide' });
   }
 });
 

@@ -7,6 +7,11 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const isAuthenticated = ref(false)
   const loading = ref(false)
+  const error = ref(null)
+
+  const clearError = () => {
+    error.value = null
+  }
 
   // Load from localStorage on init
   const loadSession = async () => {
@@ -14,7 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authAPI.me()
       user.value = response.data
       isAuthenticated.value = true
-    } catch {
+    } catch (err) {
       user.value = null
       isAuthenticated.value = false
     }
@@ -23,13 +28,15 @@ export const useAuthStore = defineStore('auth', () => {
   // Login
   const login = async (email, password, _remember = false) => {
     loading.value = true
+    error.value = null
     try {
       const response = await authAPI.login({ email, password })
       user.value = response.data
       isAuthenticated.value = true
       return { success: true, user: response.data }
-    } catch (error) {
-      return { success: false, error: error.response?.data?.message || error.message }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
     } finally {
       loading.value = false
     }
@@ -37,6 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Refresh access token
   const refreshAccessToken = async () => {
+    error.value = null
     try {
       const response = await authAPI.refresh()
       if (response.data) {
@@ -44,22 +52,39 @@ export const useAuthStore = defineStore('auth', () => {
         isAuthenticated.value = true
         return { success: true, user: response.data }
       }
+      error.value = 'Invalid refresh response'
       return { success: false, error: 'Invalid refresh response' }
-    } catch (error) {
+    } catch (err) {
       // Token refresh failed - logout user
       user.value = null
       isAuthenticated.value = false
-      return { success: false, error: error.response?.data?.message || error.message }
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
     }
   }
 
   // Signup/Register
-  const signup = async () => ({ success: false, error: 'Self-service signup is disabled. Contact an administrator.' })
+  const signup = async (name, email, password, department) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.register({ name, email, password, department })
+      user.value = response.data
+      isAuthenticated.value = true
+      return { success: true, user: response.data }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
 
   // Logout
   const logout = () => {
     user.value = null
     isAuthenticated.value = false
+    error.value = null
     authAPI.logout().catch(() => undefined)
   }
 
@@ -80,6 +105,7 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     isAuthenticated,
     loading,
+    error,
     
     // Actions
     login,
@@ -87,6 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     loadSession,
     refreshAccessToken,
-    hasRole
+    hasRole,
+    clearError
   }
 })

@@ -316,42 +316,42 @@ const services = ref([
   {
     title: 'Property Valuation',
     description: 'Accurate market valuations for residential, commercial, and industrial properties.',
-    icon: '📊'
+    icon: 'valuation'
   },
   {
     title: 'Asset Valuation',
     description: 'Comprehensive plant and equipment valuation for corporate clients.',
-    icon: '🏭'
+    icon: 'asset'
   },
   {
     title: 'Property Sales & Letting',
     description: 'End-to-end property transaction services for buyers, sellers, and tenants.',
-    icon: '💰'
+    icon: 'sales'
   },
   {
     title: 'Facility Management',
     description: 'Professional management and maintenance of residential and commercial properties.',
-    icon: '🏢'
+    icon: 'facility'
   },
   {
     title: 'Feasibility Appraisal',
     description: 'Detailed viability analysis for real estate development projects.',
-    icon: '📈'
+    icon: 'feasibility'
   },
   {
     title: 'Property Development',
     description: 'Full-cycle development consultancy from concept to completion.',
-    icon: '🏗️'
+    icon: 'development'
   },
   {
     title: 'Real Estate Advisory',
     description: 'Strategic advice for property investment and portfolio management.',
-    icon: '🎯'
+    icon: 'advisory'
   },
   {
     title: 'Legal & Regulatory',
     description: 'Guidance on real estate laws, regulations, and compliance.',
-    icon: '⚖️'
+    icon: 'legal'
   }
 ])
 

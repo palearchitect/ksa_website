@@ -123,8 +123,7 @@ export const useBookingStore = defineStore('bookings', () => {
 
   const loadSampleData = () => undefined
 
-  // Initialize
-  loadBookings()
+  // Initialize (Removed loadBookings() here to prevent 401 console warnings on public pages. Bookings should be explicitly fetched in guarded views/dashboards on mount.)
 
   return {
     // State

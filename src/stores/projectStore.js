@@ -11,6 +11,12 @@ export const useProjectStore = defineStore('project', () => {
     status: 'all',
     type: 'all'
   })
+  const pagination = ref({
+    total: 0,
+    page: 1,
+    limit: 20,
+    pages: 1
+  })
   
   // ========== CONSTANTS ==========
   const PROJECT_STATUS = [
@@ -49,11 +55,17 @@ export const useProjectStore = defineStore('project', () => {
   const loading = ref(false)
   
   // ========== CRUD OPERATIONS ==========
-  const fetchProjects = async () => {
+  const fetchProjects = async (params = {}) => {
     loading.value = true
     try {
-      const response = await projectService.getProjects()
+      const response = await projectService.getProjects(params)
       projects.value = response.data || []
+      pagination.value = response.pagination || {
+        total: projects.value.length,
+        page: 1,
+        limit: 100000,
+        pages: 1
+      }
       return { success: true, data: projects.value }
     } catch (err) {
       return { success: false, message: err.response?.data?.message || 'Failed to fetch projects' }
@@ -202,6 +214,7 @@ export const useProjectStore = defineStore('project', () => {
     projects,
     searchQuery,
     filters,
+    pagination,
     
     // Constants
     PROJECT_STATUS,

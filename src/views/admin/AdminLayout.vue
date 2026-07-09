@@ -52,9 +52,13 @@
           </div>
 
           <div class="md:hidden">
-            <button @click="mobileOpen = !mobileOpen" class="p-2 rounded-md text-gray-600 hover:bg-gray-100">
-              <span v-if="!mobileOpen" aria-hidden="true">☰</span>
-              <span v-else aria-hidden="true">✕</span>
+            <button @click="mobileOpen = !mobileOpen" class="p-2 rounded-md text-gray-600 hover:bg-gray-100 flex items-center justify-center">
+              <svg v-if="!mobileOpen" class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
         </div>

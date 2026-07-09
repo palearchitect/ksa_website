@@ -1,11 +1,13 @@
 <template>
-  <div id="app" class="flex flex-col min-h-screen">
-    <AppHeader v-if="!isAdminRoute" />
-    <main class="flex-grow">
-      <router-view />
-    </main>
-    <AppFooter v-if="!isAdminRoute" />
-  </div>
+  <ErrorBoundary>
+    <div id="app" class="flex flex-col min-h-screen">
+      <AppHeader v-if="!isAdminRoute" />
+      <main class="flex-grow">
+        <router-view />
+      </main>
+      <AppFooter v-if="!isAdminRoute" />
+    </div>
+  </ErrorBoundary>
 </template>
 
 <script setup>
@@ -13,6 +15,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from './components/global/AppHeader.vue'
 import AppFooter from './components/global/AppFooter.vue'
+import ErrorBoundary from './components/ErrorBoundary.vue'
 
 const route = useRoute()
 const isAdminRoute = computed(() => route.path.startsWith('/admin'))

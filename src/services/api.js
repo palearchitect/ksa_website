@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || ''
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -90,7 +90,7 @@ api.interceptors.response.use(
 )
 
 export const propertyService = {
-  getProperties: () => api.get('/api/properties').then((r) => r.data),
+  getProperties: (params = {}) => api.get('/api/properties', { params }).then((r) => r.data),
   getPropertyById: (id) => api.get(`/api/properties/${id}`).then((r) => r.data),
   createProperty: (payload) => api.post('/api/properties', payload).then((r) => r.data),
   updateProperty: (id, payload) => api.put(`/api/properties/${id}`, payload).then((r) => r.data),
@@ -98,7 +98,7 @@ export const propertyService = {
 }
 
 export const projectService = {
-  getProjects: () => api.get('/api/projects').then((r) => r.data),
+  getProjects: (params = {}) => api.get('/api/projects', { params }).then((r) => r.data),
   getProjectById: (id) => api.get(`/api/projects/${id}`).then((r) => r.data),
   createProject: (payload) => api.post('/api/projects', payload).then((r) => r.data),
   updateProject: (id, payload) => api.put(`/api/projects/${id}`, payload).then((r) => r.data),
@@ -122,6 +122,7 @@ export const emailService = {
 
 export const authAPI = {
   login: (credentials) => api.post('/api/v1/auth/login', credentials).then((r) => r.data),
+  register: (payload) => api.post('/api/v1/auth/register', payload).then((r) => r.data),
   me: () => api.get('/api/v1/auth/me').then((r) => r.data),
   logout: () => api.post('/api/v1/auth/logout').then((r) => r.data),
   refresh: () => api.post('/api/v1/auth/refresh').then((r) => r.data)

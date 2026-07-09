@@ -13,6 +13,12 @@ export const usePropertyStore = defineStore('property', () => {
     maxPrice: null,
     type: 'all'
   })
+  const pagination = ref({
+    total: 0,
+    page: 1,
+    limit: 20,
+    pages: 1
+  })
   
   // ========== CONSTANTS ==========
   const PROPERTY_STATUS = [
@@ -37,12 +43,18 @@ export const usePropertyStore = defineStore('property', () => {
   const error = ref(null)
   
   // ========== CRUD OPERATIONS ==========
-  const fetchProperties = async () => {
+  const fetchProperties = async (params = {}) => {
     loading.value = true
     error.value = null
     try {
-      const response = await propertyService.getProperties()
+      const response = await propertyService.getProperties(params)
       properties.value = response.data || []
+      pagination.value = response.pagination || {
+        total: properties.value.length,
+        page: 1,
+        limit: 100000,
+        pages: 1
+      }
       return { success: true, data: properties.value }
     } catch (err) {
       error.value = err.response?.data?.message || 'Failed to fetch properties'
@@ -202,6 +214,7 @@ export const usePropertyStore = defineStore('property', () => {
     properties,
     searchQuery,
     filters,
+    pagination,
     
     // Constants
     PROPERTY_STATUS,
