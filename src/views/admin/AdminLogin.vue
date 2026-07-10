@@ -12,8 +12,8 @@
             class="h-16 mx-auto bg-white px-4 py-2 rounded-lg shadow-lg"
           >
         </router-link>
-        <h2 class="text-3xl font-bold text-white mb-2">Admin Portal</h2>
-        <p class="text-blue-100">Sign in to access your dashboard</p>
+        <h2 class="text-3xl font-bold text-white mb-2">KSA Portal</h2>
+        <p class="text-blue-100">Sign in to access your dashboard or portal</p>
       </div>
 
       <!-- Login Card -->
@@ -222,11 +222,21 @@
           </button>
         </form>
 
+        <!-- Social Login Section -->
+        <div class="relative my-6">
+          <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
+          <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-500">Or continue with</span></div>
+        </div>
+
+        <div class="flex flex-col items-center gap-3">
+          <div id="google-signin-btn" class="w-full flex justify-center"></div>
+        </div>
+
         <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
-          <p class="font-semibold mb-2">Admin Access Only</p>
+          <p class="font-semibold mb-2">Authorized Access Only</p>
           <p class="text-xs leading-relaxed">
-            This is the admin portal for KSA Valuers staff. Use your assigned credentials to sign in.
-            If you don't have an account or have forgotten your password, please contact your administrator.
+            This portal is for KSA Valuers clients, tenants, owners, and authorized staff. Use your credentials to sign in.
+            If you are a new user, you can register for an account using the Sign Up tab.
           </p>
         </div>
       </div>
@@ -248,14 +258,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useSEO } from '@/hooks/useSEO'
 
 useSEO({
-  title: 'Admin Login | KSA Valuers',
-  description: 'Sign in to access the KSA Valuers admin dashboard.',
+  title: 'Portal Login | KSA Valuers',
+  description: 'Sign in to access the KSA Valuers dashboards and client portals.',
 })
 
 const router = useRouter()
@@ -281,9 +291,19 @@ const signupForm = ref({
   role: 'admin'
 })
 
-// If already authenticated, redirect to admin
+// Role → home dashboard mapping
+const roleDashboardMap = {
+  admin:         '/admin',
+  manager:       '/dashboard/management',
+  management:    '/dashboard/management',
+  propertyowner: '/dashboard/owner',
+  tenant:        '/dashboard/tenant',
+}
+
+// If already authenticated, redirect to the appropriate dashboard
 if (authStore.isAuthenticated) {
-  router.push('/admin')
+  const dest = roleDashboardMap[authStore.user?.role] || '/admin'
+  router.push(dest)
 }
 
 // Methods
@@ -297,10 +317,13 @@ const handleLogin = async () => {
     
     if (result.success) {
       successMessage.value = 'Login successful! Redirecting...'
+      const role = result.user?.role
       setTimeout(() => {
-        const redirect = router.currentRoute.value.query.redirect || '/admin'
-        router.push(redirect)
-      }, 1000)
+        const rawRedirect = router.currentRoute.value.query.redirect
+        const redirect = rawRedirect ? decodeURIComponent(rawRedirect) : null
+        const dest = redirect || roleDashboardMap[role] || '/admin'
+        router.push(dest)
+      }, 800)
     } else {
       errorMessage.value = result.error || 'Login failed. Please check your credentials and try again.'
       // Auto-clear error after 6 seconds
@@ -333,14 +356,65 @@ const handleSignup = async () => {
     
     if (result.success) {
       successMessage.value = 'Account created successfully! Redirecting...'
+      const role = result.user?.role
       setTimeout(() => {
-        router.push('/admin')
-      }, 1000)
+        const dest = roleDashboardMap[role] || '/admin'
+        router.push(dest)
+      }, 800)
     } else {
       errorMessage.value = result.error || 'Failed to create account. Please try again.'
     }
   } catch (error) {
     errorMessage.value = 'An error occurred during sign up. Please try again.'
+  } finally {
+    loading.value = false
+  }
+}
+
+// Google Sign-In setup
+onMounted(() => {
+  if (typeof window !== 'undefined' && window.google) {
+    const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'your-google-client-id';
+    window.google.accounts.id.initialize({
+      client_id: googleClientId,
+      callback: handleGoogleCallback
+    })
+    window.google.accounts.id.renderButton(
+      document.getElementById('google-signin-btn'),
+      { theme: 'outline', size: 'large', width: 280 }
+    )
+  }
+})
+
+const handleGoogleCallback = async (response) => {
+  loading.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
+  
+  try {
+    const res = await authStore.loginWithGoogle(response.credential)
+    if (res.registered) {
+      successMessage.value = 'Google login successful! Redirecting...'
+      const role = res.data.role
+      setTimeout(() => {
+        const dest = roleDashboardMap[role] || '/admin'
+        router.push(dest)
+      }, 800)
+    } else {
+      successMessage.value = 'Authenticating with Google... Redirecting to complete profile...'
+      setTimeout(() => {
+        router.push({
+          path: '/onboarding',
+          query: {
+            name: res.tempUser.name,
+            email: res.tempUser.email,
+            googleId: res.tempUser.googleId
+          }
+        })
+      }, 800)
+    }
+  } catch (err) {
+    errorMessage.value = err.response?.data?.message || err.message || 'Google Sign-In failed.'
   } finally {
     loading.value = false
   }

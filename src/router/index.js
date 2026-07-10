@@ -95,13 +95,11 @@ const routes = [
   // Auth Routes
   {
     path: '/login',
-    name: 'Login',
-    component: () => import('../views/auth/Login.vue')
+    redirect: '/admin/login'
   },
   {
     path: '/register',
-    name: 'Register',
-    component: () => import('../views/auth/Register.vue')
+    redirect: '/admin/login'
   },
   {
     path: '/forgot-password',
@@ -112,6 +110,11 @@ const routes = [
     path: '/reset-password',
     name: 'ResetPassword',
     component: () => import('../views/auth/ResetPassword.vue')
+  },
+  {
+    path: '/onboarding',
+    name: 'Onboarding',
+    component: () => import('../views/auth/Onboarding.vue')
   },
 
   // User Routes
@@ -130,6 +133,38 @@ const routes = [
   
   
   
+  // ── PMS Dashboard Routes ──────────────────────────────────────────────────
+  {
+    path: '/dashboard/management',
+    name: 'ManagementDashboard',
+    component: () => import('../views/dashboard/ManagementDashboard.vue'),
+    meta: {
+      requiresAuth: true,
+      allowedRoles: ['admin', 'manager', 'management'],
+      title: 'Management Portal'
+    }
+  },
+  {
+    path: '/dashboard/owner',
+    name: 'OwnerDashboard',
+    component: () => import('../views/dashboard/OwnerDashboard.vue'),
+    meta: {
+      requiresAuth: true,
+      allowedRoles: ['propertyowner'],
+      title: 'Owner Portal'
+    }
+  },
+  {
+    path: '/dashboard/tenant',
+    name: 'TenantDashboard',
+    component: () => import('../views/dashboard/TenantDashboard.vue'),
+    meta: {
+      requiresAuth: true,
+      allowedRoles: ['tenant'],
+      title: 'Tenant Portal'
+    }
+  },
+
   // Catch-all 404 route
   {
     path: '/:pathMatch(.*)*',
@@ -150,45 +185,53 @@ const router = createRouter({
   }
 })
 
+// Role → home dashboard mapping
+const roleDashboardMap = {
+  admin:         '/admin',
+  manager:       '/dashboard/management',
+  management:    '/dashboard/management',
+  propertyowner: '/dashboard/owner',
+  tenant:        '/dashboard/tenant',
+}
+
+// One-time session load flag to avoid re-hitting /api/v1/auth/me on every nav
+let _sessionLoaded = false
+
 // Route guard with auth store
 router.beforeEach(async (to, from, next) => {
-  // Dynamically import authStore to avoid circular dependencies
   const { useAuthStore } = await import('../stores/authStore')
   const authStore = useAuthStore()
-  
-  await authStore.loadSession()
-  const isAuth = authStore.isAuthenticated
-  
-  // Redirect to login for protected routes
-  if (to.meta.requiresAuth && !isAuth) {
-    next({
-      name: 'AdminLogin',
-      query: { redirect: to.fullPath }
-    })
+
+  // Only call loadSession once per app lifecycle
+  if (!_sessionLoaded) {
+    await authStore.loadSession()
+    _sessionLoaded = true
+  }
+
+  const isAuth   = authStore.isAuthenticated
+  const userRole = authStore.user?.role
+
+  // Redirect already-authenticated users away from login pages to their portal
+  const loginPaths = ['/admin/login', '/login']
+  if (loginPaths.includes(to.path) && isAuth) {
+    next(roleDashboardMap[userRole] || '/admin')
     return
   }
 
-  // Check role authorization
+  // Unauthenticated → /admin/login (always, for all protected routes)
+  if (to.meta.requiresAuth && !isAuth) {
+    next(`/admin/login?redirect=${encodeURIComponent(to.fullPath)}`)
+    return
+  }
+
+  // Role-based access: wrong role → own dashboard
   if (to.meta.requiresAuth && to.meta.allowedRoles) {
-    const userRole = authStore.user?.role
     if (!to.meta.allowedRoles.includes(userRole)) {
-      next({ name: 'Home' })
+      next(roleDashboardMap[userRole] || '/')
       return
     }
   }
-  
-  // Redirect to dashboard if already logged in and trying to access login
-  if (to.name === 'AdminLogin' && isAuth) {
-    next('/admin')
-    return
-  }
-  
-  // For admin routes, ensure we have authentication
-  if (to.path.startsWith('/admin') && to.name !== 'AdminLogin' && !isAuth) {
-    next({ name: 'AdminLogin', query: { redirect: to.fullPath } })
-    return
-  }
-  
+
   next()
 })
 

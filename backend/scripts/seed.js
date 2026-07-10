@@ -159,7 +159,37 @@ async function seedDatabase() {
     } else {
       console.log(`⏭️  Sample hero slides already exist\n`);
     }
-    
+
+    // Seed default test owner and link properties
+    const ownerEmail = 'owner@ksavaluers.com';
+    const existingOwner = await client.query('SELECT id FROM users WHERE email = $1 LIMIT 1', [ownerEmail]);
+    let ownerId;
+    if (existingOwner.rowCount === 0) {
+      const ownerHash = await bcrypt.hash('TestPassword123!', 12);
+      const ownerRes = await client.query(
+        `INSERT INTO users (email, password_hash, role, name, status)
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [ownerEmail, ownerHash, 'propertyowner', 'Owner User', 'active']
+      );
+      ownerId = ownerRes.rows[0].id;
+      console.log(`✅ Seeded test owner user: ${ownerEmail}`);
+    } else {
+      ownerId = existingOwner.rows[0].id;
+      console.log(`⏭️  Owner user already exists: ${ownerEmail}`);
+    }
+
+    // Link owner to all sample properties in owner_property
+    const allProps = await client.query('SELECT id FROM properties');
+    for (const prop of allProps.rows) {
+      await client.query(
+        `INSERT INTO owner_property (owner_id, property_id)
+         VALUES ($1, $2)
+         ON CONFLICT (owner_id, property_id) DO NOTHING`,
+        [ownerId, prop.id]
+      );
+    }
+    console.log(`✅ Associated owner user to all properties in owner_property\n`);
+
     console.log('✨ Database seeding completed!');
   } catch (error) {
     console.error('❌ Seeding failed:', error.message);

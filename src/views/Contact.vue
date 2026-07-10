@@ -153,15 +153,8 @@
               </div>
             </div>
             
-            <!-- Map Placeholder -->
-            <div class="mt-6 rounded-lg overflow-hidden bg-gray-100 h-48 flex items-center justify-center">
-              <div class="text-center">
-                <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-                <p class="text-gray-500 text-sm">Google Maps Integration Available</p>
-              </div>
-            </div>
+            <!-- Interactive Map -->
+            <div id="contact-map" class="mt-6 rounded-lg overflow-hidden h-48 border border-gray-200" style="z-index: 10;"></div>
           </div>
 
           <!-- Contact Methods -->
@@ -380,12 +373,27 @@ useSEO({
   title: 'Contact Us - KSA Valuers',
   description: 'Get in touch with Nigeria’s premier property valuers for expert consultation, property valuation, and comprehensive real estate solutions.'
 })
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 
 // Chat state only (form state removed since Formspree handles it)
 const showChat = ref(false);
 const chatMessage = ref('');
 const chatMessages = ref([]);
+
+onMounted(() => {
+  if (typeof window !== 'undefined' && window.L) {
+    const map = window.L.map('contact-map').setView([6.4656076, 3.5573418], 16);
+
+    window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 20
+    }).addTo(map);
+
+    const officeMarker = window.L.marker([6.4656076, 3.5573418]).addTo(map);
+    officeMarker.bindPopup('<b>KSA Valuers Office</b><br>Suite J260, Road 5, Ikota Shopping Complex, Lekki, Lagos.').openPopup();
+  }
+});
 
 // Chat Functions
 const toggleChat = () => {

@@ -186,6 +186,103 @@ const migrations = [
       );
     `,
     down: `DROP TABLE IF EXISTS hero_slides;`
+  },
+  {
+    name: '009-create-leases-table',
+    up: `
+      CREATE TABLE IF NOT EXISTS leases (
+        id SERIAL PRIMARY KEY,
+        tenant_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        property_id INTEGER REFERENCES properties(id) ON DELETE SET NULL,
+        owner_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        unit_description TEXT,
+        rent_amount NUMERIC NOT NULL DEFAULT 0,
+        start_date DATE NOT NULL,
+        end_date DATE NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active',
+        notes TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_leases_tenant ON leases (tenant_id);
+      CREATE INDEX IF NOT EXISTS idx_leases_property ON leases (property_id);
+      CREATE INDEX IF NOT EXISTS idx_leases_owner ON leases (owner_id);
+      CREATE INDEX IF NOT EXISTS idx_leases_status ON leases (status);
+    `,
+    down: `DROP TABLE IF EXISTS leases;`
+  },
+  {
+    name: '010-create-maintenance-tickets-table',
+    up: `
+      CREATE TABLE IF NOT EXISTS maintenance_tickets (
+        id SERIAL PRIMARY KEY,
+        tenant_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        lease_id INTEGER REFERENCES leases(id) ON DELETE SET NULL,
+        property_id INTEGER REFERENCES properties(id) ON DELETE SET NULL,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        category TEXT NOT NULL DEFAULT 'general',
+        priority TEXT NOT NULL DEFAULT 'medium',
+        status TEXT NOT NULL DEFAULT 'open',
+        assigned_to INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        resolution_notes TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS idx_tickets_tenant ON maintenance_tickets (tenant_id);
+      CREATE INDEX IF NOT EXISTS idx_tickets_status ON maintenance_tickets (status);
+      CREATE INDEX IF NOT EXISTS idx_tickets_property ON maintenance_tickets (property_id);
+    `,
+    down: `DROP TABLE IF EXISTS maintenance_tickets;`
+  },
+  {
+    name: '011-create-payments-table',
+    up: `
+      CREATE TABLE IF NOT EXISTS payments (
+        id SERIAL PRIMARY KEY,
+        tenant_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        lease_id INTEGER REFERENCES leases(id) ON DELETE SET NULL,
+        reference TEXT UNIQUE NOT NULL,
+        amount NUMERIC NOT NULL DEFAULT 0,
+        currency TEXT NOT NULL DEFAULT 'NGN',
+        status TEXT NOT NULL DEFAULT 'pending',
+        payment_type TEXT NOT NULL DEFAULT 'rent',
+        provider TEXT NOT NULL DEFAULT 'paystack',
+        provider_response JSONB,
+        paid_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW()
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_reference ON payments (reference);
+      CREATE INDEX IF NOT EXISTS idx_payments_tenant ON payments (tenant_id);
+      CREATE INDEX IF NOT EXISTS idx_payments_status ON payments (status);
+    `,
+    down: `DROP TABLE IF EXISTS payments;`
+  },
+  {
+    name: '012-create-owner-property-table',
+    up: `
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id TEXT UNIQUE;
+      
+      CREATE TABLE IF NOT EXISTS owner_property (
+        owner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        property_id INTEGER NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+        PRIMARY KEY (owner_id, property_id)
+      );
+      CREATE INDEX IF NOT EXISTS idx_owner_property_owner ON owner_property (owner_id);
+      CREATE INDEX IF NOT EXISTS idx_owner_property_property ON owner_property (property_id);
+    `,
+    down: `
+      DROP TABLE IF EXISTS owner_property;
+      ALTER TABLE users DROP COLUMN IF EXISTS google_id;
+    `
+  },
+  {
+    name: '013-clear-demo-users',
+    up: `
+      DELETE FROM users WHERE role != 'admin' OR email NOT IN ('admin@ksavaluers.com');
+    `,
+    down: `/* No-op */`
   }
 ];
 

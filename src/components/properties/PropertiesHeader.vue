@@ -11,11 +11,23 @@
         <option value="newest">Newest</option>
         <option value="beds">Beds</option>
       </select>
-      <button @click="$emit('view-change', 'grid')" :class="viewMode==='grid' ? 'text-[#D4755B]' : 'text-gray-400'">
-        <span class="material-icons">grid_view</span>
+      <button @click="$emit('view-change', 'grid')" :class="viewMode==='grid' ? 'text-[#D4755B]' : 'text-gray-400'" title="Grid View" class="flex items-center">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+          <rect x="3" y="3" width="7" height="7" stroke-width="2"/>
+          <rect x="14" y="3" width="7" height="7" stroke-width="2"/>
+          <rect x="14" y="14" width="7" height="7" stroke-width="2"/>
+          <rect x="3" y="14" width="7" height="7" stroke-width="2"/>
+        </svg>
       </button>
-      <button @click="$emit('view-change', 'list')" :class="viewMode==='list' ? 'text-[#D4755B]' : 'text-gray-400'">
-        <span class="material-icons">view_list</span>
+      <button @click="$emit('view-change', 'list')" :class="viewMode==='list' ? 'text-[#D4755B]' : 'text-gray-400'" title="List View" class="flex items-center">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+          <line x1="8" y1="6" x2="21" y2="6" stroke-width="2" stroke-linecap="round"/>
+          <line x1="8" y1="12" x2="21" y2="12" stroke-width="2" stroke-linecap="round"/>
+          <line x1="8" y1="18" x2="21" y2="18" stroke-width="2" stroke-linecap="round"/>
+          <line x1="3" y1="6" x2="3.01" y2="6" stroke-width="2" stroke-linecap="round"/>
+          <line x1="3" y1="12" x2="3.01" y2="12" stroke-width="2" stroke-linecap="round"/>
+          <line x1="3" y1="18" x2="3.01" y2="18" stroke-width="2" stroke-linecap="round"/>
+        </svg>
       </button>
     </div>
   </div>

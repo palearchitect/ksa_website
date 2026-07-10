@@ -80,6 +80,42 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Login with Google
+  const loginWithGoogle = async (credential) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.googleLogin({ credential })
+      if (response.registered) {
+        user.value = response.data
+        isAuthenticated.value = true
+      }
+      return response
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Onboard new social user
+  const onboardSocialUser = async (name, email, role, googleId) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.onboard({ name, email, role, googleId })
+      user.value = response.data
+      isAuthenticated.value = true
+      return { success: true, user: response.data }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
   const logout = async () => {
     try {
       await authAPI.logout()
@@ -117,6 +153,8 @@ export const useAuthStore = defineStore('auth', () => {
     // Actions
     login,
     signup,
+    loginWithGoogle,
+    onboardSocialUser,
     logout,
     loadSession,
     refreshAccessToken,

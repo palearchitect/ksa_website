@@ -129,16 +129,26 @@
       Contact
     </router-link>
 
-    <!-- Admin (Conditional) -->
+    <!-- Portal / Sign In (Dynamic) -->
     <router-link
-      v-if="showAdmin"
-      to="/admin"
+      v-if="isAuthenticated"
+      :to="portalPath"
       class="nav-admin"
-      :class="{ 'nav-admin-active': isActiveRoute('/admin') }"
+      :class="{ 'nav-admin-active': isActiveRoute(portalPath) }"
       @click="handleNavigate"
     >
       <Cog6ToothIcon class="nav-icon" />
-      Admin
+      My Portal
+    </router-link>
+    <router-link
+      v-else
+      to="/login"
+      class="nav-admin"
+      :class="{ 'nav-admin-active': isActiveRoute('/login') }"
+      @click="handleNavigate"
+    >
+      <Cog6ToothIcon class="nav-icon" />
+      Sign In
     </router-link>
   </nav>
 
@@ -203,16 +213,26 @@
         </router-link>
       </div>
 
-      <!-- Mobile Admin -->
+      <!-- Mobile Portal / Sign In (Dynamic) -->
       <router-link
-        v-if="showAdmin"
-        to="/admin"
+        v-if="isAuthenticated"
+        :to="portalPath"
         class="mobile-admin"
-        :class="{ 'mobile-admin-active': isActiveRoute('/admin') }"
+        :class="{ 'mobile-admin-active': isActiveRoute(portalPath) }"
         @click="handleNavigate"
       >
         <Cog6ToothIcon class="mobile-icon" />
-        Admin
+        My Portal
+      </router-link>
+      <router-link
+        v-else
+        to="/login"
+        class="mobile-admin"
+        :class="{ 'mobile-admin-active': isActiveRoute('/login') }"
+        @click="handleNavigate"
+      >
+        <Cog6ToothIcon class="mobile-icon" />
+        Sign In
       </router-link>
     </div>
   </nav>
@@ -221,6 +241,21 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useAuthStore } from '@/stores/authStore'
+
+const authStore = useAuthStore()
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const userRole = computed(() => authStore.user?.role)
+
+const roleDashboardMap = {
+  admin:         '/admin',
+  manager:       '/dashboard/management',
+  management:    '/dashboard/management',
+  propertyowner: '/dashboard/owner',
+  tenant:        '/dashboard/tenant',
+}
+
+const portalPath = computed(() => roleDashboardMap[userRole.value] || '/admin')
 
 // Import Heroicons
 import {

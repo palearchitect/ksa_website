@@ -15,28 +15,63 @@
   - [x] Implement Role-Based Access Control (RBAC) to differentiate dashboard views based on login hierarchy.
 
 ## Phase 3: Multi-Portal Property Management System (PMS)
-- [ ] **Core Infrastructure:**
-  - [ ] Implement Role-Based Redirects in `router.js` (Login redirects to `/dashboard/:role`).
-  - [ ] Configure Backend Middleware to scope all API requests based on `user_id` / `property_id`.
-- [ ] **Admin Dashboard (`/dashboard/admin`):**
-  - [ ] Maintain existing site-wide controls (Team, Content, Site Config).
-  - [ ] Add "PMS Gateway" to access Property, Tenant, and Financial modules.
-- [ ] **Management Dashboard (`/dashboard/management`):**
-  - [ ] Operational hub: Tenant Management & Lease Tracking.
-  - [ ] Maintenance Request tracking.
-  - [ ] Financial Reporting (Expenses/Income).
-- [ ] **Owner Dashboard (`/dashboard/owner`):**
-  - [ ] Read-only asset view: Occupancy status per property.
-  - [ ] Rent payment status & Net Income summary.
-  - [ ] *Constraint: Strictly hide all tenant PII.*
-- [ ] **Tenant Dashboard (`/dashboard/tenant`):**
-  - [ ] Payment gateway integration (Paystack/Flutterwave for cards + Bank Transfer details).
-  - [ ] Maintenance & Dispute ticketing system.
+- [x] **Core Infrastructure:**
+  - [x] Implement Role-Based Redirects in `router.js` (Login redirects to `/dashboard/:role`).
+  - [x] Configure Backend Middleware to scope all API requests based on `user_id` / `property_id`.
+- [x] **Admin Dashboard (`/dashboard/admin`):**
+  - [x] Maintain existing site-wide controls (Team, Content, Site Config).
+  - [x] Add "PMS Gateway" to access Property, Tenant, and Financial modules.
+- [x] **Management Dashboard (`/dashboard/management`):**
+  - [x] Operational hub: Tenant Management & Lease Tracking.
+  - [x] Maintenance Request tracking.
+  - [x] Financial Reporting (Expenses/Income).
+- [x] **Owner Dashboard (`/dashboard/owner`):**
+  - [x] Read-only asset view: Occupancy status per property.
+  - [x] Rent payment status & Net Income summary.
+  - [x] *Constraint: Strictly hide all tenant PII.*
+- [x] **Tenant Dashboard (`/dashboard/tenant`):**
+  - [x] Payment gateway integration (Paystack/Flutterwave for cards + Bank Transfer details).
+  - [x] Maintenance & Dispute ticketing system.
   
-## Phase 4: Maintenance & Optimization
+## Phase 4 Implementation - PMS Expansion & UX Refinement
+1. Authentication & Security
+- [x] Google OAuth Integration:
+  - [x] Set up Google Cloud Console credentials client libraries.
+  - [x] Implement Google Identity Services client script on `/admin/login`.
+  - [x] Create backend endpoint to verify Google token and match against existing user email.
+  - [x] Logic: If email exists, merge identity; if new, redirect to /onboarding.
+- [x] Owner Verification Logic:
+  - [x] Create middleware/guard to check user_role === 'property_owner'.
+  - [x] Database Query: Check if user_email is linked to any property_id in the owner_property join table.
+  - [x] Redirect: If no properties are linked, trigger "Access Denied" toast/alert and bounce to homepage.
+
+2. Dashboard UX Upgrades
+- [x] Global Property Switcher:
+  - [x] Create a persistent `<PropertySwitcher/>` component in the Owner/Manager/Admin dashboard header.
+  - [x] State Management: Update selectedPropertyId in Pinia store when changed.
+  - [x] Reactivity: Force dashboard widgets to filter data based on the selected property_id.
+- [x] UI/UX Modernization:
+  - [x] Replace static data lists with "Quick Insight" Cards.
+  - [x] Implement "Needs Attention" status indicators (e.g. colored urgency states).
+  - [x] Add a global FAB (Floating Action Button) for core tasks (e.g. creating leases).
+
+3. Contact Page & Map Integration
+- [x] Leaflet.js Setup:
+  - [x] Inject Leaflet CSS/JS and load client script.
+  - [x] Replace static placeholder with dark CartoDB tile layer map.
+  - [x] Set marker at the office location coordinates `[6.4623, 3.5794]`.
+
+4. Implementation Checklist (Technical)
+- [x] Database Schema:
+  - [x] Add google_id column to users table.
+  - [x] Create owner_property join table with indexing.
+- [x] Frontend Routes:
+  - [x] Add /onboarding route for new social signups.
+  - [x] Refactor AdminLayout and DashboardLayout to handle the PropertySwitcher.
+
+## Phase 5: Maintenance & Optimization
 - [ ] Linting & Code Refactoring.
 - [ ] Database Schema updates to support multi-tenant/owner relations.
-
 ---
 
 ## 🛠️ Code Issues & Refactoring Tasks

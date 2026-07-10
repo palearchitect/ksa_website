@@ -6,7 +6,9 @@
       @click="mobileOpen = !mobileOpen"
     >
       <span class="font-bold">Filters</span>
-      <span class="material-icons">{{ mobileOpen ? 'expand_less' : 'expand_more' }}</span>
+      <svg class="w-5 h-5 transition-transform duration-200" :class="{ 'rotate-180': mobileOpen }" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 20px; height: 20px;">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
     </button>
     <aside
       :class="[
@@ -22,7 +24,10 @@
         <div class="mb-8 border-b border-[#F5F1E8] pb-8">
           <h3 class="font-manrope font-bold text-sm text-[#111827] mb-4 uppercase tracking-wider">Location</h3>
           <div class="relative mb-3">
-            <span class="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF] text-lg">location_on</span>
+            <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-[#9CA3AF]" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
             <input
               v-model="filters.location"
               @input="emitChange"

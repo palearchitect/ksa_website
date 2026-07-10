@@ -147,7 +147,9 @@ export const authAPI = {
   register: (payload) => api.post('/api/v1/auth/register', payload).then((r) => r.data),
   me: () => api.get('/api/v1/auth/me').then((r) => r.data),
   logout: () => api.post('/api/v1/auth/logout').then((r) => r.data),
-  refresh: () => api.post('/api/v1/auth/refresh').then((r) => r.data)
+  refresh: () => api.post('/api/v1/auth/refresh').then((r) => r.data),
+  googleLogin: (payload) => api.post('/api/v1/auth/google', payload).then((r) => r.data),
+  onboard: (payload) => api.post('/api/v1/auth/onboarding', payload).then((r) => r.data)
 }
 
 export const isAuthenticated = () => {

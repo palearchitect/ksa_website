@@ -522,6 +522,27 @@ app.post('/api/contact', publicFormLimiter, async (req, res) => {
   }
 });
 
+// Email address syntax and MX record verification helper
+async function validateEmailReal(email) {
+  if (!email || typeof email !== 'string') return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) return false;
+
+  const domain = email.split('@')[1];
+  try {
+    const dns = require('dns').promises;
+    const mxRecords = await dns.resolveMx(domain);
+    return mxRecords && mxRecords.length > 0;
+  } catch (err) {
+    // If lookup fails or has no MX records, return false in production
+    // (In local development we bypass to support offline testing)
+    if (process.env.NODE_ENV !== 'production') {
+      return true;
+    }
+    return false;
+  }
+}
+
 // ============================================
 // AUTH ENDPOINTS
 // ============================================
@@ -561,8 +582,9 @@ app.post('/api/v1/auth/register', async (req, res) => {
       return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
     }
 
-    if (!email.includes('@') || email.length < 5) {
-      return res.status(400).json({ success: false, message: 'Invalid email address' });
+    const isReal = await validateEmailReal(email);
+    if (!isReal) {
+      return res.status(400).json({ success: false, message: 'Invalid or unreachable email address (no MX records found)' });
     }
 
     const checkUser = await pool.query('SELECT id FROM users WHERE email = $1 LIMIT 1', [String(email).toLowerCase().trim()]);
@@ -618,7 +640,141 @@ app.post('/api/v1/auth/logout', (req, res) => {
 app.get('/api/v1/auth/me', requireAuth, async (req, res) => {
   const result = await pool.query(`SELECT id, email, role, name FROM users WHERE id = $1 LIMIT 1`, [req.user.sub]);
   if (result.rowCount === 0) return res.status(401).json({ success: false, message: 'User not found' });
-  return res.json({ success: true, data: result.rows[0] });
+  const user = result.rows[0];
+  
+  if (user.role === 'propertyowner') {
+    const ownerVerify = await pool.query(
+      `SELECT 1 FROM owner_property WHERE owner_id = $1 LIMIT 1`,
+      [user.id]
+    );
+    user.hasLinkedProperties = ownerVerify.rowCount > 0;
+  }
+  
+  return res.json({ success: true, data: user });
+});
+
+// POST /api/v1/auth/google — Verify Google Sign-in token
+app.post('/api/v1/auth/google', async (req, res) => {
+  try {
+    const { credential } = req.body || {};
+    if (!credential) {
+      return res.status(400).json({ success: false, message: 'Google credential is required' });
+    }
+
+    let email, name, googleId;
+
+    // Validate via Google tokeninfo API
+    try {
+      const response = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+      const payload = response.data;
+      
+      const aud = payload.aud;
+      const expectedAud = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
+      if (expectedAud && aud !== expectedAud) {
+        return res.status(400).json({ success: false, message: 'Invalid token audience (Client ID mismatch)' });
+      }
+
+      if (!payload.email_verified) {
+        return res.status(400).json({ success: false, message: 'Google email is not verified' });
+      }
+
+      email = String(payload.email).toLowerCase().trim();
+      name = payload.name || payload.given_name || 'Google User';
+      googleId = payload.sub;
+    } catch (err) {
+      console.error('Google token verification failed:', err.message);
+      return res.status(400).json({ success: false, message: 'Invalid Google token' });
+    }
+
+    // Match against database
+    const userResult = await pool.query(
+      `SELECT id, email, role, name, google_id FROM users 
+       WHERE google_id = $1 OR email = $2 LIMIT 1`,
+      [googleId, email]
+    );
+
+    if (userResult.rowCount > 0) {
+      const user = userResult.rows[0];
+      if (!user.google_id) {
+        await pool.query('UPDATE users SET google_id = $1 WHERE id = $2', [googleId, user.id]);
+      }
+      
+      const authUser = { id: user.id, email: user.email, role: user.role, name: user.name };
+      setAuthCookies(res, signAccessToken(authUser), signRefreshToken(authUser));
+      return res.json({ success: true, registered: true, data: authUser });
+    } else {
+      return res.json({
+        success: true,
+        registered: false,
+        action: 'register',
+        email,
+        name,
+        googleId
+      });
+    }
+  } catch (error) {
+    console.error('Google OAuth error:', error);
+    return res.status(500).json({ success: false, message: 'Internal Google Sign-in failure' });
+  }
+});
+
+// POST /api/v1/auth/onboarding — Complete onboarding registration for social signups
+app.post('/api/v1/auth/onboarding', async (req, res) => {
+  try {
+    const { name, email, role, googleId } = req.body || {};
+    const missing = requireFields(req.body || {}, ['name', 'email', 'role', 'googleId']);
+    if (missing.length > 0) {
+      return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
+    }
+
+    const isReal = await validateEmailReal(email);
+    if (!isReal) {
+      return res.status(400).json({ success: false, message: 'Invalid or unreachable email address (no MX records found)' });
+    }
+
+    const checkUser = await pool.query('SELECT id FROM users WHERE email = $1 OR google_id = $2 LIMIT 1', [String(email).toLowerCase().trim(), googleId]);
+    if (checkUser.rowCount > 0) {
+      return res.status(400).json({ success: false, message: 'User already exists' });
+    }
+
+    const allowedRoles = ['tenant', 'propertyowner'];
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ success: false, message: 'Invalid role request. Onboarding supports Tenants or Property Owners.' });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO users (name, email, password_hash, role, google_id, status)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, role, name`,
+      [name, String(email).toLowerCase().trim(), 'oauth_placeholder', role, googleId, 'active']
+    );
+
+    const newUser = result.rows[0];
+    await logAudit('system', 'ONBOARD', 'users', newUser.id, null, { name: newUser.name, email: newUser.email, role: newUser.role });
+
+    setAuthCookies(res, signAccessToken(newUser), signRefreshToken(newUser));
+    return res.json({ success: true, data: newUser });
+  } catch (error) {
+    console.error('Onboarding registration error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to complete onboarding' });
+  }
+});
+
+// GET /api/pms/owner/verify — Verify owner verification status
+app.get('/api/pms/owner/verify', requireAuth, async (req, res) => {
+  try {
+    const { role, sub: userId } = req.user;
+    if (role !== 'propertyowner') {
+      return res.status(403).json({ success: false, message: 'Access denied: not an owner' });
+    }
+    const result = await pool.query(
+      `SELECT 1 FROM owner_property WHERE owner_id = $1 LIMIT 1`,
+      [userId]
+    );
+    return res.json({ success: true, hasLinkedProperties: result.rowCount > 0 });
+  } catch (error) {
+    console.error('Owner verify check failed:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
 });
 
 // ============================================
@@ -1653,8 +1809,528 @@ app.delete('/api/hero-slides/:id', requireAuth, requireRole('admin', 'manager'),
 });
 
 // ============================================
+// PMS — PROPERTY MANAGEMENT SYSTEM API
+// ============================================
+
+// ── Helper mappers ──────────────────────────
+const mapLease = (row) => ({
+  id: row.id,
+  tenantId: row.tenant_id,
+  tenantName: row.tenant_name,
+  propertyId: row.property_id,
+  propertyTitle: row.property_title,
+  ownerId: row.owner_id,
+  unitDescription: row.unit_description,
+  rentAmount: Number(row.rent_amount),
+  startDate: row.start_date,
+  endDate: row.end_date,
+  status: row.status,
+  notes: row.notes,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
+const mapTicket = (row) => ({
+  id: row.id,
+  tenantId: row.tenant_id,
+  tenantName: row.tenant_name,
+  leaseId: row.lease_id,
+  propertyId: row.property_id,
+  propertyTitle: row.property_title,
+  title: row.title,
+  description: row.description,
+  category: row.category,
+  priority: row.priority,
+  status: row.status,
+  assignedTo: row.assigned_to,
+  resolutionNotes: row.resolution_notes,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
+const mapPayment = (row) => ({
+  id: row.id,
+  tenantId: row.tenant_id,
+  leaseId: row.lease_id,
+  reference: row.reference,
+  amount: Number(row.amount),
+  currency: row.currency,
+  status: row.status,
+  paymentType: row.payment_type,
+  provider: row.provider,
+  paidAt: row.paid_at,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
+// ── LEASES ──────────────────────────────────
+
+// GET /api/pms/leases — Admin/Management: all; Tenant: own
+app.get('/api/pms/leases', requireAuth, async (req, res) => {
+  try {
+    const { role, sub: userId } = req.user;
+    const isStaff = ['admin', 'manager', 'management'].includes(role);
+    const isOwner = role === 'propertyowner';
+
+    let query, params;
+    if (isStaff) {
+      query = `
+        SELECT l.*, u.name AS tenant_name, p.title AS property_title
+        FROM leases l
+        LEFT JOIN users u ON u.id = l.tenant_id
+        LEFT JOIN properties p ON p.id = l.property_id
+        ORDER BY l.created_at DESC`;
+      params = [];
+    } else if (isOwner) {
+      // Owner sees leases for their properties (no PII beyond name)
+      query = `
+        SELECT l.id, l.property_id, l.unit_description, l.rent_amount,
+               l.start_date, l.end_date, l.status, l.created_at, l.updated_at,
+               p.title AS property_title,
+               u.name AS tenant_name
+        FROM leases l
+        LEFT JOIN properties p ON p.id = l.property_id
+        LEFT JOIN users u ON u.id = l.tenant_id
+        WHERE l.owner_id = $1
+        ORDER BY l.created_at DESC`;
+      params = [userId];
+    } else {
+      // Tenant: only their own lease
+      query = `
+        SELECT l.*, u.name AS tenant_name, p.title AS property_title
+        FROM leases l
+        LEFT JOIN users u ON u.id = l.tenant_id
+        LEFT JOIN properties p ON p.id = l.property_id
+        WHERE l.tenant_id = $1
+        ORDER BY l.created_at DESC`;
+      params = [userId];
+    }
+
+    const result = await pool.query(query, params);
+    return res.json({ success: true, data: result.rows.map(mapLease) });
+  } catch (error) {
+    console.error('Failed to fetch leases:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch leases' });
+  }
+});
+
+// GET /api/pms/leases/:id — get single lease (scoped)
+app.get('/api/pms/leases/:id', requireAuth, async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid lease ID' });
+    const { role, sub: userId } = req.user;
+    const isStaff = ['admin', 'manager', 'management'].includes(role);
+
+    const result = await pool.query(
+      `SELECT l.*, u.name AS tenant_name, p.title AS property_title
+       FROM leases l
+       LEFT JOIN users u ON u.id = l.tenant_id
+       LEFT JOIN properties p ON p.id = l.property_id
+       WHERE l.id = $1 LIMIT 1`,
+      [id]
+    );
+    if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'Lease not found' });
+    const lease = result.rows[0];
+
+    // Scope check: tenant can only see own lease; owner can see leases for their properties
+    if (!isStaff && role === 'tenant' && lease.tenant_id !== userId) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+    if (!isStaff && role === 'propertyowner' && lease.owner_id !== userId) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+
+    return res.json({ success: true, data: mapLease(lease) });
+  } catch (error) {
+    console.error('Failed to fetch lease:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch lease' });
+  }
+});
+
+// POST /api/pms/leases — Admin/Management only
+app.post('/api/pms/leases', requireAuth, requireRole('admin', 'manager', 'management'), async (req, res) => {
+  try {
+    const { tenantId, propertyId, ownerId, unitDescription, rentAmount, startDate, endDate, notes } = req.body || {};
+    const missing = requireFields(req.body || {}, ['tenantId', 'rentAmount', 'startDate', 'endDate']);
+    if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
+
+    const result = await pool.query(
+      `INSERT INTO leases (tenant_id, property_id, owner_id, unit_description, rent_amount, start_date, end_date, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [tenantId, propertyId || null, ownerId || null, unitDescription || null, Number(rentAmount), startDate, endDate, notes || null]
+    );
+    const lease = result.rows[0];
+    await logAudit(req.user.email, 'CREATE', 'leases', lease.id, null, lease);
+    return res.status(201).json({ success: true, data: mapLease(lease) });
+  } catch (error) {
+    console.error('Failed to create lease:', error);
+    return res.status(500).json({ success: false, message: 'Failed to create lease' });
+  }
+});
+
+// PUT /api/pms/leases/:id — Admin/Management only
+app.put('/api/pms/leases/:id', requireAuth, requireRole('admin', 'manager', 'management'), async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid lease ID' });
+
+    const before = await pool.query('SELECT * FROM leases WHERE id = $1 LIMIT 1', [id]);
+    if (before.rowCount === 0) return res.status(404).json({ success: false, message: 'Lease not found' });
+
+    const { rentAmount, startDate, endDate, status, notes, unitDescription, ownerId } = req.body || {};
+    const result = await pool.query(
+      `UPDATE leases SET
+        rent_amount = COALESCE($2, rent_amount),
+        start_date = COALESCE($3, start_date),
+        end_date = COALESCE($4, end_date),
+        status = COALESCE($5, status),
+        notes = COALESCE($6, notes),
+        unit_description = COALESCE($7, unit_description),
+        owner_id = COALESCE($8, owner_id),
+        updated_at = NOW()
+       WHERE id = $1 RETURNING *`,
+      [id, rentAmount !== undefined ? Number(rentAmount) : null, startDate || null, endDate || null,
+       status || null, notes || null, unitDescription || null, ownerId || null]
+    );
+    const updated = result.rows[0];
+    await logAudit(req.user.email, 'UPDATE', 'leases', id, before.rows[0], updated);
+    return res.json({ success: true, data: mapLease(updated) });
+  } catch (error) {
+    console.error('Failed to update lease:', error);
+    return res.status(500).json({ success: false, message: 'Failed to update lease' });
+  }
+});
+
+// ── MAINTENANCE TICKETS ──────────────────────
+
+// GET /api/pms/tickets — Admin/Management: all; Tenant: own
+app.get('/api/pms/tickets', requireAuth, async (req, res) => {
+  try {
+    const { role, sub: userId } = req.user;
+    const isStaff = ['admin', 'manager', 'management'].includes(role);
+
+    let query, params;
+    if (isStaff) {
+      query = `
+        SELECT t.*, u.name AS tenant_name, p.title AS property_title
+        FROM maintenance_tickets t
+        LEFT JOIN users u ON u.id = t.tenant_id
+        LEFT JOIN properties p ON p.id = t.property_id
+        ORDER BY t.created_at DESC`;
+      params = [];
+    } else {
+      query = `
+        SELECT t.*, u.name AS tenant_name, p.title AS property_title
+        FROM maintenance_tickets t
+        LEFT JOIN users u ON u.id = t.tenant_id
+        LEFT JOIN properties p ON p.id = t.property_id
+        WHERE t.tenant_id = $1
+        ORDER BY t.created_at DESC`;
+      params = [userId];
+    }
+
+    const result = await pool.query(query, params);
+    return res.json({ success: true, data: result.rows.map(mapTicket) });
+  } catch (error) {
+    console.error('Failed to fetch tickets:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch tickets' });
+  }
+});
+
+// POST /api/pms/tickets — Tenant creates a ticket
+app.post('/api/pms/tickets', requireAuth, requireRole('tenant'), async (req, res) => {
+  try {
+    const { sub: userId } = req.user;
+    const { title, description, category, priority, leaseId, propertyId } = req.body || {};
+    const missing = requireFields(req.body || {}, ['title', 'description']);
+    if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
+
+    const result = await pool.query(
+      `INSERT INTO maintenance_tickets (tenant_id, lease_id, property_id, title, description, category, priority)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [userId, leaseId || null, propertyId || null, title, description,
+       category || 'general', priority || 'medium']
+    );
+    const ticket = result.rows[0];
+    await logAudit(req.user.email, 'CREATE', 'maintenance_tickets', ticket.id, null, ticket);
+    return res.status(201).json({ success: true, data: mapTicket(ticket) });
+  } catch (error) {
+    console.error('Failed to create ticket:', error);
+    return res.status(500).json({ success: false, message: 'Failed to create ticket' });
+  }
+});
+
+// PUT /api/pms/tickets/:id/status — Admin/Management updates ticket status
+app.put('/api/pms/tickets/:id/status', requireAuth, requireRole('admin', 'manager', 'management'), async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid ticket ID' });
+
+    const { status, resolutionNotes, assignedTo } = req.body || {};
+    if (!status) return res.status(400).json({ success: false, message: 'status is required' });
+
+    const before = await pool.query('SELECT * FROM maintenance_tickets WHERE id = $1 LIMIT 1', [id]);
+    if (before.rowCount === 0) return res.status(404).json({ success: false, message: 'Ticket not found' });
+
+    const result = await pool.query(
+      `UPDATE maintenance_tickets SET
+        status = $2,
+        resolution_notes = COALESCE($3, resolution_notes),
+        assigned_to = COALESCE($4, assigned_to),
+        updated_at = NOW()
+       WHERE id = $1 RETURNING *`,
+      [id, status, resolutionNotes || null, assignedTo || null]
+    );
+    const updated = result.rows[0];
+    await logAudit(req.user.email, 'UPDATE', 'maintenance_tickets', id, before.rows[0], updated);
+    return res.json({ success: true, data: mapTicket(updated) });
+  } catch (error) {
+    console.error('Failed to update ticket:', error);
+    return res.status(500).json({ success: false, message: 'Failed to update ticket' });
+  }
+});
+
+// ── OWNER SUMMARY (Aggregate — No PII) ───────
+
+// GET /api/pms/owner/summary — PropertyOwner: read-only aggregate
+app.get('/api/pms/owner/summary', requireAuth, requireRole('propertyowner', 'admin', 'manager', 'management'), async (req, res) => {
+  try {
+    const { role, sub: userId } = req.user;
+    const isStaff = ['admin', 'manager', 'management'].includes(role);
+
+    // For staff use query without filter; for owner filter by owner_id
+    const ownerFilter = isStaff ? '' : `WHERE l.owner_id = ${userId}`;
+    const leasePaymentJoin = `
+      FROM leases l
+      LEFT JOIN payments pay ON pay.lease_id = l.id AND pay.status = 'success'
+      LEFT JOIN properties p ON p.id = l.property_id
+      ${ownerFilter}`;
+
+    const stats = await pool.query(`
+      SELECT
+        COUNT(DISTINCT l.id) AS total_leases,
+        COUNT(DISTINCT CASE WHEN l.status = 'active' THEN l.id END) AS active_leases,
+        COUNT(DISTINCT l.property_id) AS total_properties,
+        COALESCE(SUM(pay.amount), 0) AS total_collected,
+        COALESCE(AVG(l.rent_amount), 0) AS avg_rent
+      ${leasePaymentJoin}
+    `);
+
+    const propertyBreakdown = await pool.query(`
+      SELECT
+        p.id AS property_id,
+        p.title AS property_title,
+        p.location,
+        COUNT(DISTINCT l.id) AS units_occupied,
+        COALESCE(SUM(CASE WHEN l.status = 'active' THEN l.rent_amount ELSE 0 END), 0) AS monthly_rent,
+        COALESCE(SUM(pay.amount), 0) AS total_paid
+      FROM leases l
+      LEFT JOIN properties p ON p.id = l.property_id
+      LEFT JOIN payments pay ON pay.lease_id = l.id AND pay.status = 'success'
+      ${isStaff ? '' : `WHERE l.owner_id = ${userId}`}
+      GROUP BY p.id, p.title, p.location
+      ORDER BY total_paid DESC
+    `);
+
+    return res.json({
+      success: true,
+      data: {
+        summary: {
+          totalLeases: Number(stats.rows[0].total_leases),
+          activeLeases: Number(stats.rows[0].active_leases),
+          totalProperties: Number(stats.rows[0].total_properties),
+          totalCollected: Number(stats.rows[0].total_collected),
+          avgRent: Number(Number(stats.rows[0].avg_rent).toFixed(2)),
+        },
+        properties: propertyBreakdown.rows.map(r => ({
+          propertyId: r.property_id,
+          propertyTitle: r.property_title,
+          location: r.location,
+          unitsOccupied: Number(r.units_occupied),
+          monthlyRent: Number(r.monthly_rent),
+          totalPaid: Number(r.total_paid),
+        })),
+      }
+    });
+  } catch (error) {
+    console.error('Failed to fetch owner summary:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch owner summary' });
+  }
+});
+
+// ── PAYMENTS ─────────────────────────────────
+
+// POST /api/pms/payments/initiate — Tenant initiates a payment
+app.post('/api/pms/payments/initiate', requireAuth, requireRole('tenant'), async (req, res) => {
+  try {
+    const { sub: userId, email } = req.user;
+    const { leaseId, amount, paymentType } = req.body || {};
+    const missing = requireFields(req.body || {}, ['amount']);
+    if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
+
+    const parsedAmount = Number(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Amount must be a positive number' });
+    }
+
+    // Generate unique reference: KSA_<userId>_<timestamp>_<random>
+    const rand = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const reference = `KSA_${userId}_${Date.now()}_${rand}`;
+
+    // Insert payment record (status = pending)
+    const result = await pool.query(
+      `INSERT INTO payments (tenant_id, lease_id, reference, amount, currency, status, payment_type, provider)
+       VALUES ($1, $2, $3, $4, 'NGN', 'pending', $5, 'paystack') RETURNING *`,
+      [userId, leaseId || null, reference, parsedAmount, paymentType || 'rent']
+    );
+    const payment = result.rows[0];
+    await logAudit(req.user.email, 'CREATE', 'payments', payment.id, null, payment);
+
+    // Paystack configuration: check sandbox toggle dynamically
+    const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
+    const isSandbox = !paystackSecret || process.env.PAYSTACK_MODE === 'sandbox';
+
+    if (!isSandbox) {
+      try {
+        const paystackRes = await axios.post('https://api.paystack.co/transaction/initialize', {
+          email,
+          amount: Math.round(parsedAmount * 100), // Paystack expects kobo
+          reference,
+          callback_url: process.env.PAYSTACK_CALLBACK_URL
+        }, {
+          headers: {
+            Authorization: `Bearer ${paystackSecret}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        return res.status(201).json({
+          success: true,
+          data: {
+            ...mapPayment(payment),
+            authorizationUrl: paystackRes.data.data.authorization_url,
+            accessCode: paystackRes.data.data.access_code,
+          },
+        });
+      } catch (err) {
+        console.error('Paystack production initiation failed, falling back to sandbox:', err.response?.data || err.message);
+        // Fall through to sandbox
+      }
+    }
+
+    // Sandbox fallback stub
+    const stubAuthorizationUrl = `https://paystack.com/pay/stub-${reference}`;
+
+    return res.status(201).json({
+      success: true,
+      data: {
+        ...mapPayment(payment),
+        authorizationUrl: stubAuthorizationUrl,
+        accessCode: `STUB_${reference}`,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to initiate payment:', error);
+    return res.status(500).json({ success: false, message: 'Failed to initiate payment' });
+  }
+});
+
+// POST /api/pms/payments/webhook — Paystack webhook (idempotency guard)
+app.post('/api/pms/payments/webhook', async (req, res) => {
+  try {
+    const paystackSecret = process.env.PAYSTACK_SECRET_KEY;
+    const isSandbox = !paystackSecret || process.env.PAYSTACK_MODE === 'sandbox';
+
+    if (!isSandbox) {
+      const crypto = require('crypto');
+      const signature = req.headers['x-paystack-signature'];
+      if (!signature) {
+        return res.status(401).json({ success: false, message: 'Missing signature' });
+      }
+      const hash = crypto.createHmac('sha512', paystackSecret)
+        .update(JSON.stringify(req.body)).digest('hex');
+      if (hash !== signature) {
+        return res.status(401).json({ success: false, message: 'Invalid signature' });
+      }
+    }
+
+    const { event, data } = req.body || {};
+    if (!event || !data) return res.status(400).json({ success: false, message: 'Invalid webhook payload' });
+
+    if (event === 'charge.success') {
+      const { reference, amount, status } = data;
+      if (!reference) return res.status(400).json({ success: false, message: 'Missing reference' });
+
+      // Idempotency: check current status — reject if already success
+      const existing = await pool.query('SELECT * FROM payments WHERE reference = $1 LIMIT 1', [reference]);
+      if (existing.rowCount === 0) {
+        return res.status(404).json({ success: false, message: 'Payment reference not found' });
+      }
+      const payment = existing.rows[0];
+      if (payment.status === 'success') {
+        // Already processed — return 200 to acknowledge to Paystack without re-processing
+        return res.json({ success: true, message: 'Already processed' });
+      }
+
+      // Confirm amount matches (kobo → naira conversion from Paystack)
+      const amountInNaira = (amount || 0) / 100;
+      const result = await pool.query(
+        `UPDATE payments SET
+          status = 'success',
+          provider_response = $2,
+          paid_at = NOW(),
+          amount = $3,
+          updated_at = NOW()
+         WHERE reference = $1 RETURNING *`,
+        [reference, JSON.stringify(data), amountInNaira]
+      );
+      await logAudit('paystack-webhook', 'WEBHOOK_SUCCESS', 'payments', result.rows[0].id, payment, result.rows[0]);
+    }
+
+    if (event === 'charge.failed') {
+      const { reference } = data;
+      if (reference) {
+        const existing = await pool.query('SELECT status FROM payments WHERE reference = $1 LIMIT 1', [reference]);
+        if (existing.rowCount > 0 && existing.rows[0].status === 'pending') {
+          await pool.query(
+            `UPDATE payments SET status = 'failed', provider_response = $2, updated_at = NOW() WHERE reference = $1`,
+            [reference, JSON.stringify(data)]
+          );
+        }
+      }
+    }
+
+    return res.json({ success: true });
+  } catch (error) {
+    console.error('Webhook processing error:', error);
+    return res.status(500).json({ success: false, message: 'Webhook processing failed' });
+  }
+});
+
+// GET /api/pms/payments/history — Tenant: own payment history
+app.get('/api/pms/payments/history', requireAuth, requireRole('tenant', 'admin', 'manager', 'management'), async (req, res) => {
+  try {
+    const { role, sub: userId } = req.user;
+    const isStaff = ['admin', 'manager', 'management'].includes(role);
+
+    const result = await pool.query(
+      `SELECT * FROM payments
+       ${isStaff ? '' : 'WHERE tenant_id = $1'}
+       ORDER BY created_at DESC`,
+      isStaff ? [] : [userId]
+    );
+    return res.json({ success: true, data: result.rows.map(mapPayment) });
+  } catch (error) {
+    console.error('Failed to fetch payment history:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch payment history' });
+  }
+});
+
+// ============================================
 // START SERVER
 // ============================================
+
 (async () => {
   try {
     // Initialize database

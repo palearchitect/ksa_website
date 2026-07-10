@@ -1,11 +1,11 @@
 <template>
   <ErrorBoundary>
     <div id="app" class="flex flex-col min-h-screen">
-      <AppHeader v-if="!isAdminRoute" />
+      <AppHeader v-slot="{}" v-if="!hideLayout" />
       <main class="flex-grow">
         <router-view />
       </main>
-      <AppFooter v-if="!isAdminRoute" />
+      <AppFooter v-if="!hideLayout" />
     </div>
   </ErrorBoundary>
 </template>
@@ -18,7 +18,7 @@ import AppFooter from './components/global/AppFooter.vue'
 import ErrorBoundary from './components/ErrorBoundary.vue'
 
 const route = useRoute()
-const isAdminRoute = computed(() => route.path.startsWith('/admin'))
+const hideLayout = computed(() => route.path.startsWith('/admin') || route.path.startsWith('/dashboard'))
 </script>
 
 <style>
