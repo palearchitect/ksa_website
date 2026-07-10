@@ -561,6 +561,9 @@ pm2 update
 | Admin login fails                    | Reset by updating `ADMIN_PASSWORD` in `.env` and restarting the server                     |
 | SSL certificate not renewing         | Check Certbot timer: `sudo systemctl status certbot.timer`                                 |
 | `npm install` fails on VPS           | May need more RAM. Add swap: `sudo fallocate -l 2G /swapfile && sudo mkswap /swapfile`     |
+| `vite: command not found` on deploy  | Build tools (`vite`, etc.) were placed in `devDependencies` which npm skips when `NODE_ENV=production` is set. **Fix:** The repository has been updated to move all build tools to `dependencies`. If still failing, verify the root `package.json` matches this configuration. |
+| `ERESOLVE overriding peer dependency`| Package versions conflict (e.g. React version mismatches with dependencies). **Fix:** Run installations with `npm install --legacy-peer-deps` to bypass conflicts. Note: We have permanently removed the unused `decap-cms-app` package to eliminate these conflicts entirely. |
+| Build crashes / Out of memory        | Low-memory shared hosts or 1GB VPS plans may crash during Vite production builds. **Fix:** Add `NODE_OPTIONS="--max-old-space-size=2048"` to environment variables, or build the assets locally (`npm run build`) and upload only the `dist/` folder via FTP/Git. |
 
 ---
 
