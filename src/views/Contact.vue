@@ -172,11 +172,11 @@
                     </svg>
                     +234 905 390 1001
                   </a>
-                  <a href="tel:08184796032" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors group">
+                  <a href="tel:+2349053898636" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors group">
                     <svg class="w-5 h-5 text-gray-400 mr-3 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    +234 818 479 6032
+                    +234 905 389 8636
                   </a>
                   <a href="tel:+2349053901802" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors group">
                     <svg class="w-5 h-5 text-gray-400 mr-3 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">

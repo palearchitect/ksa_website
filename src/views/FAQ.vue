@@ -704,7 +704,7 @@ const faqs = ref([
     id: 13,
     category: 'support',
     question: 'How can I contact your team?',
-    answer: 'You can reach us through: Phone: +234 905 390 1001 / 08184796032, Email: kayodesegunandassociates@gmail.com, Office: Suite J260, Road 5, Ikota Shopping Complex, Ajah, Lekki, Lagos. We also offer online contact forms on our website and live chat support during business hours.'
+    answer: 'You can reach us through: Phone: +234 905 390 1001 / +234 905 389 8636, Email: kayodesegunandassociates@gmail.com, Office: Suite J260, Road 5, Ikota Shopping Complex, Ajah, Lekki, Lagos. We also offer online contact forms on our website and live chat support during business hours.'
   },
   {
     id: 14,

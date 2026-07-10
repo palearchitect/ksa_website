@@ -49,25 +49,8 @@
               </div>
               
               <!-- Partner Name & Title -->
-              <h2 class="text-2xl font-bold text-gray-900 mb-2">ESV. Segun Kayode, RSV</h2>
-              <p class="text-blue-600 font-semibold mb-4">Principal Partner & CEO</p>
-              
-              <!-- Qualifications -->
-              <div class="mb-6 text-center">
-                <div class="inline-flex items-center bg-blue-50 text-blue-700 px-4 py-2 rounded-full mb-2 mr-2">
-                  <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                  ESV
-                </div>
-                <div class="inline-flex items-center bg-blue-50 text-blue-700 px-4 py-2 rounded-full mb-2">
-                  <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                  RSV
-                </div>
-              </div>
-
+              <h2 class="text-2xl font-bold text-gray-900 mb-2">ESV.Kayode Segun,</h2>
+              <p class="text-blue-600 font-semibold mb-4">Principal Partner</p>
               <!-- Contact Card -->
               <div class="bg-gray-50 rounded-lg p-6 w-full mb-6">
                 <h3 class="font-semibold text-gray-900 mb-4">Direct Contact</h3>
@@ -189,7 +172,7 @@
             <blockquote class="text-2xl font-light italic mb-4">
               "Our commitment is to deliver accurate, reliable, and professional property valuation services that empower our clients to make informed real estate decisions."
             </blockquote>
-            <p class="font-semibold">— ESV. Segun Kayode, RSV, Principal Partner</p>
+            <p class="font-semibold">— ESV. Kayode Segun, Principal Partner</p>
           </div>
 
           <!-- Biography Section -->
@@ -198,7 +181,7 @@
             
             <div class="prose max-w-none text-gray-700">
               <p class="mb-6 text-lg">
-                ESV. SEGUN KAYODE, RSV is an experienced Estate Surveyor and Registered Valuer with over thirteen (13) years of professional practice in real estate valuation, property consultancy, asset management, and investment advisory services. He is the Principal Partner of Kayode Segun & Associates, a firm of Estate Surveyors and Valuers committed to delivering professional, reliable, and timely real estate solutions to financial institutions, corporate organizations, government agencies, and private clients across Nigeria.
+                ESV. Kayode Segun is an experienced Estate Surveyor and Registered Valuer with over thirteen (13) years of professional practice in real estate valuation, property consultancy, asset management, and investment advisory services. He is the Principal Partner of Kayode Segun & Associates, a firm of Estate Surveyors and Valuers committed to delivering professional, reliable, and timely real estate solutions to financial institutions, corporate organizations, government agencies, and private clients across Nigeria.
               </p>
 
               <h3 class="text-xl font-bold text-gray-900 mb-4 mt-8">Professional Journey</h3>
@@ -213,6 +196,12 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                   <span>Real estate valuation</span>
+                </div>
+                 <div class="flex items-center">
+                  <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                  <span>Auctioneering</span>
                 </div>
                 <div class="flex items-center">
                   <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">

@@ -411,7 +411,7 @@
             <h3 class="font-bold text-gray-900 mb-2">Call Us</h3>
             <div class="space-y-1">
               <a     href="tel:+2349053901001" class="text-blue-600 hover:text-blue-800 block">+234 905 390 1001</a>
-              <a href="tel:+2348184796032" class="text-blue-600 hover:text-blue-800 block">+234 818 479 6032</a>
+              <a href="tel:+2349053898636" class="text-blue-600 hover:text-blue-800 block">+234 905 389 8636</a>
               <a href="tel:+2349053901802" class="text-blue-600 hover:text-blue-800 block">+234 905 390 1802</a>
             </div>
           </div>
