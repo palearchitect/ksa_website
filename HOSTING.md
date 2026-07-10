@@ -119,6 +119,53 @@ Hostinger's shared Node.js hosting is simpler but has limitations:
 6. Build the frontend: `npm run build` (from root).
 7. Configure environment variables via hPanel's `.env` editor.
 
+### Option C: Automatic Deployment from GitHub (Hostinger Node.js Plan)
+
+Hostinger's Node.js hosting plans support **automatic deployment directly from your GitHub repository**. Every push to your chosen branch triggers a rebuild and restart — no manual uploads or SSH needed.
+
+**Setup steps:**
+
+1. **Go to hPanel** → Websites → your site → **Advanced** → **Git**.
+2. **Connect your GitHub account** and select the repository (`ThePaleArchitect/ksa_website`).
+3. **Choose the branch** to deploy from (e.g., `main`).
+4. **Configure the deployment settings in hPanel:**
+
+   | Setting              | Value                                                        |
+   | :------------------- | :----------------------------------------------------------- |
+   | **Repository**       | `ThePaleArchitect/ksa_website`                               |
+   | **Branch**           | `main`                                                       |
+   | **Node.js version**  | `20.x`                                                       |
+   | **Application root** | `backend/`                                                   |
+   | **Startup file**     | `server.js`                                                  |
+   | **Build command**     | `cd .. && npm install --legacy-peer-deps && npm run build && cd backend && npm install` |
+   | **Run command**       | `npm start`                                                  |
+
+5. **Set environment variables** — In hPanel, go to **Advanced** → **Environment Variables** (or edit the `.env` file via File Manager). Add all required variables from the [Environment Variables](#environment-variables) section below. Make sure `NODE_ENV=production` is set.
+
+6. **Set up the database** — Since Hostinger shared hosting doesn't include PostgreSQL, use an external provider (Neon, Supabase, Railway — see [Database Setup](#database-setup-postgresql)). Copy the connection string into your `DATABASE_URL` env variable.
+
+7. **Trigger the first deploy** — Click **Deploy** in hPanel, or simply push a commit to `main`:
+   ```bash
+   git push origin main
+   ```
+
+8. **Verify** — Visit your domain. The site should be live with both the frontend and API running.
+
+**How it works:**
+
+```
+GitHub Push (main) → Hostinger Webhook → Pull Latest Code
+    → Run Build Command (install deps + vite build)
+    → Restart Node.js App (server.js)
+    → Site Updated Automatically ✅
+```
+
+> [!TIP]
+> Every subsequent `git push origin main` will automatically redeploy the site. No manual intervention needed — just push your code and Hostinger handles the rest.
+
+> [!WARNING]
+> The build command runs in the `backend/` application root, so it must `cd ..` first to access the root `package.json` for the frontend build, then `cd backend` to install backend dependencies. If your build fails, check the deployment logs in hPanel for the exact error.
+
 ---
 
 ## Environment Variables
