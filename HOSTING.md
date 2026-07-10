@@ -125,20 +125,24 @@ Hostinger's Node.js hosting plans support **automatic deployment directly from y
 
 **Setup steps:**
 
-1. **Go to hPanel** → Websites → your site → **Advanced** → **Git**.
-2. **Connect your GitHub account** and select the repository (`ThePaleArchitect/ksa_website`).
-3. **Choose the branch** to deploy from (e.g., `main`).
-4. **Configure the deployment settings in hPanel:**
+1. **Go to hPanel** → Websites → your site → **Git** → **Connect** to your GitHub account.
+2. **Select the repository** (`ThePaleArchitect/ksa_website`).
+3. **Configure the Build Configuration:**
 
-   | Setting              | Value                                                        |
-   | :------------------- | :----------------------------------------------------------- |
-   | **Repository**       | `ThePaleArchitect/ksa_website`                               |
-   | **Branch**           | `main`                                                       |
-   | **Node.js version**  | `20.x`                                                       |
-   | **Application root** | `backend/`                                                   |
-   | **Startup file**     | `server.js`                                                  |
-   | **Build command**     | `cd .. && npm install --legacy-peer-deps && npm run build && cd backend && npm install` |
-   | **Run command**       | `npm start`                                                  |
+   | Setting                | Value                              |
+   | :--------------------- | :--------------------------------- |
+   | **Framework preset**   | `Vite`                             |
+   | **Branch**             | `main`                             |
+   | **Node version**       | `22.x`                             |
+   | **Root directory**     | `./`                               |
+
+4. **Configure the Build and Output Settings:**
+
+   | Setting                | Value                              |
+   | :--------------------- | :--------------------------------- |
+   | **Build command**      | `npm run build`                    |
+   | **Package manager**    | `npm`                              |
+   | **Output directory**   | `dist`                             |
 
 5. **Set environment variables** — In hPanel, go to **Advanced** → **Environment Variables** (or edit the `.env` file via File Manager). Add all required variables from the [Environment Variables](#environment-variables) section below. Make sure `NODE_ENV=production` is set.
 
@@ -155,16 +159,17 @@ Hostinger's Node.js hosting plans support **automatic deployment directly from y
 
 ```
 GitHub Push (main) → Hostinger Webhook → Pull Latest Code
-    → Run Build Command (install deps + vite build)
-    → Restart Node.js App (server.js)
+    → npm install (auto, via package manager setting)
+    → npm run build (produces dist/)
+    → Serve from dist/ + Restart Node.js App
     → Site Updated Automatically ✅
 ```
 
 > [!TIP]
 > Every subsequent `git push origin main` will automatically redeploy the site. No manual intervention needed — just push your code and Hostinger handles the rest.
 
-> [!WARNING]
-> The build command runs in the `backend/` application root, so it must `cd ..` first to access the root `package.json` for the frontend build, then `cd backend` to install backend dependencies. If your build fails, check the deployment logs in hPanel for the exact error.
+> [!IMPORTANT]
+> The **Root directory** must be set to `./` (project root) so Hostinger can find the root `package.json` and run `npm run build` to produce the `dist/` folder. The backend dependencies are installed separately from `backend/package.json`.
 
 ---
 
