@@ -1,4 +1,5 @@
 require('dotenv').config();
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -2326,6 +2327,20 @@ app.get('/api/pms/payments/history', requireAuth, requireRole('tenant', 'admin',
     return res.status(500).json({ success: false, message: 'Failed to fetch payment history' });
   }
 });
+
+// ============================================
+// PRODUCTION STATIC FILE SERVING
+// ============================================
+// In production, serve the Vue frontend build from ../dist
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '..', 'dist');
+  app.use(express.static(distPath));
+
+  // SPA fallback — any route not matching /api/* returns index.html
+  app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 // ============================================
 // START SERVER
