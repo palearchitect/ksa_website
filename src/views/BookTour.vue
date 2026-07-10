@@ -301,7 +301,7 @@
               <svg class="w-5 h-5 text-purple-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
               </svg>
-              <span>For immediate assistance: <strong>+234 800 123 4567</strong></span>
+              <span>For immediate assistance: <strong>+234 905 390 1001</strong></span>
             </li>
           </ul>
         </div>
@@ -717,7 +717,7 @@ const printConfirmation = () => {
       <hr style="margin: 20px 0;">
       <p style="font-size: 12px; color: #6b7280;">
         Please bring this confirmation and a valid ID to your tour.<br>
-        Contact: +234 800 123 4567 | bookings@kayodesegun.com
+        Contact: +234 905 390 1001 | bookings@kayodesegun.com
       </p>
     </div>
   `
@@ -747,7 +747,7 @@ BEGIN:VEVENT
 SUMMARY:Property Tour - Kayode Segun & Associates
 DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
 DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z
-DESCRIPTION:Property tour booking (ID: ${bookingId.value})\\nContact: +234 800 123 4567
+DESCRIPTION:Property tour booking (ID: ${bookingId.value})\\nContact: +234 905 390 1001
 LOCATION:Kayode Segun & Associates Office
 STATUS:CONFIRMED
 SEQUENCE:0

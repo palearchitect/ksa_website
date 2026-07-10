@@ -63,13 +63,13 @@ const routes = [
     name: 'PrincipalPartner',
     component: () => import('../views/PrincipalPartner.vue')
   },
-  // Admin Routes
+  // Superadmin Routes
   {
-    path: '/admin',
+    path: '/dashboard/admin',
     component: () => import('../views/admin/AdminLayout.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, allowedRoles: ['admin'] },
     children: [
-      { path: '', name: 'AdminDashboard', component: () => import('../views/admin/AdminDashboard.vue') },
+      { path: '', name: 'SuperAdminDashboard', component: () => import('../views/dashboard/SuperAdminDashboard.vue') },
       { path: 'properties', name: 'AdminPropertyList', component: () => import('../views/admin/AdminPropertyList.vue') },
       { path: 'properties/new', name: 'AdminPropertyForm', component: () => import('../views/admin/AdminPropertyForm.vue') },
       { path: 'properties/:id', name: 'AdminPropertyEdit', component: () => import('../views/admin/AdminPropertyForm.vue'), props: true },
@@ -77,7 +77,16 @@ const routes = [
       { path: 'bookings', name: 'AdminBookings', component: () => import('../views/admin/AdminBookings.vue') },
       { path: 'projects', name: 'AdminProjectList', component: () => import('../views/admin/AdminProjectList.vue') },
       { path: 'projects/new', name: 'AdminProjectForm', component: () => import('../views/admin/AdminProjectForm.vue') },
-      { path: 'projects/:id', name: 'AdminProjectEdit', component: () => import('../views/admin/AdminProjectForm.vue'), props: true },
+      { path: 'projects/:id', name: 'AdminProjectEdit', component: () => import('../views/admin/AdminProjectForm.vue'), props: true }
+    ]
+  },
+  // Web Admin Routes
+  {
+    path: '/dashboard/webadmin',
+    component: () => import('../views/admin/AdminLayout.vue'),
+    meta: { requiresAuth: true, allowedRoles: ['admin', 'webadmin'] },
+    children: [
+      { path: '', name: 'WebAdminDashboard', component: () => import('../views/dashboard/WebAdminDashboard.vue') },
       { path: 'slides', name: 'AdminSlideList', component: () => import('../views/admin/AdminSlideList.vue') },
       { path: 'slides/new', name: 'AdminSlideForm', component: () => import('../views/admin/AdminSlideForm.vue') },
       { path: 'slides/:id', name: 'AdminSlideEdit', component: () => import('../views/admin/AdminSlideForm.vue'), props: true },
@@ -85,6 +94,14 @@ const routes = [
       { path: 'team/new', name: 'AdminTeamForm', component: () => import('../views/admin/AdminTeamForm.vue') },
       { path: 'team/:id', name: 'AdminTeamEdit', component: () => import('../views/admin/AdminTeamForm.vue'), props: true }
     ]
+  },
+  {
+    path: '/admin',
+    redirect: '/dashboard/admin'
+  },
+  {
+    path: '/admin/:catchAll(.*)',
+    redirect: to => `/dashboard/admin/${to.params.catchAll}`
   },
   {
     path: '/admin/login',
@@ -116,22 +133,19 @@ const routes = [
     name: 'Onboarding',
     component: () => import('../views/auth/Onboarding.vue')
   },
+  {
+    path: '/verify-email',
+    name: 'VerifyEmail',
+    component: () => import('../views/auth/VerifyEmail.vue')
+  },
 
-  // User Routes
+  // Profile and Settings (Accessible by all logged in roles)
   {
-    path: '/profile',
-    name: 'Profile',
-    component: () => import('../views/user/Profile.vue'),
-    meta: { requiresAuth: true }
+    path: '/dashboard/profile',
+    name: 'UserProfile',
+    component: () => import('../views/auth/Profile.vue'),
+    meta: { requiresAuth: true, title: 'My Profile Settings' }
   },
-  {
-    path: '/my-bookings',
-    name: 'MyBookings',
-    component: () => import('../views/user/MyBookings.vue'),
-    meta: { requiresAuth: true }
-  },
-  
-  
   
   // ── PMS Dashboard Routes ──────────────────────────────────────────────────
   {
@@ -150,7 +164,7 @@ const routes = [
     component: () => import('../views/dashboard/OwnerDashboard.vue'),
     meta: {
       requiresAuth: true,
-      allowedRoles: ['propertyowner'],
+      allowedRoles: ['admin', 'propertyowner'],
       title: 'Owner Portal'
     }
   },
@@ -160,7 +174,7 @@ const routes = [
     component: () => import('../views/dashboard/TenantDashboard.vue'),
     meta: {
       requiresAuth: true,
-      allowedRoles: ['tenant'],
+      allowedRoles: ['admin', 'tenant'],
       title: 'Tenant Portal'
     }
   },
@@ -187,7 +201,8 @@ const router = createRouter({
 
 // Role → home dashboard mapping
 const roleDashboardMap = {
-  admin:         '/admin',
+  admin:         '/dashboard/admin',
+  webadmin:      '/dashboard/webadmin',
   manager:       '/dashboard/management',
   management:    '/dashboard/management',
   propertyowner: '/dashboard/owner',
@@ -210,6 +225,13 @@ router.beforeEach(async (to, from, next) => {
 
   const isAuth   = authStore.isAuthenticated
   const userRole = authStore.user?.role
+
+  // Suspended Account Check (instant deboarding redirection)
+  if (isAuth && authStore.user?.status === 'suspended') {
+    await authStore.logout()
+    next('/admin/login?error=suspended')
+    return
+  }
 
   // Redirect already-authenticated users away from login pages to their portal
   const loginPaths = ['/admin/login', '/login']

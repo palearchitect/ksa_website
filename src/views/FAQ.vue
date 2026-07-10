@@ -588,19 +588,37 @@
 <script setup>
 import ErrorBoundary from '../components/global/ErrorBoundary.vue'
 import { useSEO } from '../hooks/useSEO'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useFaqStore } from '@/stores/faqStore'
+import api from '@/services/api'
+
 useSEO({
   title: 'FAQ - Frequently Asked Questions',
   description: 'Find answers to the most common questions about our services, processes, and professional approach to property valuation and management.'
 })
-import { ref, computed, watch } from 'vue'
 
-// API Configuration - Update this with your backend URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+const faqStore = useFaqStore()
 
 // State
 const searchQuery = ref('')
 const activeCategory = ref('all')
 const openFAQs = ref([])
+
+onMounted(async () => {
+  try {
+    const res = await faqStore.fetchFAQs()
+    if (res.success && faqStore.faqs.length > 0) {
+      faqs.value = faqStore.faqs.map(f => ({
+        id: f.id,
+        category: f.category || 'general',
+        question: f.question,
+        answer: f.answer
+      }))
+    }
+  } catch (err) {
+    console.error('Failed to load dynamic FAQs:', err)
+  }
+})
 
 // AI State
 const showAIPanel = ref(false)
@@ -828,29 +846,19 @@ const askAI = async () => {
   showAIPanel.value = true
   
   try {
-    // Call your backend API
-    const response = await fetch(`${API_BASE_URL}/api/ask-ai`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        question: userQuestion.value
-      })
+    const res = await api.post('/api/ask-ai', {
+      question: userQuestion.value
     })
     
-    const data = await response.json()
-    
-    if (response.ok && data.success) {
-      aiAnswer.value = data.answer
+    if (res.success || res.data?.success) {
+      aiAnswer.value = res.answer || res.data?.answer
     } else {
-      aiAnswer.value = data.message || "I couldn't generate an answer. Please try again or contact our team."
+      aiAnswer.value = res.message || res.data?.message || "I couldn't generate an answer. Please try again or contact our team."
     }
     
   } catch (error) {
     console.error('AI Error:', error)
     
-    // Better error messages based on connection status
     if (!navigator.onLine) {
       aiAnswer.value = "You're offline. Please check your internet connection and try again."
     } else {

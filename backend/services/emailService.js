@@ -28,6 +28,8 @@ function createEmailTransporter(provider, config) {
       return createSendgridTransporter(config);
     case 'aws-ses':
       return createAwsSesTransporter(config);
+    case 'resend':
+      return createResendTransporter(config);
     default:
       throw new Error(`Unknown email provider: ${provider}`);
   }
@@ -137,6 +139,38 @@ function createAwsSesTransporter(config) {
     transporter: nodemailer.createTransport({
       SES: new AWS.SES({ apiVersion: '2010-12-01' })
     })
+  };
+}
+
+/**
+ * Resend.com API Transporter
+ */
+function createResendTransporter(config) {
+  if (!config.resend_api_key) {
+    throw new Error('Resend provider requires RESEND_API_KEY env variable');
+  }
+
+  return {
+    type: 'resend',
+    send: async (mailOptions) => {
+      try {
+        const response = await axios.post('https://api.resend.com/emails', {
+          from: mailOptions.from || config.from || 'onboarding@resend.dev',
+          to: mailOptions.to,
+          subject: mailOptions.subject,
+          html: mailOptions.html || mailOptions.text
+        }, {
+          headers: {
+            'Authorization': `Bearer ${config.resend_api_key}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        return { success: true, messageId: response.data.id };
+      } catch (error) {
+        const msg = error.response?.data?.message || error.message;
+        throw new Error(`Resend API error: ${msg}`);
+      }
+    }
   };
 }
 
@@ -257,7 +291,19 @@ class EmailService {
  * Factory function to create email service
  */
 function createEmailService() {
-  const provider = process.env.EMAIL_PROVIDER || 'gmail';
+  let provider = process.env.EMAIL_PROVIDER || 'gmail';
+  
+  // Dynamic fallback for Resend to keep server bootable without environment key
+  if (provider === 'resend' && !process.env.RESEND_API_KEY) {
+    console.warn('⚠️  WARNING: EMAIL_PROVIDER is set to "resend" but RESEND_API_KEY is missing!');
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      console.log('🔄 Falling back to "gmail" provider.');
+      provider = 'gmail';
+    } else if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+      console.log('🔄 Falling back to "smtp" provider.');
+      provider = 'smtp';
+    }
+  }
   
   const config = {
     // Gmail config
@@ -273,6 +319,9 @@ function createEmailService() {
 
     // SendGrid config
     sendgrid_api_key: process.env.SENDGRID_API_KEY,
+
+    // Resend config
+    resend_api_key: process.env.RESEND_API_KEY,
 
     // AWS SES config
     aws_access_key: process.env.AWS_ACCESS_KEY_ID,

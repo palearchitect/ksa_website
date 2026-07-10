@@ -293,7 +293,7 @@ const signupForm = ref({
 
 // Role → home dashboard mapping
 const roleDashboardMap = {
-  admin:         '/admin',
+  admin:         '/dashboard/admin',
   manager:       '/dashboard/management',
   management:    '/dashboard/management',
   propertyowner: '/dashboard/owner',
@@ -325,11 +325,21 @@ const handleLogin = async () => {
         router.push(dest)
       }, 800)
     } else {
-      errorMessage.value = result.error || 'Login failed. Please check your credentials and try again.'
-      // Auto-clear error after 6 seconds
-      setTimeout(() => {
-        errorMessage.value = ''
-      }, 6000)
+      if (result.pendingVerification) {
+        successMessage.value = 'Email verification required. Redirecting...'
+        setTimeout(() => {
+          router.push({
+            path: '/verify-email',
+            query: { email: result.email }
+          })
+        }, 1000)
+      } else {
+        errorMessage.value = result.error || 'Login failed. Please check your credentials and try again.'
+        // Auto-clear error after 6 seconds
+        setTimeout(() => {
+          errorMessage.value = ''
+        }, 6000)
+      }
     }
   } catch (error) {
     errorMessage.value = 'An unexpected error occurred. Please try again.'
@@ -355,12 +365,22 @@ const handleSignup = async () => {
     )
     
     if (result.success) {
-      successMessage.value = 'Account created successfully! Redirecting...'
-      const role = result.user?.role
-      setTimeout(() => {
-        const dest = roleDashboardMap[role] || '/admin'
-        router.push(dest)
-      }, 800)
+      if (result.status === 'pending_verification') {
+        successMessage.value = 'Account created! Verification OTP code sent to your email. Redirecting...'
+        setTimeout(() => {
+          router.push({
+            path: '/verify-email',
+            query: { email: result.email }
+          })
+        }, 1500)
+      } else {
+        successMessage.value = 'Account created successfully! Redirecting...'
+        const role = result.user?.role
+        setTimeout(() => {
+          const dest = roleDashboardMap[role] || '/admin'
+          router.push(dest)
+        }, 800)
+      }
     } else {
       errorMessage.value = result.error || 'Failed to create account. Please try again.'
     }

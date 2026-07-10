@@ -1,5 +1,22 @@
 <template>
-  <div class="pms-shell">
+  <div class="pms-layout-wrapper">
+    <!-- Impersonation Warning Bar -->
+    <div v-if="user?.impersonatorId" class="impersonation-warning-bar">
+      <div class="iw-content">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>
+          <strong>Impersonation Mode Active:</strong> You are currently viewing the portal as <strong>{{ user.name }}</strong> ({{ user.role }}). 
+          Actions you take will be logged under your admin credentials ({{ user.impersonatorEmail }}).
+        </span>
+      </div>
+      <button class="iw-btn" @click="handleStopImpersonation" :disabled="impersonationLoading">
+        {{ impersonationLoading ? 'Restoring...' : 'Return to Admin Session' }}
+      </button>
+    </div>
+
+    <div class="pms-shell">
     <!-- Top navbar -->
     <header class="pms-header">
       <div class="pms-header-inner">
@@ -40,10 +57,11 @@
       <slot />
     </main>
   </div>
+</div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import PropertySwitcher from '@/components/properties/PropertySwitcher.vue'
@@ -51,6 +69,7 @@ import PropertySwitcher from '@/components/properties/PropertySwitcher.vue'
 const auth   = useAuthStore()
 const router = useRouter()
 const user   = computed(() => auth.user)
+const impersonationLoading = ref(false)
 
 const showSwitcher = computed(() => {
   return ['propertyowner', 'admin', 'manager', 'management'].includes(user.value?.role)
@@ -74,9 +93,65 @@ async function handleLogout() {
   await auth.logout()
   router.push('/login')
 }
+
+async function handleStopImpersonation() {
+  impersonationLoading.value = true
+  try {
+    const res = await auth.stopImpersonation()
+    if (res.success) {
+      router.push('/dashboard/admin')
+    }
+  } catch (err) {
+    console.error('Stop impersonation failed:', err)
+  } finally {
+    impersonationLoading.value = false
+  }
+}
 </script>
 
 <style scoped>
+/* ── Impersonation Warning Bar ────────────────────────────────────────────── */
+.impersonation-warning-bar {
+  background: #ea580c;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.88rem;
+  z-index: 9999;
+  position: relative;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+.iw-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.iw-content svg {
+  flex-shrink: 0;
+}
+.iw-btn {
+  background: #ffffff;
+  color: #ea580c;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.iw-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  transform: translateY(-1px);
+}
+.iw-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .pms-shell {
   min-height: 100vh;
   background: #f4f6fb;

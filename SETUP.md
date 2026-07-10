@@ -95,7 +95,11 @@ JWT_REFRESH_SECRET=another-different-random-security-key-phrase
 JWT_ACCESS_TTL=15m
 JWT_REFRESH_TTL=7d
 
-# 4. Admin Initial Password (REQUIRED - See rules in Section 4 below)
+# 4. Ghost Admin Whitelist (REQUIRED for Superadmin /dashboard/admin access)
+# Comma-separated list of email addresses. Access is strictly blocked to anyone whose email is not on this list.
+SUPERADMIN_EMAILS=admin@ksavaluers.com
+
+# 5. Admin Initial Password (REQUIRED - See rules in Section 4 below)
 ADMIN_PASSWORD=SetSecureAdminPass123!
 ```
 
@@ -139,6 +143,67 @@ EMAIL_PASS=abcd efgh ijkl mnop
 ADMIN_EMAIL=info@ksavaluers.com
 EMAIL_FROM=noreply@ksavaluers.com
 ```
+
+---
+
+## 5b. Configuring Google OAuth (For Google Login/Signup)
+
+To enable Google Single Sign-On (Google Login/Signup) on the admin/dashboard portal, you need to obtain a Google Client ID from the Google Cloud Console:
+
+1. **Get Client ID from Google Cloud Console:**
+   - Go to the **[Google Cloud Console](https://console.cloud.google.com)**.
+   - Create a new project (e.g., `KSA Valuers Website`).
+   - Navigate to **APIs & Services** > **OAuth consent screen**. Select **External** user type, complete the required contact details, and save.
+   - Navigate to **APIs & Services** > **Credentials**.
+   - Click **+ Create Credentials** > **OAuth client ID**.
+   - Select **Web application** as the application type.
+   - Add **Authorized JavaScript origins**:
+     - `http://localhost:5173` (for local development)
+     - `https://yourdomain.com` (for production)
+   - Click **Create** and copy the generated **Client ID**.
+
+2. **Add Environment Variables:**
+   Add the Client ID to both your root and backend settings.
+   - In `backend/.env` (and root `.env`):
+     ```ini
+     VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+     GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+     ```
+
+---
+
+## 5c. Transitioning from Local PostgreSQL to Supabase
+
+To host your database on Supabase (cloud PostgreSQL) instead of running a local PostgreSQL server:
+
+1. **Create a Supabase Project:**
+   - Sign up or log into **[Supabase](https://supabase.com)**.
+   - Click **New Project** and select/create an organization.
+   - Enter a project name, choose a database password (remember this!), and select the region closest to your server.
+
+2. **Retrieve Connection String & Keys:**
+   - In Supabase, navigate to **Project Settings** > **Database**.
+   - Find the **Connection string** section, select **URI**, and copy the connection string.
+     - *Format:* `postgresql://postgres.[your-project-id]:[your-password]@aws-0-[region].pooler.supabase.com:5432/postgres`
+   - Go to **Project Settings** > **API**.
+   - Copy the **Project URL** and the **anon public API key**.
+
+3. **Configure Environment Variables:**
+   Open `backend/.env` and replace your database configuration:
+   ```ini
+   # 1. Update Connection String (replace with your Supabase URI and password)
+   DATABASE_URL=postgresql://postgres.[project-id]:[your-password]@aws-0-[region].pooler.supabase.com:5432/postgres
+
+   # 2. Add Supabase Client credentials (if using db.js client SDK)
+   SUPABASE_URL=https://[project-id].supabase.co
+   SUPABASE_ANON_KEY=your-supabase-anon-key-here
+   ```
+
+4. **Run Migrations on Supabase:**
+   Run the migration setup script from your terminal to create the required tables and initial admin account on the Supabase database:
+   ```bash
+   npm run db:setup
+   ```
 
 ---
 

@@ -107,6 +107,15 @@ website/
 - [x] Rate limits applied to public form submissions
 - [x] Consolidated setup instructions into `SETUP.md`
 - [x] Deleted duplicate setup/reset files
+- [x] Enforced Double-Submit Cookie CSRF protection via matching `ksa_csrf` cookie with `x-csrf-token` header
+- [x] Hardened Superadmin access with Ghost Admin Whitelist environment variable (`SUPERADMIN_EMAILS`)
+- [x] Implemented secure support account impersonation with dual logging (admin + target)
+- [x] Added persistent visual Impersonation Warning Bar to admin layout
+- [x] Configured cryptographically signed onboarding tokens for social registrations
+- [x] Implemented soft deletes (`deleted_at`) for users and team members
+- [x] Set database-backed FAQ and Staff directories with absolute image URL validation
+- [x] Linked contact page AI support chat widget to Google Gemini AI agent endpoint
+- [x] Cryptographically hashed (SHA-256 HMAC) all mutation audit logs
 
 ---
 

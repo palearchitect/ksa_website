@@ -47,6 +47,15 @@ const createRefreshPromise = async () => {
   }
 }
 
+// Cookie helper to read CSRF token
+const getCookie = (name) => {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+};
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
@@ -54,7 +63,24 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json'
   }
-})
+});
+
+// ============================================
+// REQUEST INTERCEPTOR (CSRF Protection Header)
+// ============================================
+api.interceptors.request.use(
+  (config) => {
+    // Add CSRF token to mutating requests
+    if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method?.toUpperCase())) {
+      const csrfToken = getCookie('ksa_csrf');
+      if (csrfToken) {
+        config.headers['x-csrf-token'] = csrfToken;
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // ============================================
 // RESPONSE INTERCEPTOR (Token Refresh + Error Handling)
@@ -62,54 +88,46 @@ const api = axios.create({
 api.interceptors.response.use(
   response => response,
   async error => {
-    const { config } = error
+    const { config } = error;
     
     // Handle 401 (Unauthorized) - attempt token refresh
     if (error.response?.status === HTTP_STATUS.UNAUTHORIZED) {
       if (typeof window === 'undefined') {
         // Server-side rendering: can't access window
-        return Promise.reject(error)
+        return Promise.reject(error);
       }
       
-      const onAdminRoute = window.location.pathname.startsWith('/admin')
+      const onAdminRoute = window.location.pathname.startsWith('/dashboard/admin') || window.location.pathname.startsWith('/admin');
       
       if (onAdminRoute && window.location.pathname !== '/admin/login') {
         // Don't retry login endpoint itself
         if (config.url.includes(LOGIN_ENDPOINT)) {
-          window.location.href = '/admin/login'
-          return Promise.reject(error)
+          window.location.href = '/admin/login';
+          return Promise.reject(error);
         }
-
+ 
         // Use Promise-based refresh (atomic-safe, no race condition)
         try {
           if (!refreshPromise) {
-            refreshPromise = createRefreshPromise()
+            refreshPromise = createRefreshPromise();
           }
           
-          await refreshPromise
+          await refreshPromise;
           // Token refreshed - retry original request
-          return api(config)
+          return api(config);
         } catch (refreshError) {
           // Refresh failed - redirect to login
-          return Promise.reject(refreshError)
+          return Promise.reject(refreshError);
         }
       } else if (!onAdminRoute) {
         // Not on admin route, just reject
-        return Promise.reject(error)
+        return Promise.reject(error);
       }
     }
     
-    // Add CSRF token to state-changing requests
-    if (['POST', 'PUT', 'DELETE'].includes(config.method?.toUpperCase())) {
-      const csrfToken = localStorage.getItem('csrf_token')
-      if (csrfToken) {
-        config.headers['X-CSRF-Token'] = csrfToken
-      }
-    }
-    
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);
 
 export const propertyService = {
   getProperties: (params = {}) => api.get('/api/properties', { params }).then((r) => r.data),
@@ -143,13 +161,45 @@ export const emailService = {
 }
 
 export const authAPI = {
+  getCsrf: () => api.get('/api/v1/auth/csrf').then((r) => r.data),
   login: (credentials) => api.post('/api/v1/auth/login', credentials).then((r) => r.data),
   register: (payload) => api.post('/api/v1/auth/register', payload).then((r) => r.data),
   me: () => api.get('/api/v1/auth/me').then((r) => r.data),
   logout: () => api.post('/api/v1/auth/logout').then((r) => r.data),
   refresh: () => api.post('/api/v1/auth/refresh').then((r) => r.data),
   googleLogin: (payload) => api.post('/api/v1/auth/google', payload).then((r) => r.data),
-  onboard: (payload) => api.post('/api/v1/auth/onboarding', payload).then((r) => r.data)
+  onboard: (payload) => api.post('/api/v1/auth/onboarding', payload).then((r) => r.data),
+  updateProfile: (payload) => api.put('/api/v1/auth/profile', payload).then((r) => r.data),
+  changePassword: (payload) => api.put('/api/v1/auth/password', payload).then((r) => r.data),
+  deboard: (payload) => api.post('/api/v1/auth/deboard', payload).then((r) => r.data),
+  linkGoogle: (payload) => api.post('/api/v1/auth/link-google', payload).then((r) => r.data),
+  unlinkGoogle: () => api.post('/api/v1/auth/unlink-google').then((r) => r.data),
+  verifyOTP: (payload) => api.post('/api/v1/auth/verify-otp', payload).then((r) => r.data),
+  resendOTP: (payload) => api.post('/api/v1/auth/resend-otp', payload).then((r) => r.data)
+}
+
+export const adminService = {
+  getUsers: () => api.get('/api/v1/admin/users').then((r) => r.data),
+  createUser: (payload) => api.post('/api/v1/admin/users', payload).then((r) => r.data),
+  updateUser: (id, payload) => api.put(`/api/v1/admin/users/${id}`, payload).then((r) => r.data),
+  deleteUser: (id) => api.delete(`/api/v1/admin/users/${id}`).then((r) => r.data),
+  getAuditLogs: (params = {}) => api.get('/api/v1/admin/audit-logs', { params }).then((r) => r.data),
+  impersonate: (userId) => api.post('/api/v1/admin/impersonate', { userId }).then((r) => r.data),
+  stopImpersonate: () => api.post('/api/v1/admin/impersonate/stop').then((r) => r.data)
+}
+
+export const teamServiceContent = {
+  getTeam: () => api.get('/api/team').then((r) => r.data),
+  createTeam: (payload) => api.post('/api/team', payload).then((r) => r.data),
+  updateTeam: (id, payload) => api.put(`/api/team/${id}`, payload).then((r) => r.data),
+  deleteTeam: (id) => api.delete(`/api/team/${id}`).then((r) => r.data)
+}
+
+export const faqService = {
+  getFAQs: () => api.get('/api/faqs').then((r) => r.data),
+  createFAQ: (payload) => api.post('/api/faqs', payload).then((r) => r.data),
+  updateFAQ: (id, payload) => api.put(`/api/faqs/${id}`, payload).then((r) => r.data),
+  deleteFAQ: (id) => api.delete(`/api/faqs/${id}`).then((r) => r.data)
 }
 
 export const isAuthenticated = () => {

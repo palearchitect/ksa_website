@@ -7,7 +7,7 @@
         <p class="text-gray-600">{{ propertyStore.totalProperties }} total properties</p>
       </div>
       <router-link
-        to="/admin/properties/new"
+        to="/dashboard/admin/properties/new"
         class="mt-4 md:mt-0 inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition"
       >
         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -103,7 +103,7 @@
               <td class="px-6 py-4">
                 <div class="flex items-center gap-2">
                   <router-link
-                    :to="`/admin/properties/${property.id}`"
+                    :to="`/dashboard/admin/properties/${property.id}`"
                     class="text-blue-600 hover:text-blue-800 text-sm font-medium"
                   >
                     Edit

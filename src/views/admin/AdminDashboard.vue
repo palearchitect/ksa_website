@@ -69,7 +69,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Properties -->
           <router-link
-            to="/admin/properties"
+            to="/dashboard/admin/properties"
             class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer"
           >
             <div class="flex items-center">
@@ -87,7 +87,7 @@
 
           <!-- Projects -->
           <router-link
-            to="/admin/projects"
+            to="/dashboard/admin/projects"
             class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer"
           >
             <div class="flex items-center">
@@ -105,7 +105,7 @@
 
           <!-- Hero slides -->
           <router-link
-            to="/admin/slides"
+            to="/dashboard/admin/slides"
             class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer"
           >
             <div class="flex items-center">
@@ -123,7 +123,7 @@
 
           <!-- Add New Property -->
           <router-link
-            to="/admin/properties/new"
+            to="/dashboard/admin/properties/new"
             class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer"
           >
             <div class="flex items-center">
@@ -141,7 +141,7 @@
 
           <!-- Add New Project -->
           <router-link
-            to="/admin/projects/new"
+            to="/dashboard/admin/projects/new"
             class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer"
           >
             <div class="flex items-center">
@@ -159,7 +159,7 @@
 
           <!-- Add New Hero Slide -->
           <router-link
-            to="/admin/slides/new"
+            to="/dashboard/admin/slides/new"
             class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer"
           >
             <div class="flex items-center">
@@ -177,7 +177,7 @@
 
           <!-- Tour Bookings -->
           <router-link
-            to="/admin/bookings"
+            to="/dashboard/admin/bookings"
             class="bg-white rounded-lg shadow p-6 hover:shadow-lg transition cursor-pointer"
           >
             <div class="flex items-center">

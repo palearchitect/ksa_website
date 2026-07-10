@@ -112,7 +112,7 @@
               <input type="text" name="_gotcha" style="display:none" />
 
               <!-- Optional: Redirect to a thank you page on your site -->
-              <input type="hidden" name="_next" value="https://yourwebsite.com/thank-you" />
+              <input type="hidden" name="_next" value="https://ksavaluers.com/thank-you" />
 
               <!-- Optional: Custom subject for email -->
               <input type="hidden" name="_subject" value="New contact form submission from KSA Valuers website!" />
@@ -369,61 +369,75 @@
 <script setup>
 import ErrorBoundary from '../components/global/ErrorBoundary.vue'
 import { useSEO } from '../hooks/useSEO'
+import { ref, onMounted } from 'vue'
+import api from '@/services/api'
+
 useSEO({
   title: 'Contact Us - KSA Valuers',
   description: 'Get in touch with Nigeria’s premier property valuers for expert consultation, property valuation, and comprehensive real estate solutions.'
 })
-import { ref, onMounted } from 'vue';
 
-// Chat state only (form state removed since Formspree handles it)
-const showChat = ref(false);
-const chatMessage = ref('');
-const chatMessages = ref([]);
+// Chat state
+const showChat = ref(false)
+const chatMessage = ref('')
+const chatMessages = ref([])
+const chatLoading = ref(false)
 
 onMounted(() => {
   if (typeof window !== 'undefined' && window.L) {
-    const map = window.L.map('contact-map').setView([6.4656076, 3.5573418], 16);
+    const map = window.L.map('contact-map').setView([6.4656076, 3.5573418], 16)
 
     window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20
-    }).addTo(map);
+    }).addTo(map)
 
-    const officeMarker = window.L.marker([6.4656076, 3.5573418]).addTo(map);
-    officeMarker.bindPopup('<b>KSA Valuers Office</b><br>Suite J260, Road 5, Ikota Shopping Complex, Lekki, Lagos.').openPopup();
+    const officeMarker = window.L.marker([6.4656076, 3.5573418]).addTo(map)
+    officeMarker.bindPopup('<b>KSA Valuers Office</b><br>Suite J260, Road 5, Ikota Shopping Complex, Lekki, Lagos.').openPopup()
   }
-});
+})
 
 // Chat Functions
 const toggleChat = () => {
-  showChat.value = !showChat.value;
-};
+  showChat.value = !showChat.value
+}
 
-const sendChatMessage = () => {
-  if (chatMessage.value.trim()) {
+const sendChatMessage = async () => {
+  const text = chatMessage.value.trim()
+  if (!text || chatLoading.value) return
+
+  chatMessages.value.push({
+    text: text,
+    sender: 'user',
+    timestamp: new Date()
+  })
+  chatMessage.value = ''
+  chatLoading.value = true
+
+  try {
+    const res = await api.post('/api/ask-ai', { question: text })
     chatMessages.value.push({
-      text: chatMessage.value,
-      sender: 'user',
+      text: res.answer || res.data?.answer || "Thanks for your message. Our support team will respond shortly.",
+      sender: 'support',
       timestamp: new Date()
-    });
-    chatMessage.value = '';
-    
-    // Simulate auto-reply
-    setTimeout(() => {
-      chatMessages.value.push({
-        text: "Thanks for your message. Our support team will respond shortly.",
-        sender: 'support',
-        timestamp: new Date()
-      });
-    }, 1000);
+    })
+  } catch (err) {
+    console.error('Failed to get AI response:', err)
+    chatMessages.value.push({
+      text: "Sorry, I'm having trouble connecting right now. Please call one of our contact numbers or try again later.",
+      sender: 'support',
+      timestamp: new Date()
+    })
+  } finally {
+    chatLoading.value = false
   }
-};
+}
 
 // Format timestamp for chat
 const formatTime = (timestamp) => {
-  return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-};
+  return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
 </script>
 
 <style scoped>

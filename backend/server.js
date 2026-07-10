@@ -8,6 +8,7 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
+const crypto = require('crypto');
 const { runMigrations } = require('./migrations/init');
 const { createEmailService } = require('./services/emailService');
 const { getTemplate } = require('./services/emailTemplates');
@@ -81,6 +82,16 @@ const aiLimiter = rateLimit({
   }
 });
 
+// Rate limiting for auth endpoints (brute-force protection)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 15, // limit each IP to 15 auth requests per windowMs
+  message: {
+    success: false,
+    message: 'Too many authentication attempts. Please try again after 15 minutes.'
+  }
+});
+
 // Middleware
 app.use(cors({
   origin: (origin, callback) => {
@@ -97,10 +108,43 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token']
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Express Security Headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  if (IS_PROD) {
+    res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
+  }
+  next();
+});
+
+// Double-Submit Cookie CSRF Protection Middleware
+const csrfProtection = (req, res, next) => {
+  // Skip safe HTTP methods
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+    return next();
+  }
+  
+  // Only enforce CSRF if there is an active session cookie present
+  if (req.cookies.ksa_access) {
+    const csrfCookie = req.cookies.ksa_csrf;
+    const csrfHeader = req.headers['x-csrf-token'];
+    
+    if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
+      return res.status(403).json({ success: false, message: 'Invalid or missing CSRF token' });
+    }
+  }
+  next();
+};
+
+app.use(csrfProtection);
 
 const normalizePropertyStatus = (status = '') => {
   const text = String(status).toLowerCase();
@@ -198,11 +242,16 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
   const base = { httpOnly: true, secure: IS_PROD, sameSite: 'lax', path: '/' };
   res.cookie('ksa_access', accessToken, { ...base, maxAge: 15 * 60 * 1000 });
   res.cookie('ksa_refresh', refreshToken, { ...base, maxAge: 7 * 24 * 60 * 60 * 1000 });
+  
+  // Set CSRF token cookie on successful authentication
+  const csrfToken = crypto.randomBytes(32).toString('hex');
+  res.cookie('ksa_csrf', csrfToken, { httpOnly: false, secure: IS_PROD, sameSite: 'lax', path: '/' });
 };
 
 const clearAuthCookies = (res) => {
   res.clearCookie('ksa_access', { path: '/' });
   res.clearCookie('ksa_refresh', { path: '/' });
+  res.clearCookie('ksa_csrf', { path: '/' });
 };
 
 const requireAuth = (req, res, next) => {
@@ -218,7 +267,29 @@ const requireAuth = (req, res, next) => {
 };
 
 const requireRole = (...roles) => (req, res, next) => {
-  // Support both 'manager' and 'management' as equivalent roles
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: 'Authentication required' });
+  }
+
+  const email = String(req.user.email).toLowerCase().trim();
+  const role = req.user.role;
+
+  // Environment Whitelist Pattern (Ghost Admin Check)
+  if (role === 'admin') {
+    const superadminEmails = (process.env.SUPERADMIN_EMAILS || '')
+      .split(',')
+      .map(e => e.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (superadminEmails.includes(email)) {
+      return next(); // Whitelisted superadmin bypasses role requirements
+    } else {
+      console.warn(`🚨 SECURITY ALERT: Unauthorized user tried to perform admin action: ${email}`);
+      return res.status(403).json({ success: false, message: 'Forbidden: Superadmin access not whitelisted' });
+    }
+  }
+
+  // Handle other roles
   const effectiveRoles = [...roles];
   if (roles.includes('manager') && !effectiveRoles.includes('management')) {
     effectiveRoles.push('management');
@@ -227,7 +298,7 @@ const requireRole = (...roles) => (req, res, next) => {
     effectiveRoles.push('manager');
   }
 
-  if (!req.user || !effectiveRoles.includes(req.user.role)) {
+  if (!effectiveRoles.includes(role)) {
     return res.status(403).json({ success: false, message: 'Insufficient permissions' });
   }
   return next();
@@ -323,19 +394,31 @@ const validateHeroSlideInput = (payload) => {
   return errors.length > 0 ? errors.join(', ') : null;
 };
 
-// Audit logging helper
+// Cryptographically signed Audit logging helper
 const logAudit = async (userEmail, action, tableName, recordId, beforeData, afterData) => {
   try {
+    const email = userEmail || 'system';
+    const recId = String(recordId);
+    const beforeStr = beforeData ? JSON.stringify(beforeData) : null;
+    const afterStr = afterData ? JSON.stringify(afterData) : null;
+    const timestamp = new Date();
+
+    // Generate SHA-256 HMAC cryptographic signature to prevent log tampering
+    const hashInput = `${email}|${action}|${tableName}|${recId}|${beforeStr || ''}|${afterStr || ''}|${timestamp.toISOString()}`;
+    const hash = crypto.createHmac('sha256', JWT_SECRET).update(hashInput).digest('hex');
+
     await pool.query(
-      `INSERT INTO audit_logs (user_email, action, table_name, record_id, before_data, after_data)
-       VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb)`,
+      `INSERT INTO audit_logs (user_email, action, table_name, record_id, before_data, after_data, created_at, hash)
+       VALUES ($1, $2, $3, $4, $5::jsonb, $6::jsonb, $7, $8)`,
       [
-        userEmail || 'system',
+        email,
         action,
         tableName,
-        String(recordId),
-        beforeData ? JSON.stringify(beforeData) : null,
-        afterData ? JSON.stringify(afterData) : null
+        recId,
+        beforeStr,
+        afterStr,
+        timestamp,
+        hash
       ]
     );
   } catch (err) {
@@ -545,9 +628,22 @@ async function validateEmailReal(email) {
 }
 
 // ============================================
-// AUTH ENDPOINTS
+// AUTH & PROFILE ENDPOINTS
 // ============================================
-app.post('/api/v1/auth/login', async (req, res) => {
+
+// GET /api/v1/auth/csrf - Get a fresh CSRF token
+app.get('/api/v1/auth/csrf', (req, res) => {
+  const token = crypto.randomBytes(32).toString('hex');
+  res.cookie('ksa_csrf', token, {
+    httpOnly: false,
+    secure: IS_PROD,
+    sameSite: 'lax',
+    path: '/'
+  });
+  return res.json({ success: true, csrfToken: token });
+});
+
+app.post('/api/v1/auth/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body || {};
     const missing = requireFields(req.body || {}, ['email', 'password']);
@@ -555,7 +651,10 @@ app.post('/api/v1/auth/login', async (req, res) => {
       return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
     }
 
-    const result = await pool.query(`SELECT * FROM users WHERE email = $1 LIMIT 1`, [String(email).toLowerCase()]);
+    const result = await pool.query(
+      `SELECT * FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1`, 
+      [String(email).toLowerCase()]
+    );
     if (result.rowCount === 0) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
     }
@@ -564,6 +663,53 @@ app.post('/api/v1/auth/login', async (req, res) => {
     const ok = await bcrypt.compare(String(password), user.password_hash);
     if (!ok) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+
+    if (user.status === 'suspended') {
+      return res.status(403).json({ success: false, message: 'Your account has been suspended. Please contact support.' });
+    }
+
+    if (user.status === 'pending_verification') {
+      const otp = crypto.randomInt(100000, 999999).toString();
+      const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+      
+      await pool.query(
+        'UPDATE users SET otp_code = $1, otp_expires_at = $2 WHERE id = $3',
+        [otp, otpExpires, user.id]
+      );
+
+      try {
+        if (emailService) {
+          await emailService.send({
+            to: user.email,
+            subject: 'Verify Your Email - KSA Valuers',
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+                <h2 style="color: #1e3a5f; text-align: center;">Welcome to KSA Valuers</h2>
+                <p style="font-size: 16px; color: #374151;">Hello ${user.name},</p>
+                <p style="font-size: 16px; color: #374151;">Please verify your email address by entering the following One-Time Password (OTP):</p>
+                <div style="text-align: center; margin: 30px 0;">
+                  <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ea580c; background-color: #fef2f2; padding: 10px 20px; border-radius: 8px; border: 1px dashed #fca5a5;">
+                    ${otp}
+                  </span>
+                </div>
+                <p style="font-size: 14px; color: #6b7280; text-align: center;">This code will expire in 10 minutes.</p>
+                <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+                <p style="font-size: 12px; color: #9ca3af; text-align: center;">If you did not request this registration, please ignore this email.</p>
+              </div>
+            `
+          });
+        }
+      } catch (mailError) {
+        console.error('Failed to send verification email on login:', mailError);
+      }
+
+      return res.status(400).json({ 
+        success: false, 
+        pendingVerification: true, 
+        email: user.email, 
+        message: 'Please verify your email address. A verification OTP has been sent.' 
+      });
     }
 
     const authUser = { id: user.id, email: user.email, role: user.role, name: user.name };
@@ -575,7 +721,7 @@ app.post('/api/v1/auth/login', async (req, res) => {
   }
 });
 
-app.post('/api/v1/auth/register', async (req, res) => {
+app.post('/api/v1/auth/register', authLimiter, async (req, res) => {
   try {
     const { name, email, password, role } = req.body || {};
     const missing = requireFields(req.body || {}, ['name', 'email', 'password']);
@@ -588,9 +734,52 @@ app.post('/api/v1/auth/register', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid or unreachable email address (no MX records found)' });
     }
 
-    const checkUser = await pool.query('SELECT id FROM users WHERE email = $1 LIMIT 1', [String(email).toLowerCase().trim()]);
+    const checkUser = await pool.query(
+      'SELECT id, status FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1', 
+      [String(email).toLowerCase().trim()]
+    );
     if (checkUser.rowCount > 0) {
-      return res.status(400).json({ success: false, message: 'Email address already registered' });
+      const existingUser = checkUser.rows[0];
+      if (existingUser.status === 'pending_verification') {
+        const otp = crypto.randomInt(100000, 999999).toString();
+        const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+        
+        await pool.query(
+          `UPDATE users SET name = $1, password_hash = $2, role = $3, otp_code = $4, otp_expires_at = $5, updated_at = NOW()
+           WHERE id = $6`,
+          [name, await bcrypt.hash(String(password), 12), resolvedRole, otp, otpExpires, existingUser.id]
+        );
+        
+        try {
+          if (emailService) {
+            await emailService.send({
+              to: String(email).toLowerCase().trim(),
+              subject: 'Verify Your Email - KSA Valuers',
+              html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+                  <h2 style="color: #1e3a5f; text-align: center;">Welcome to KSA Valuers</h2>
+                  <p style="font-size: 16px; color: #374151;">Hello ${name},</p>
+                  <p style="font-size: 16px; color: #374151;">Thank you for registering. Please verify your email address by entering the following One-Time Password (OTP):</p>
+                  <div style="text-align: center; margin: 30px 0;">
+                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ea580c; background-color: #fef2f2; padding: 10px 20px; border-radius: 8px; border: 1px dashed #fca5a5;">
+                      ${otp}
+                    </span>
+                  </div>
+                  <p style="font-size: 14px; color: #6b7280; text-align: center;">This code will expire in 10 minutes.</p>
+                  <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+                  <p style="font-size: 12px; color: #9ca3af; text-align: center;">If you did not request this registration, please ignore this email.</p>
+                </div>
+              `
+            });
+          }
+        } catch (mailError) {
+          console.error('Failed to send verification email on re-registration:', mailError);
+        }
+        
+        return res.json({ success: true, status: 'pending_verification', email: String(email).toLowerCase().trim() });
+      } else {
+        return res.status(400).json({ success: false, message: 'Email address already registered' });
+      }
     }
 
     const passError = validatePasswordPolicy(password);
@@ -599,32 +788,188 @@ app.post('/api/v1/auth/register', async (req, res) => {
     }
 
     const hash = await bcrypt.hash(String(password), 12);
-    const resolvedRole = role || 'admin';
+    // Allow selecting tenant or owner; restrict other administrative roles to admin creation only
+    let resolvedRole = role || 'tenant';
+    if (!['tenant', 'propertyowner'].includes(resolvedRole)) {
+      resolvedRole = 'tenant';
+    }
+    
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
     const result = await pool.query(
-      `INSERT INTO users (name, email, password_hash, role, status)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id, email, role, name`,
-      [name, String(email).toLowerCase().trim(), hash, resolvedRole, 'active']
+      `INSERT INTO users (name, email, password_hash, role, status, otp_code, otp_expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, email, role, name`,
+      [name, String(email).toLowerCase().trim(), hash, resolvedRole, 'pending_verification', otp, otpExpires]
     );
 
     const newUser = result.rows[0];
-    await logAudit('system', 'REGISTER', 'users', newUser.id, null, { name: newUser.name, email: newUser.email, role: newUser.role });
+    await logAudit('system', 'REGISTER_PENDING', 'users', newUser.id, null, { name: newUser.name, email: newUser.email, role: newUser.role });
 
-    setAuthCookies(res, signAccessToken(newUser), signRefreshToken(newUser));
-    return res.json({ success: true, data: newUser });
+    try {
+      if (emailService) {
+        await emailService.send({
+          to: newUser.email,
+          subject: 'Verify Your Email - KSA Valuers',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+              <h2 style="color: #1e3a5f; text-align: center;">Welcome to KSA Valuers</h2>
+              <p style="font-size: 16px; color: #374151;">Hello ${newUser.name},</p>
+              <p style="font-size: 16px; color: #374151;">Thank you for registering. Please verify your email address by entering the following One-Time Password (OTP):</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ea580c; background-color: #fef2f2; padding: 10px 20px; border-radius: 8px; border: 1px dashed #fca5a5;">
+                  ${otp}
+                </span>
+              </div>
+              <p style="font-size: 14px; color: #6b7280; text-align: center;">This code will expire in 10 minutes.</p>
+              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+              <p style="font-size: 12px; color: #9ca3af; text-align: center;">If you did not request this registration, please ignore this email.</p>
+            </div>
+          `
+        });
+      }
+    } catch (mailError) {
+      console.error('Failed to send verification email on registration:', mailError);
+    }
+
+    return res.json({ success: true, status: 'pending_verification', email: newUser.email });
   } catch (error) {
     console.error('Auth register error:', error);
     return res.status(500).json({ success: false, message: 'Failed to register account' });
   }
 });
 
-app.post('/api/v1/auth/refresh', async (req, res) => {
+// POST /api/v1/auth/verify-otp — verify OTP code for email verification
+app.post('/api/v1/auth/verify-otp', authLimiter, async (req, res) => {
+  try {
+    const { email, code } = req.body || {};
+    if (!email || !code) {
+      return res.status(400).json({ success: false, message: 'Email and verification code are required' });
+    }
+
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1',
+      [String(email).toLowerCase().trim()]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const user = result.rows[0];
+    if (user.status !== 'pending_verification') {
+      return res.status(400).json({ success: false, message: 'This account has already been verified' });
+    }
+
+    // Verify OTP code and expiration
+    if (user.otp_code !== String(code).trim()) {
+      return res.status(400).json({ success: false, message: 'Invalid verification code' });
+    }
+
+    if (new Date() > new Date(user.otp_expires_at)) {
+      return res.status(400).json({ success: false, message: 'Verification code has expired. Please request a new one.' });
+    }
+
+    // Update user to active
+    await pool.query(
+      `UPDATE users SET status = 'active', otp_code = NULL, otp_expires_at = NULL, updated_at = NOW() WHERE id = $1`,
+      [user.id]
+    );
+
+    await logAudit('system', 'VERIFY_OTP_SUCCESS', 'users', user.id, { email: user.email }, { email: user.email, status: 'active' });
+
+    const authUser = { id: user.id, email: user.email, role: user.role, name: user.name };
+    setAuthCookies(res, signAccessToken(authUser), signRefreshToken(authUser));
+
+    return res.json({ success: true, message: 'Email verified successfully', data: authUser });
+  } catch (error) {
+    console.error('Verify OTP error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to verify email' });
+  }
+});
+
+// POST /api/v1/auth/resend-otp — resend verification OTP
+app.post('/api/v1/auth/resend-otp', authLimiter, async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1',
+      [String(email).toLowerCase().trim()]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const user = result.rows[0];
+    if (user.status !== 'pending_verification') {
+      return res.status(400).json({ success: false, message: 'This account has already been verified' });
+    }
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    await pool.query(
+      'UPDATE users SET otp_code = $1, otp_expires_at = $2, updated_at = NOW() WHERE id = $3',
+      [otp, otpExpires, user.id]
+    );
+
+    // Send verification email
+    try {
+      if (emailService) {
+        await emailService.send({
+          to: user.email,
+          subject: 'Verify Your Email - KSA Valuers',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+              <h2 style="color: #1e3a5f; text-align: center;">Welcome to KSA Valuers</h2>
+              <p style="font-size: 16px; color: #374151;">Hello ${user.name},</p>
+              <p style="font-size: 16px; color: #374151;">Please verify your email address by entering the following One-Time Password (OTP):</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #ea580c; background-color: #fef2f2; padding: 10px 20px; border-radius: 8px; border: 1px dashed #fca5a5;">
+                  ${otp}
+                </span>
+              </div>
+              <p style="font-size: 14px; color: #6b7280; text-align: center;">This code will expire in 10 minutes.</p>
+              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+              <p style="font-size: 12px; color: #9ca3af; text-align: center;">If you did not request this registration, please ignore this email.</p>
+            </div>
+          `
+        });
+      }
+    } catch (mailError) {
+      console.error('Failed to send verification email on resend:', mailError);
+    }
+
+    return res.json({ success: true, message: 'Verification OTP sent successfully' });
+  } catch (error) {
+    console.error('Resend OTP error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to resend verification code' });
+  }
+});
+
+app.post('/api/v1/auth/refresh', authLimiter, async (req, res) => {
   try {
     const refresh = req.cookies.ksa_refresh;
     if (!refresh) return res.status(401).json({ success: false, message: 'No refresh token' });
     const decoded = jwt.verify(refresh, JWT_REFRESH_SECRET);
-    const result = await pool.query(`SELECT id, email, role, name FROM users WHERE id = $1 LIMIT 1`, [decoded.sub]);
+    
+    const result = await pool.query(
+      `SELECT id, email, role, name, status FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1`, 
+      [decoded.sub]
+    );
     if (result.rowCount === 0) return res.status(401).json({ success: false, message: 'User not found' });
     const user = result.rows[0];
+
+    if (user.status === 'suspended') {
+      clearAuthCookies(res);
+      return res.status(403).json({ success: false, message: 'Your account has been suspended.' });
+    }
+
     setAuthCookies(res, signAccessToken(user), signRefreshToken(user));
     return res.json({ success: true, data: user });
   } catch {
@@ -639,23 +984,45 @@ app.post('/api/v1/auth/logout', (req, res) => {
 });
 
 app.get('/api/v1/auth/me', requireAuth, async (req, res) => {
-  const result = await pool.query(`SELECT id, email, role, name FROM users WHERE id = $1 LIMIT 1`, [req.user.sub]);
+  const result = await pool.query(
+    `SELECT id, email, role, name, status, google_id FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1`, 
+    [req.user.sub]
+  );
   if (result.rowCount === 0) return res.status(401).json({ success: false, message: 'User not found' });
   const user = result.rows[0];
+  
+  if (user.status === 'suspended') {
+    clearAuthCookies(res);
+    return res.status(403).json({ success: false, message: 'Account suspended.' });
+  }
+
+  // Include target user ID if they are impersonating (derived from token claims)
+  const data = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    hasPassword: user.password_hash !== 'oauth_placeholder',
+    googleLinked: !!user.google_id
+  };
+
+  if (req.user.impersonatorId) {
+    data.impersonatorId = req.user.impersonatorId;
+    data.impersonatorEmail = req.user.impersonatorEmail;
+  }
   
   if (user.role === 'propertyowner') {
     const ownerVerify = await pool.query(
       `SELECT 1 FROM owner_property WHERE owner_id = $1 LIMIT 1`,
       [user.id]
     );
-    user.hasLinkedProperties = ownerVerify.rowCount > 0;
+    data.hasLinkedProperties = ownerVerify.rowCount > 0;
   }
   
-  return res.json({ success: true, data: user });
+  return res.json({ success: true, data });
 });
 
-// POST /api/v1/auth/google — Verify Google Sign-in token
-app.post('/api/v1/auth/google', async (req, res) => {
+app.post('/api/v1/auth/google', authLimiter, async (req, res) => {
   try {
     const { credential } = req.body || {};
     if (!credential) {
@@ -689,13 +1056,17 @@ app.post('/api/v1/auth/google', async (req, res) => {
 
     // Match against database
     const userResult = await pool.query(
-      `SELECT id, email, role, name, google_id FROM users 
-       WHERE google_id = $1 OR email = $2 LIMIT 1`,
+      `SELECT id, email, role, name, google_id, status FROM users 
+       WHERE (google_id = $1 OR email = $2) AND deleted_at IS NULL LIMIT 1`,
       [googleId, email]
     );
 
     if (userResult.rowCount > 0) {
       const user = userResult.rows[0];
+      if (user.status === 'suspended') {
+        return res.status(403).json({ success: false, message: 'Your account has been suspended.' });
+      }
+
       if (!user.google_id) {
         await pool.query('UPDATE users SET google_id = $1 WHERE id = $2', [googleId, user.id]);
       }
@@ -704,13 +1075,18 @@ app.post('/api/v1/auth/google', async (req, res) => {
       setAuthCookies(res, signAccessToken(authUser), signRefreshToken(authUser));
       return res.json({ success: true, registered: true, data: authUser });
     } else {
+      // Social Onboarding Verification: generate a short-lived token to prevent client-side query parameters spoofing
+      const onboardingToken = jwt.sign(
+        { email, googleId, name }, 
+        JWT_SECRET, 
+        { expiresIn: '15m' }
+      );
+      
       return res.json({
         success: true,
         registered: false,
-        action: 'register',
-        email,
-        name,
-        googleId
+        action: 'onboard',
+        onboardingToken
       });
     }
   } catch (error) {
@@ -719,13 +1095,21 @@ app.post('/api/v1/auth/google', async (req, res) => {
   }
 });
 
-// POST /api/v1/auth/onboarding — Complete onboarding registration for social signups
-app.post('/api/v1/auth/onboarding', async (req, res) => {
+app.post('/api/v1/auth/onboarding', authLimiter, async (req, res) => {
   try {
-    const { name, email, role, googleId } = req.body || {};
-    const missing = requireFields(req.body || {}, ['name', 'email', 'role', 'googleId']);
+    const { name, role, onboardingToken } = req.body || {};
+    const missing = requireFields(req.body || {}, ['name', 'role', 'onboardingToken']);
     if (missing.length > 0) {
       return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
+    }
+
+    let email, googleId;
+    try {
+      const decoded = jwt.verify(onboardingToken, JWT_SECRET);
+      email = String(decoded.email).toLowerCase().trim();
+      googleId = decoded.googleId;
+    } catch (err) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired onboarding session. Please sign in with Google again.' });
     }
 
     const isReal = await validateEmailReal(email);
@@ -733,7 +1117,10 @@ app.post('/api/v1/auth/onboarding', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid or unreachable email address (no MX records found)' });
     }
 
-    const checkUser = await pool.query('SELECT id FROM users WHERE email = $1 OR google_id = $2 LIMIT 1', [String(email).toLowerCase().trim(), googleId]);
+    const checkUser = await pool.query(
+      'SELECT id FROM users WHERE (email = $1 OR google_id = $2) AND deleted_at IS NULL LIMIT 1', 
+      [email, googleId]
+    );
     if (checkUser.rowCount > 0) {
       return res.status(400).json({ success: false, message: 'User already exists' });
     }
@@ -746,7 +1133,7 @@ app.post('/api/v1/auth/onboarding', async (req, res) => {
     const result = await pool.query(
       `INSERT INTO users (name, email, password_hash, role, google_id, status)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, role, name`,
-      [name, String(email).toLowerCase().trim(), 'oauth_placeholder', role, googleId, 'active']
+      [name, email, 'oauth_placeholder', role, googleId, 'active']
     );
 
     const newUser = result.rows[0];
@@ -757,6 +1144,187 @@ app.post('/api/v1/auth/onboarding', async (req, res) => {
   } catch (error) {
     console.error('Onboarding registration error:', error);
     return res.status(500).json({ success: false, message: 'Failed to complete onboarding' });
+  }
+});
+
+// PUT /api/v1/auth/profile - Update user display name
+app.put('/api/v1/auth/profile', requireAuth, async (req, res) => {
+  try {
+    const { name } = req.body || {};
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Name cannot be empty' });
+    }
+
+    const beforeResult = await pool.query('SELECT name FROM users WHERE id = $1 AND deleted_at IS NULL', [req.user.sub]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found' });
+    const beforeData = beforeResult.rows[0];
+
+    const result = await pool.query(
+      'UPDATE users SET name = $1, updated_at = NOW() WHERE id = $2 RETURNING id, email, role, name',
+      [name.trim(), req.user.sub]
+    );
+
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'UPDATE_PROFILE', 'users', req.user.sub, beforeData, result.rows[0]);
+
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to update profile' });
+  }
+});
+
+// PUT /api/v1/auth/password - Update user password (with current password verification)
+app.put('/api/v1/auth/password', requireAuth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    const missing = requireFields(req.body || {}, ['newPassword']);
+    if (missing.length > 0) {
+      return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
+    }
+
+    const userResult = await pool.query('SELECT password_hash FROM users WHERE id = $1 AND deleted_at IS NULL', [req.user.sub]);
+    if (userResult.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found' });
+    const user = userResult.rows[0];
+
+    // Verify current password only if it's set (not oauth_placeholder)
+    if (user.password_hash !== 'oauth_placeholder') {
+      if (!currentPassword) {
+        return res.status(400).json({ success: false, message: 'Current password is required to verify identity' });
+      }
+      const ok = await bcrypt.compare(String(currentPassword), user.password_hash);
+      if (!ok) {
+        return res.status(400).json({ success: false, message: 'Incorrect current password' });
+      }
+    }
+
+    const passError = validatePasswordPolicy(newPassword);
+    if (passError) {
+      return res.status(400).json({ success: false, message: passError });
+    }
+
+    const hash = await bcrypt.hash(String(newPassword), 12);
+    await pool.query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [hash, req.user.sub]);
+
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'CHANGE_PASSWORD', 'users', req.user.sub, null, null);
+
+    return res.json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to update password' });
+  }
+});
+
+// POST /api/v1/auth/deboard - Allow users to deactivate/soft-delete their own account
+app.post('/api/v1/auth/deboard', requireAuth, async (req, res) => {
+  try {
+    const { password } = req.body || {};
+    
+    // Safety check: superadmin cannot delete the last superadmin account
+    if (req.user.role === 'admin') {
+      const activeAdmins = await pool.query(
+        "SELECT count(*) FROM users WHERE role = 'admin' AND deleted_at IS NULL"
+      );
+      if (Number(activeAdmins.rows[0].count) <= 1) {
+        return res.status(400).json({
+          success: false,
+          message: 'Security Constraint: Cannot deactivate the last active Superadmin account.'
+        });
+      }
+    }
+
+    const userResult = await pool.query('SELECT password_hash FROM users WHERE id = $1 AND deleted_at IS NULL', [req.user.sub]);
+    if (userResult.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found' });
+    const user = userResult.rows[0];
+
+    // Verify password if it's set
+    if (user.password_hash !== 'oauth_placeholder') {
+      if (!password) {
+        return res.status(400).json({ success: false, message: 'Password is required to confirm account deactivation' });
+      }
+      const ok = await bcrypt.compare(String(password), user.password_hash);
+      if (!ok) {
+        return res.status(400).json({ success: false, message: 'Incorrect password' });
+      }
+    }
+
+    // Soft delete user
+    await pool.query(
+      "UPDATE users SET deleted_at = NOW(), status = 'suspended', updated_at = NOW() WHERE id = $1", 
+      [req.user.sub]
+    );
+
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'DEBOARD_USER', 'users', req.user.sub, null, null);
+
+    clearAuthCookies(res);
+    return res.json({ success: true, message: 'Your account has been successfully deactivated.' });
+  } catch (error) {
+    console.error('Account deactivation error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to deactivate account' });
+  }
+});
+
+// POST /api/v1/auth/link-google - Link Google ID to existing account
+app.post('/api/v1/auth/link-google', requireAuth, async (req, res) => {
+  try {
+    const { credential } = req.body || {};
+    if (!credential) return res.status(400).json({ success: false, message: 'Google credential is required' });
+
+    let googleId, googleEmail;
+    try {
+      const response = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+      googleId = response.data.sub;
+      googleEmail = String(response.data.email).toLowerCase().trim();
+    } catch {
+      return res.status(400).json({ success: false, message: 'Invalid Google token' });
+    }
+
+    const checkGoogle = await pool.query(
+      'SELECT id FROM users WHERE google_id = $1 AND deleted_at IS NULL LIMIT 1', 
+      [googleId]
+    );
+    if (checkGoogle.rowCount > 0) {
+      return res.status(400).json({ success: false, message: 'This Google account is already linked to another profile' });
+    }
+
+    await pool.query('UPDATE users SET google_id = $1 WHERE id = $2', [googleId, req.user.sub]);
+
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'LINK_GOOGLE', 'users', req.user.sub, null, { googleEmail });
+
+    return res.json({ success: true, message: 'Google account linked successfully' });
+  } catch (error) {
+    console.error('Link Google error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to link Google account' });
+  }
+});
+
+// POST /api/v1/auth/unlink-google - Unlink Google ID from account
+app.post('/api/v1/auth/unlink-google', requireAuth, async (req, res) => {
+  try {
+    const userResult = await pool.query('SELECT password_hash FROM users WHERE id = $1 AND deleted_at IS NULL', [req.user.sub]);
+    if (userResult.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found' });
+    const user = userResult.rows[0];
+
+    // Must set a password first so they don't lock themselves out
+    if (user.password_hash === 'oauth_placeholder') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot unlink Google. You must set a password first so you can log in without Google.'
+      });
+    }
+
+    await pool.query('UPDATE users SET google_id = NULL WHERE id = $1', [req.user.sub]);
+
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'UNLINK_GOOGLE', 'users', req.user.sub, null, null);
+
+    return res.json({ success: true, message: 'Google account unlinked successfully' });
+  } catch (error) {
+    console.error('Unlink Google error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to unlink Google account' });
   }
 });
 
@@ -1726,7 +2294,7 @@ app.get('/api/hero-slides/:id', requireAuth, requireRole('admin', 'manager'), as
   }
 });
 
-app.post('/api/hero-slides', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+app.post('/api/hero-slides', requireAuth, requireRole('admin', 'webadmin', 'manager'), async (req, res) => {
   try {
     const missing = requireFields(req.body || {}, ['imageUrl', 'title']);
     if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
@@ -1735,6 +2303,15 @@ app.post('/api/hero-slides', requireAuth, requireRole('admin', 'manager'), async
     const valError = validateHeroSlideInput(payload);
     if (valError) return res.status(400).json({ success: false, message: valError });
 
+    // Asset Policy Check: Reject relative paths / binary uploads; require absolute URLs or seeded assets
+    const isAssetSeeded = payload.imageUrl.endsWith('.jpg') || payload.imageUrl.endsWith('.jpeg') || payload.imageUrl.endsWith('.png');
+    if (!isAbsoluteUrl(payload.imageUrl) && !isAssetSeeded) {
+      return res.status(400).json({
+        success: false,
+        message: 'Asset Strategy Violation: Image URL must be an absolute URL (e.g. from Cloudinary, Imgur, or CDN).'
+      });
+    }
+
     const result = await pool.query(
       `INSERT INTO hero_slides (image_url, title, tagline, cta_text, cta_link, sort_order)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
@@ -1742,7 +2319,8 @@ app.post('/api/hero-slides', requireAuth, requireRole('admin', 'manager'), async
     );
     
     const newSlide = mapHeroSlide(result.rows[0]);
-    await logAudit(req.user.email, 'CREATE', 'hero_slides', newSlide.id, null, newSlide);
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'CREATE', 'hero_slides', newSlide.id, null, newSlide);
 
     res.json({ success: true, data: newSlide });
   } catch (error) {
@@ -1751,7 +2329,7 @@ app.post('/api/hero-slides', requireAuth, requireRole('admin', 'manager'), async
   }
 });
 
-app.put('/api/hero-slides/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+app.put('/api/hero-slides/:id', requireAuth, requireRole('admin', 'webadmin', 'manager'), async (req, res) => {
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid slide id' });
@@ -1759,6 +2337,17 @@ app.put('/api/hero-slides/:id', requireAuth, requireRole('admin', 'manager'), as
     const payload = req.body || {};
     const valError = validateHeroSlideInput(payload);
     if (valError) return res.status(400).json({ success: false, message: valError });
+
+    // Asset Policy Check if imageUrl is provided
+    if (payload.imageUrl) {
+      const isAssetSeeded = payload.imageUrl.endsWith('.jpg') || payload.imageUrl.endsWith('.jpeg') || payload.imageUrl.endsWith('.png');
+      if (!isAbsoluteUrl(payload.imageUrl) && !isAssetSeeded) {
+        return res.status(400).json({
+          success: false,
+          message: 'Asset Strategy Violation: Image URL must be an absolute URL (e.g. from Cloudinary, Imgur, or CDN).'
+        });
+      }
+    }
 
     // Get before data for audit
     const beforeResult = await pool.query(`SELECT * FROM hero_slides WHERE id = $1 LIMIT 1`, [id]);
@@ -1779,7 +2368,8 @@ app.put('/api/hero-slides/:id', requireAuth, requireRole('admin', 'manager'), as
     );
     
     const updatedSlide = mapHeroSlide(result.rows[0]);
-    await logAudit(req.user.email, 'UPDATE', 'hero_slides', id, beforeData, updatedSlide);
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'UPDATE', 'hero_slides', id, beforeData, updatedSlide);
 
     res.json({ success: true, data: updatedSlide });
   } catch (error) {
@@ -2328,6 +2918,559 @@ app.get('/api/pms/payments/history', requireAuth, requireRole('tenant', 'admin',
   }
 });
 
+});
+
+// ============================================
+// SUPERADMIN & GHOST ADMIN CONTROL ENDPOINTS
+// ============================================
+
+// POST /api/v1/admin/impersonate — Start impersonation session
+app.post('/api/v1/admin/impersonate', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const { userId } = req.body || {};
+    if (!userId) return res.status(400).json({ success: false, message: 'User ID is required' });
+    
+    // Find target user
+    const result = await pool.query(
+      'SELECT id, email, role, name, status FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1',
+      [userId]
+    );
+    if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found' });
+    const targetUser = result.rows[0];
+    
+    if (targetUser.id === req.user.sub) {
+      return res.status(400).json({ success: false, message: 'Cannot impersonate yourself' });
+    }
+    
+    // Log impersonation start in audit logs
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(
+      auditUser,
+      'IMPERSONATION_START',
+      'users',
+      targetUser.id,
+      null,
+      {
+        impersonatorId: req.user.sub,
+        impersonatorEmail: req.user.email,
+        targetId: targetUser.id,
+        targetEmail: targetUser.email,
+        targetRole: targetUser.role
+      }
+    );
+    
+    // Sign target access token with impersonator claims
+    const impersonatedAccessToken = jwt.sign(
+      {
+        sub: targetUser.id,
+        email: targetUser.email,
+        role: targetUser.role,
+        impersonatorId: req.user.sub,
+        impersonatorEmail: req.user.email
+      },
+      JWT_SECRET,
+      { expiresIn: ACCESS_TOKEN_TTL }
+    );
+    
+    // Overwrite access token cookie (refresh cookie remains admin's refresh token)
+    res.cookie('ksa_access', impersonatedAccessToken, {
+      httpOnly: true,
+      secure: IS_PROD,
+      sameSite: 'lax',
+      path: '/'
+    });
+    
+    return res.json({
+      success: true,
+      data: {
+        id: targetUser.id,
+        email: targetUser.email,
+        role: targetUser.role,
+        name: targetUser.name,
+        impersonatorId: req.user.sub,
+        impersonatorEmail: req.user.email
+      }
+    });
+  } catch (error) {
+    console.error('Impersonation start error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to start impersonation' });
+  }
+});
+
+// POST /api/v1/admin/impersonate/stop — Return to admin session
+app.post('/api/v1/admin/impersonate/stop', async (req, res) => {
+  try {
+    const refresh = req.cookies.ksa_refresh;
+    if (!refresh) return res.status(401).json({ success: false, message: 'Session expired' });
+    
+    const decoded = jwt.verify(refresh, JWT_REFRESH_SECRET);
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({ success: false, message: 'Invalid session' });
+    }
+    
+    const result = await pool.query(
+      'SELECT id, email, role, name, status FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1',
+      [decoded.sub]
+    );
+    if (result.rowCount === 0) return res.status(401).json({ success: false, message: 'Admin user not found' });
+    const adminUser = result.rows[0];
+    
+    if (adminUser.status !== 'active') {
+      return res.status(401).json({ success: false, message: 'Admin account suspended' });
+    }
+    
+    // Whitelist check
+    const superadminEmails = (process.env.SUPERADMIN_EMAILS || '')
+      .split(',')
+      .map(e => e.trim().toLowerCase())
+      .filter(Boolean);
+      
+    if (adminUser.role !== 'admin' || !superadminEmails.includes(adminUser.email.toLowerCase())) {
+      return res.status(403).json({ success: false, message: 'Unauthorized' });
+    }
+    
+    // Sign new normal admin access token
+    const newAccessToken = signAccessToken(adminUser);
+    
+    res.cookie('ksa_access', newAccessToken, {
+      httpOnly: true,
+      secure: IS_PROD,
+      sameSite: 'lax',
+      path: '/'
+    });
+    
+    return res.json({ success: true, data: adminUser });
+  } catch (error) {
+    console.error('Impersonation stop error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to stop impersonation' });
+  }
+});
+
+// GET /api/v1/admin/users — List all users (excluding soft-deleted)
+app.get('/api/v1/admin/users', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, email, role, name, status, google_id, created_at, updated_at 
+       FROM users WHERE deleted_at IS NULL ORDER BY created_at DESC`
+    );
+    return res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('Fetch users error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch users' });
+  }
+});
+
+// POST /api/v1/admin/users — Create a user with any role
+app.post('/api/v1/admin/users', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const { name, email, role, password } = req.body || {};
+    const missing = requireFields(req.body || {}, ['name', 'email', 'role']);
+    if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
+    
+    const checkEmail = await pool.query('SELECT id FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1', [String(email).toLowerCase().trim()]);
+    if (checkEmail.rowCount > 0) return res.status(400).json({ success: false, message: 'Email address already registered' });
+    
+    // Require password if not google user (creation from panel always defaults to local user password first)
+    const pass = password || 'KsaValuers@2026!'; // default password if not provided
+    const passError = validatePasswordPolicy(pass);
+    if (passError) return res.status(400).json({ success: false, message: passError });
+    
+    const hash = await bcrypt.hash(pass, 12);
+    const result = await pool.query(
+      `INSERT INTO users (name, email, password_hash, role, status)
+       VALUES ($1, $2, $3, $4, 'active') RETURNING id, email, role, name, status, created_at`,
+      [name, String(email).toLowerCase().trim(), hash, role]
+    );
+    
+    const createdUser = result.rows[0];
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'CREATE_USER', 'users', createdUser.id, null, { name: createdUser.name, email: createdUser.email, role: createdUser.role });
+    
+    return res.status(201).json({ success: true, data: createdUser });
+  } catch (error) {
+    console.error('Create user error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to create user' });
+  }
+});
+
+// PUT /api/v1/admin/users/:id — Edit user details/status/role
+app.put('/api/v1/admin/users/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid user ID' });
+    
+    const { name, role, status, email } = req.body || {};
+    
+    const beforeResult = await pool.query('SELECT name, role, status, email FROM users WHERE id = $1 AND deleted_at IS NULL', [id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found' });
+    const beforeData = beforeResult.rows[0];
+    
+    // Safety check: Cannot demote or suspend oneself
+    if (id === req.user.sub && (status === 'suspended' || role !== 'admin')) {
+      return res.status(400).json({ success: false, message: 'Security Constraint: Cannot suspend or demote your own active account.' });
+    }
+    
+    // If updating email, check for conflicts
+    if (email && email.toLowerCase().trim() !== beforeData.email.toLowerCase().trim()) {
+      const checkConflict = await pool.query('SELECT id FROM users WHERE email = $1 AND deleted_at IS NULL AND id != $2 LIMIT 1', [email.toLowerCase().trim(), id]);
+      if (checkConflict.rowCount > 0) return res.status(400).json({ success: false, message: 'Email address already in use by another user' });
+    }
+    
+    const result = await pool.query(
+      `UPDATE users SET
+        name = COALESCE($1, name),
+        role = COALESCE($2, role),
+        status = COALESCE($3, status),
+        email = COALESCE($4, email),
+        updated_at = NOW()
+       WHERE id = $5 RETURNING id, email, role, name, status, updated_at`,
+      [name, role, status, email ? email.toLowerCase().trim() : null, id]
+    );
+    
+    const updatedUser = result.rows[0];
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'EDIT_USER', 'users', id, beforeData, updatedUser);
+    
+    return res.json({ success: true, data: updatedUser });
+  } catch (error) {
+    console.error('Edit user error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to update user' });
+  }
+});
+
+// DELETE /api/v1/admin/users/:id — Soft-delete user
+app.delete('/api/v1/admin/users/:id', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid user ID' });
+    
+    if (id === req.user.sub) {
+      return res.status(400).json({ success: false, message: 'Security Constraint: Cannot delete your own active session.' });
+    }
+    
+    const checkUser = await pool.query('SELECT role, email FROM users WHERE id = $1 AND deleted_at IS NULL', [id]);
+    if (checkUser.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found' });
+    
+    // Safety check: Cannot delete the last superadmin
+    if (checkUser.rows[0].role === 'admin') {
+      const activeAdmins = await pool.query(
+        "SELECT count(*) FROM users WHERE role = 'admin' AND deleted_at IS NULL"
+      );
+      if (Number(activeAdmins.rows[0].count) <= 1) {
+        return res.status(400).json({ success: false, message: 'Security Constraint: Cannot delete the last active Superadmin.' });
+      }
+    }
+    
+    await pool.query("UPDATE users SET deleted_at = NOW(), status = 'suspended' WHERE id = $1", [id]);
+    
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'DELETE_USER', 'users', id, { email: checkUser.rows[0].email }, null);
+    
+    return res.json({ success: true, message: 'User soft-deleted successfully' });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to delete user' });
+  }
+});
+
+// GET /api/v1/admin/audit-logs — Paginated audit logs with on-the-fly cryptographic verification
+app.get('/api/v1/admin/audit-logs', requireAuth, requireRole('admin'), async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.max(1, Math.min(100, parseInt(req.query.limit) || 20));
+    const offset = (page - 1) * limit;
+    
+    const countResult = await pool.query('SELECT count(*) FROM audit_logs');
+    const totalLogs = parseInt(countResult.rows[0].count);
+    
+    const logsResult = await pool.query(
+      `SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
+      [limit, offset]
+    );
+    
+    const logs = logsResult.rows.map(row => {
+      // Re-verify hash to detect tampering
+      const email = row.user_email || 'system';
+      const recId = String(row.record_id);
+      const beforeStr = row.before_data ? JSON.stringify(row.before_data) : null;
+      const afterStr = row.after_data ? JSON.stringify(row.after_data) : null;
+      const ts = new Date(row.created_at);
+      
+      const hashInput = `${email}|${row.action}|${row.table_name}|${recId}|${beforeStr || ''}|${afterStr || ''}|${ts.toISOString()}`;
+      const recomputedHash = crypto.createHmac('sha256', JWT_SECRET).update(hashInput).digest('hex');
+      
+      // If row has no hash stored, mark as unverified (except for old legacy migrations logs)
+      const verified = row.hash ? row.hash === recomputedHash : false;
+      
+      return {
+        id: row.id,
+        userEmail: row.user_email,
+        action: row.action,
+        tableName: row.table_name,
+        recordId: row.record_id,
+        beforeData: row.before_data,
+        afterData: row.after_data,
+        createdAt: row.created_at,
+        verified
+      };
+    });
+    
+    return res.json({
+      success: true,
+      data: logs,
+      pagination: {
+        page,
+        limit,
+        totalItems: totalLogs,
+        totalPages: Math.ceil(totalLogs / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Audit logs error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch audit logs' });
+  }
+});
+
+
+// ============================================
+// DYNAMIC CONTENT ENDPOINTS (TEAM & FAQS)
+// ============================================
+
+const isAbsoluteUrl = (str) => {
+  try {
+    const url = new URL(str);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (_) {
+    return false;
+  }
+};
+
+// GET /api/team — Public: list team members
+app.get('/api/team', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, name, role, tag, image_url, description, email FROM team_members WHERE deleted_at IS NULL ORDER BY id ASC'
+    );
+    return res.json({
+      success: true,
+      data: result.rows.map(r => ({
+        id: r.id,
+        name: r.name,
+        role: r.role,
+        tag: r.tag,
+        imageUrl: r.image_url,
+        description: r.description,
+        email: r.email
+      }))
+    });
+  } catch (error) {
+    console.error('Fetch team error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch team members' });
+  }
+});
+
+// POST /api/team — Admin/WebAdmin: create team member
+app.post('/api/team', requireAuth, requireRole('admin', 'webadmin'), async (req, res) => {
+  try {
+    const { name, role, tag, imageUrl, description, email } = req.body || {};
+    const missing = requireFields(req.body || {}, ['name', 'role', 'imageUrl']);
+    if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
+    
+    // Asset Policy Check: Reject binary uploads / relative paths; only absolute URLs or seeded filenames
+    const isAssetSeeded = imageUrl.endsWith('.jpg') || imageUrl.endsWith('.jpeg') || imageUrl.endsWith('.png');
+    if (!isAbsoluteUrl(imageUrl) && !isAssetSeeded) {
+      return res.status(400).json({
+        success: false,
+        message: 'Asset Strategy Violation: Image URL must be an absolute URL (e.g. from Cloudinary, Imgur, or CDN).'
+      });
+    }
+    
+    const result = await pool.query(
+      `INSERT INTO team_members (name, role, tag, image_url, description, email)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [name, role, tag || null, imageUrl, description || null, email || null]
+    );
+    
+    const team = result.rows[0];
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'CREATE_TEAM_MEMBER', 'team_members', team.id, null, team);
+    
+    return res.status(201).json({ success: true, data: team });
+  } catch (error) {
+    console.error('Create team member error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to create team member' });
+  }
+});
+
+// PUT /api/team/:id — Admin/WebAdmin: update team member
+app.put('/api/team/:id', requireAuth, requireRole('admin', 'webadmin'), async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid team member ID' });
+    
+    const { name, role, tag, imageUrl, description, email } = req.body || {};
+    
+    const beforeResult = await pool.query('SELECT * FROM team_members WHERE id = $1 AND deleted_at IS NULL', [id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Team member not found' });
+    const beforeData = beforeResult.rows[0];
+    
+    // Asset Policy Check if imageUrl is changed
+    if (imageUrl) {
+      const isAssetSeeded = imageUrl.endsWith('.jpg') || imageUrl.endsWith('.jpeg') || imageUrl.endsWith('.png');
+      if (!isAbsoluteUrl(imageUrl) && !isAssetSeeded) {
+        return res.status(400).json({
+          success: false,
+          message: 'Asset Strategy Violation: Image URL must be an absolute URL (e.g. from Cloudinary, Imgur, or CDN).'
+        });
+      }
+    }
+    
+    const result = await pool.query(
+      `UPDATE team_members SET
+        name = COALESCE($1, name),
+        role = COALESCE($2, role),
+        tag = COALESCE($3, tag),
+        image_url = COALESCE($4, image_url),
+        description = COALESCE($5, description),
+        email = COALESCE($6, email),
+        updated_at = NOW()
+       WHERE id = $7 RETURNING *`,
+      [name, role, tag, imageUrl, description, email, id]
+    );
+    
+    const updated = result.rows[0];
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'UPDATE_TEAM_MEMBER', 'team_members', id, beforeData, updated);
+    
+    return res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Update team member error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to update team member' });
+  }
+});
+
+// DELETE /api/team/:id — Admin/WebAdmin: soft-delete team member
+app.delete('/api/team/:id', requireAuth, requireRole('admin', 'webadmin'), async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid team member ID' });
+    
+    const check = await pool.query('SELECT name FROM team_members WHERE id = $1 AND deleted_at IS NULL', [id]);
+    if (check.rowCount === 0) return res.status(404).json({ success: false, message: 'Team member not found' });
+    
+    await pool.query('UPDATE team_members SET deleted_at = NOW() WHERE id = $1', [id]);
+    
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'DELETE_TEAM_MEMBER', 'team_members', id, { name: check.rows[0].name }, null);
+    
+    return res.json({ success: true, message: 'Team member soft-deleted successfully' });
+  } catch (error) {
+    console.error('Delete team member error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to delete team member' });
+  }
+});
+
+// GET /api/faqs — Public: list FAQs
+app.get('/api/faqs', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, question, answer, category, sort_order FROM faqs WHERE deleted_at IS NULL ORDER BY sort_order ASC, id ASC'
+    );
+    return res.json({
+      success: true,
+      data: result.rows.map(r => ({
+        id: r.id,
+        question: r.question,
+        answer: r.answer,
+        category: r.category,
+        sortOrder: r.sort_order
+      }))
+    });
+  } catch (error) {
+    console.error('Fetch FAQs error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to fetch FAQs' });
+  }
+});
+
+// POST /api/faqs — Admin/WebAdmin: create FAQ
+app.post('/api/faqs', requireAuth, requireRole('admin', 'webadmin'), async (req, res) => {
+  try {
+    const { question, answer, category, sortOrder } = req.body || {};
+    const missing = requireFields(req.body || {}, ['question', 'answer', 'category']);
+    if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
+    
+    const result = await pool.query(
+      `INSERT INTO faqs (question, answer, category, sort_order)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [question, answer, category, sortOrder || 0]
+    );
+    
+    const faq = result.rows[0];
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'CREATE_FAQ', 'faqs', faq.id, null, faq);
+    
+    return res.status(201).json({ success: true, data: faq });
+  } catch (error) {
+    console.error('Create FAQ error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to create FAQ' });
+  }
+});
+
+// PUT /api/faqs/:id — Admin/WebAdmin: update FAQ
+app.put('/api/faqs/:id', requireAuth, requireRole('admin', 'webadmin'), async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid FAQ ID' });
+    
+    const { question, answer, category, sortOrder } = req.body || {};
+    
+    const beforeResult = await pool.query('SELECT * FROM faqs WHERE id = $1 AND deleted_at IS NULL', [id]);
+    if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'FAQ not found' });
+    const beforeData = beforeResult.rows[0];
+    
+    const result = await pool.query(
+      `UPDATE faqs SET
+        question = COALESCE($1, question),
+        answer = COALESCE($2, answer),
+        category = COALESCE($3, category),
+        sort_order = COALESCE($4, sort_order),
+        updated_at = NOW()
+       WHERE id = $5 RETURNING *`,
+      [question, answer, category, sortOrder, id]
+    );
+    
+    const updated = result.rows[0];
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'UPDATE_FAQ', 'faqs', id, beforeData, updated);
+    
+    return res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error('Update FAQ error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to update FAQ' });
+  }
+});
+
+// DELETE /api/faqs/:id — Admin/WebAdmin: soft-delete FAQ
+app.delete('/api/faqs/:id', requireAuth, requireRole('admin', 'webadmin'), async (req, res) => {
+  try {
+    const id = parseId(req.params.id);
+    if (!id) return res.status(400).json({ success: false, message: 'Invalid FAQ ID' });
+    
+    const check = await pool.query('SELECT question FROM faqs WHERE id = $1 AND deleted_at IS NULL', [id]);
+    if (check.rowCount === 0) return res.status(404).json({ success: false, message: 'FAQ not found' });
+    
+    await pool.query('UPDATE faqs SET deleted_at = NOW() WHERE id = $1', [id]);
+    
+    const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
+    await logAudit(auditUser, 'DELETE_FAQ', 'faqs', id, { question: check.rows[0].question }, null);
+    
+    return res.json({ success: true, message: 'FAQ soft-deleted successfully' });
+  } catch (error) {
+    console.error('Delete FAQ error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to delete FAQ' });
+  }
+});
+
 // ============================================
 // PRODUCTION STATIC FILE SERVING
 // ============================================
@@ -2355,7 +3498,7 @@ if (process.env.NODE_ENV === 'production') {
     await initializeEmailService();
 
     // Start listening
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log('=================================');
       console.log(`🚀 Backend running on http://localhost:${PORT}`);
       console.log(`🗄️ PostgreSQL: ✅`);
@@ -2363,6 +3506,29 @@ if (process.env.NODE_ENV === 'production') {
       console.log(`🤖 Gemini AI: ${process.env.GEMINI_API_KEY ? '✅' : '❌'}`);
       console.log('=================================');
     });
+
+    // Graceful Shutdown signal listeners
+    const gracefulShutdown = (signal) => {
+      console.log(`\n=================================`);
+      console.log(`♻️  Received ${signal}. Starting graceful shutdown...`);
+      
+      // Close server first
+      server.close(() => {
+        console.log('🛑 Express HTTP server closed.');
+        
+        // End PostgreSQL connection pool
+        pool.end(() => {
+          console.log('🗄️  PostgreSQL database pool terminated.');
+          console.log('👋 Clean exit complete. Goodbye!');
+          console.log(`=================================`);
+          process.exit(0);
+        });
+      });
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+    
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);
     process.exit(1);

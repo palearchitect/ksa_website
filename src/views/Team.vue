@@ -40,7 +40,7 @@
       <div v-if="authStore.isAuthenticated" class="bg-blue-50 border-b border-blue-200 py-3 text-center">
         <p class="text-sm text-blue-800">
           Logged in as <strong>{{ authStore.user?.name }}</strong> (Role: <span class="uppercase font-semibold text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">{{ authStore.user?.role }}</span>).
-          <router-link to="/admin/team" class="ml-2 underline font-semibold text-blue-600 hover:text-blue-800">Go to Directory Management</router-link>
+          <router-link to="/dashboard/admin/team" class="ml-2 underline font-semibold text-blue-600 hover:text-blue-800">Go to Directory Management</router-link>
         </p>
       </div>
 

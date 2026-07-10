@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { authAPI } from '@/services/api'
+import { authAPI, adminService } from '@/services/api'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -36,7 +36,12 @@ export const useAuthStore = defineStore('auth', () => {
       return { success: true, user: response.data }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
-      return { success: false, error: error.value }
+      return { 
+        success: false, 
+        error: error.value, 
+        pendingVerification: err.response?.data?.pendingVerification || false,
+        email: err.response?.data?.email
+      }
     } finally {
       loading.value = false
     }
@@ -69,9 +74,44 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     try {
       const response = await authAPI.register({ name, email, password, role })
+      if (response.status === 'pending_verification') {
+        return { success: true, status: 'pending_verification', email: response.email }
+      }
       user.value = response.data
       isAuthenticated.value = true
       return { success: true, user: response.data }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Verify OTP for Signup Email Verification
+  const verifyOTP = async (email, code) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.verifyOTP({ email, code })
+      user.value = response.data
+      isAuthenticated.value = true
+      return { success: true, user: response.data }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Resend OTP
+  const resendOTP = async (email) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.resendOTP({ email })
+      return { success: true, message: response.message }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
       return { success: false, error: error.value }
@@ -99,15 +139,128 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Onboard new social user
-  const onboardSocialUser = async (name, email, role, googleId) => {
+  // Onboard new social user (using secure signed onboardingToken)
+  const onboardSocialUser = async (name, role, onboardingToken) => {
     loading.value = true
     error.value = null
     try {
-      const response = await authAPI.onboard({ name, email, role, googleId })
+      const response = await authAPI.onboard({ name, role, onboardingToken })
       user.value = response.data
       isAuthenticated.value = true
       return { success: true, user: response.data }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Profile Management Actions
+  const updateProfile = async (name) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.updateProfile({ name })
+      user.value = { ...user.value, ...response.data }
+      return { success: true, user: user.value }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const changePassword = async (currentPassword, newPassword) => {
+    loading.value = true
+    error.value = null
+    try {
+      await authAPI.changePassword({ currentPassword, newPassword })
+      return { success: true }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const deactivateAccount = async (password) => {
+    loading.value = true
+    error.value = null
+    try {
+      await authAPI.deboard({ password })
+      user.value = null
+      isAuthenticated.value = false
+      return { success: true }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const linkGoogle = async (credential) => {
+    loading.value = true
+    error.value = null
+    try {
+      await authAPI.linkGoogle({ credential })
+      if (user.value) user.value.googleLinked = true
+      return { success: true }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const unlinkGoogle = async () => {
+    loading.value = true
+    error.value = null
+    try {
+      await authAPI.unlinkGoogle()
+      if (user.value) user.value.googleLinked = false
+      return { success: true }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Impersonation actions
+  const startImpersonation = async (targetUserId) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await adminService.impersonate(targetUserId)
+      user.value = response.data
+      isAuthenticated.value = true
+      // Force reload page to apply impersonation route redirects
+      window.location.reload()
+      return { success: true }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const stopImpersonation = async () => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await adminService.stopImpersonate()
+      user.value = response.data
+      isAuthenticated.value = true
+      // Force reload page to restore normal admin layout
+      window.location.reload()
+      return { success: true }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
       return { success: false, error: error.value }
@@ -126,7 +279,6 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
       isAuthenticated.value = false
       error.value = null
-      localStorage.removeItem('csrf_token')
       sessionStorage.clear()
     }
   }
@@ -153,12 +305,21 @@ export const useAuthStore = defineStore('auth', () => {
     // Actions
     login,
     signup,
+    verifyOTP,
+    resendOTP,
     loginWithGoogle,
     onboardSocialUser,
     logout,
     loadSession,
     refreshAccessToken,
     hasRole,
-    clearError
+    clearError,
+    updateProfile,
+    changePassword,
+    deactivateAccount,
+    linkGoogle,
+    unlinkGoogle,
+    startImpersonation,
+    stopImpersonation
   }
 })

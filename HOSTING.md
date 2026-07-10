@@ -557,13 +557,66 @@ pm2 update
 | `ECONNREFUSED` on database           | Check PostgreSQL is running: `sudo systemctl status postgresql`                            |
 | CORS errors in browser               | Verify `ALLOWED_ORIGINS` in `.env` matches your exact domain (include `https://`)          |
 | 502 Bad Gateway (Nginx)              | Node.js app isn't running. Check: `pm2 status` and `pm2 logs`                             |
-| SPA routes return 404                | Ensure `NODE_ENV=production` is set — this activates the SPA fallback in `server.js`       |
+| SPA routes return 404 on refresh     | Ensure `NODE_ENV=production` is set in your environment if hosting unified, or configure rewrite rules for decoupled static hosting (see below). |
 | Admin login fails                    | Reset by updating `ADMIN_PASSWORD` in `.env` and restarting the server                     |
 | SSL certificate not renewing         | Check Certbot timer: `sudo systemctl status certbot.timer`                                 |
 | `npm install` fails on VPS           | May need more RAM. Add swap: `sudo fallocate -l 2G /swapfile && sudo mkswap /swapfile`     |
 | `vite: command not found` on deploy  | Build tools (`vite`, etc.) were placed in `devDependencies` which npm skips when `NODE_ENV=production` is set. **Fix:** The repository has been updated to move all build tools to `dependencies`. If still failing, verify the root `package.json` matches this configuration. |
 | `ERESOLVE overriding peer dependency`| Package versions conflict (e.g. React version mismatches with dependencies). **Fix:** Run installations with `npm install --legacy-peer-deps` to bypass conflicts. Note: We have permanently removed the unused `decap-cms-app` package to eliminate these conflicts entirely. |
 | Build crashes / Out of memory        | Low-memory shared hosts or 1GB VPS plans may crash during Vite production builds. **Fix:** Add `NODE_OPTIONS="--max-old-space-size=2048"` to environment variables, or build the assets locally (`npm run build`) and upload only the `dist/` folder via FTP/Git. |
+
+### Detailed Solution: SPA Routing & 404 Errors on Refresh
+
+In Single Page Applications (SPAs) like Vue, routing is handled client-side in the browser. When a user navigates to a route (e.g., `/dashboard/tenant`) and refreshes, the web server looks for a physical folder or file at `/dashboard/tenant` which does not exist, resulting in a `404 Not Found` error.
+
+To resolve this, you must configure your server or hosting provider to redirect or rewrite all requests back to `index.html` so Vue Router can route the request correctly:
+
+#### 1. Unified Node.js Hosting (Express.js serves API + Frontend)
+If you deploy this app as a single repository where Node.js serves both the backend and frontend:
+- **Requirement:** Ensure `NODE_ENV=production` is configured in your production `.env` file or process manager (like PM2).
+- **Explanation:** When `NODE_ENV` is set to `production`, `backend/server.js` activates the static directory mount (`app.use(express.static(distPath))`) and mounts a catch-all route handler (`app.get(/^(?!\/api).*/, ...)`) that automatically routes non-API path requests back to `index.html`.
+
+#### 2. Decoupled Static Hosting (Frontend on Vercel, Netlify, or Hostinger Shared)
+If you deploy only the Vue frontend build folder (`dist/` or `public/`) to a static web hosting service, configure rewrites using the specific configurations below:
+
+* **Vercel:**
+  Ensure a `vercel.json` file is present in the root directory (already included in this repository) containing:
+  ```json
+  {
+    "rewrites": [
+      { "source": "/(.*)", "destination": "/index.html" }
+    ]
+  }
+  ```
+
+* **Netlify:**
+  Create a file named `_redirects` inside your `public/` directory (so that it builds into the root of `dist/`):
+  ```text
+  /*    /index.html   200
+  ```
+
+* **Hostinger Shared Hosting / Apache (cPanel):**
+  Create or edit the `.htaccess` file in your root folder (usually `public_html/`) and add:
+  ```apache
+  <IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    RewriteRule ^index\.html$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.html [L]
+  </IfModule>
+  ```
+
+* **Nginx (Static mode, not proxy mode):**
+  If you configure Nginx to serve the static files in `dist/` directly (rather than proxying all `/` requests to Node.js):
+  ```nginx
+  location / {
+      root /var/www/ksa-valuers/dist;
+      index index.html;
+      try_files $uri $uri/ /index.html;
+  }
+  ```
 
 ---
 

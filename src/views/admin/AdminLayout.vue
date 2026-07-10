@@ -1,152 +1,185 @@
 <template>
-  <div class="admin-shell">
-
-    <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
-    <aside class="admin-sidebar" :class="{ 'is-collapsed': collapsed }">
-
-      <!-- Brand -->
-      <div class="sidebar-brand">
-        <div class="brand-logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1
-                 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011
-                 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-        </div>
-        <transition name="fade-label">
-          <div class="brand-text" v-if="!collapsed">
-            <span class="brand-name">KSA Valuers</span>
-            <span class="brand-sub">Admin Panel</span>
-          </div>
-        </transition>
+  <div class="admin-layout-wrapper">
+    <!-- Impersonation Warning Bar -->
+    <div v-if="user?.impersonatorId" class="impersonation-warning-bar">
+      <div class="iw-content">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>
+          <strong>Impersonation Mode Active:</strong> You are currently viewing the portal as <strong>{{ user.name }}</strong> ({{ user.role }}). 
+          Actions you take will be logged under your admin credentials ({{ user.impersonatorEmail }}).
+        </span>
       </div>
+      <button class="iw-btn" @click="handleStopImpersonation" :disabled="impersonationLoading">
+        {{ impersonationLoading ? 'Restoring...' : 'Return to Admin Session' }}
+      </button>
+    </div>
 
-      <!-- Nav -->
-      <nav class="sidebar-nav">
-        <div class="nav-group-label" v-if="!collapsed">Content</div>
-        <router-link
-          v-for="item in navItems"
-          :key="item.to"
-          :to="item.to"
-          class="nav-link"
-          :class="{ active: isActive(item.match) }"
-          :title="collapsed ? item.label : ''"
-          @click="mobileOpen = false"
-        >
-          <span class="nav-icon" v-html="item.icon" />
-          <span class="nav-label" v-if="!collapsed">{{ item.label }}</span>
-          <span
-            v-if="!collapsed && item.badge"
-            class="nav-badge"
-          >{{ item.badge }}</span>
-        </router-link>
-
-        <div class="nav-divider" />
-        <div class="nav-group-label" v-if="!collapsed">Property Management</div>
-        <router-link
-          to="/dashboard/management"
-          class="nav-link"
-          :class="{ active: isActive('ManagementDashboard') }"
-          :title="collapsed ? 'PMS Gateway' : ''"
-          @click="mobileOpen = false"
-        >
-          <span class="nav-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-            </svg>
-          </span>
-          <span class="nav-label" v-if="!collapsed">PMS Gateway</span>
-        </router-link>
-
-        <div class="nav-divider" />
-        <div class="nav-group-label" v-if="!collapsed">Account</div>
-
-        <button class="nav-link nav-link-btn" @click="handleLogout">
-          <span class="nav-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <div class="admin-shell">
+      <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
+      <aside class="admin-sidebar" :class="{ 'is-collapsed': collapsed }">
+        <!-- Brand -->
+        <div class="sidebar-brand">
+          <div class="brand-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <path stroke-linecap="round" stroke-linejoin="round"
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0
-                   01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1
+                   1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011
+                   1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-          </span>
-          <span class="nav-label" v-if="!collapsed">Logout</span>
-        </button>
-      </nav>
-
-      <!-- User strip at bottom -->
-      <div class="sidebar-user" v-if="!collapsed">
-        <div class="su-avatar">{{ initials }}</div>
-        <div class="su-info">
-          <span class="su-name">{{ user?.name || 'Admin' }}</span>
-          <span class="su-role">{{ user?.role || 'administrator' }}</span>
-        </div>
-      </div>
-      <div class="sidebar-user-collapsed" v-else>
-        <div class="su-avatar">{{ initials }}</div>
-      </div>
-    </aside>
-
-    <!-- ── Mobile overlay ──────────────────────────────────────────────── -->
-    <div
-      v-if="mobileOpen"
-      class="mobile-overlay"
-      @click="mobileOpen = false"
-    />
-
-    <!-- ── Main area ───────────────────────────────────────────────────── -->
-    <div class="admin-main">
-
-      <!-- Topbar -->
-      <header class="admin-topbar">
-        <!-- Collapse toggle (desktop) + Hamburger (mobile) -->
-        <button class="topbar-btn" @click="toggleSidebar" aria-label="Toggle sidebar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
-          </svg>
-        </button>
-
-        <!-- Breadcrumb -->
-        <div class="topbar-breadcrumb">
-          <router-link to="/admin" class="breadcrumb-home">Admin</router-link>
-          <span class="breadcrumb-sep">/</span>
-          <span class="breadcrumb-current">{{ pageTitle }}</span>
-        </div>
-
-        <div class="topbar-right">
-          <!-- Property Switcher for Admin/Managers -->
-          <div class="mr-2">
-            <PropertySwitcher />
           </div>
-          <!-- Visit site -->
-          <a href="/" target="_blank" class="topbar-site-link">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0
-                   002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          <transition name="fade-label">
+            <div class="brand-text" v-if="!collapsed">
+              <span class="brand-name">KSA Valuers</span>
+              <span class="brand-sub">{{ user?.role === 'admin' ? 'Superadmin Panel' : 'Web Admin Panel' }}</span>
+            </div>
+          </transition>
+        </div>
+
+        <!-- Nav -->
+        <nav class="sidebar-nav">
+          <div class="nav-group-label" v-if="!collapsed">Content</div>
+          <router-link
+            v-for="item in navItems"
+            :key="item.to"
+            :to="item.to"
+            class="nav-link"
+            :class="{ active: isActive(item.match) }"
+            :title="collapsed ? item.label : ''"
+            @click="mobileOpen = false"
+          >
+            <span class="nav-icon" v-html="item.icon" />
+            <span class="nav-label" v-if="!collapsed">{{ item.label }}</span>
+            <span
+              v-if="!collapsed && item.badge"
+              class="nav-badge"
+            >{{ item.badge }}</span>
+          </router-link>
+
+          <template v-if="user?.role === 'admin'">
+            <div class="nav-divider" />
+            <div class="nav-group-label" v-if="!collapsed">Property Management</div>
+            <router-link
+              to="/dashboard/management"
+              class="nav-link"
+              :class="{ active: isActive('ManagementDashboard') }"
+              :title="collapsed ? 'PMS Gateway' : ''"
+              @click="mobileOpen = false"
+            >
+              <span class="nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </span>
+              <span class="nav-label" v-if="!collapsed">PMS Gateway</span>
+            </router-link>
+          </template>
+
+          <div class="nav-divider" />
+          <div class="nav-group-label" v-if="!collapsed">Account</div>
+
+          <router-link
+            to="/dashboard/profile"
+            class="nav-link"
+            :class="{ active: isActive('UserProfile') }"
+            :title="collapsed ? 'Profile' : ''"
+            @click="mobileOpen = false"
+          >
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </span>
+            <span class="nav-label" v-if="!collapsed">Profile Settings</span>
+          </router-link>
+
+          <button class="nav-link nav-link-btn" @click="handleLogout">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0
+                     01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </span>
+            <span class="nav-label" v-if="!collapsed">Logout</span>
+          </button>
+        </nav>
+
+        <!-- User strip at bottom -->
+        <div class="sidebar-user" v-if="!collapsed">
+          <div class="su-avatar">{{ initials }}</div>
+          <div class="su-info">
+            <span class="su-name">{{ user?.name || 'Admin' }}</span>
+            <span class="su-role">{{ user?.role || 'administrator' }}</span>
+          </div>
+        </div>
+        <div class="sidebar-user-collapsed" v-else>
+          <div class="su-avatar">{{ initials }}</div>
+        </div>
+      </aside>
+
+      <!-- ── Mobile overlay ──────────────────────────────────────────────── -->
+      <div
+        v-if="mobileOpen"
+        class="mobile-overlay"
+        @click="mobileOpen = false"
+      />
+
+      <!-- ── Main area ───────────────────────────────────────────────────── -->
+      <div class="admin-main">
+        <!-- Topbar -->
+        <header class="admin-topbar">
+          <!-- Collapse toggle (desktop) + Hamburger (mobile) -->
+          <button class="topbar-btn" @click="toggleSidebar" aria-label="Toggle sidebar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
-            <span>Visit Site</span>
-          </a>
-          <!-- User pill -->
-          <div class="topbar-user-pill">
-            <div class="pill-avatar">{{ initials }}</div>
-            <span class="pill-name">{{ user?.name || 'Admin' }}</span>
-          </div>
-        </div>
-      </header>
+          </button>
 
-      <!-- Page content -->
-      <main class="admin-content">
-        <router-view />
-      </main>
+          <!-- Breadcrumb -->
+          <div class="topbar-breadcrumb">
+            <router-link :to="user?.role === 'admin' ? '/dashboard/admin' : '/dashboard/webadmin'" class="breadcrumb-home">Admin</router-link>
+            <span class="breadcrumb-sep">/</span>
+            <span class="breadcrumb-current">{{ pageTitle }}</span>
+          </div>
+
+          <div class="topbar-right">
+            <!-- Property Switcher for Admin/Managers -->
+            <div class="mr-2" v-if="user?.role === 'admin'">
+              <PropertySwitcher />
+            </div>
+            <!-- Visit site -->
+            <a href="/" target="_blank" class="topbar-site-link">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0
+                     002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              </svg>
+              <span>Visit Site</span>
+            </a>
+            <!-- User pill -->
+            <router-link to="/dashboard/profile" class="topbar-user-pill">
+              <div class="pill-avatar">{{ initials }}</div>
+              <span class="pill-name">{{ user?.name || 'Admin' }}</span>
+            </router-link>
+          </div>
+        </header>
+
+        <!-- Page content -->
+        <main class="admin-content">
+          <router-view />
+        </main>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { authAPI } from '@/services/api'
 import PropertySwitcher from '@/components/properties/PropertySwitcher.vue'
 
 const route     = useRoute()
@@ -155,6 +188,7 @@ const authStore = useAuthStore()
 
 const collapsed   = ref(false)
 const mobileOpen  = ref(false)
+const impersonationLoading = ref(false)
 
 const user     = computed(() => authStore.user)
 const initials = computed(() => {
@@ -162,8 +196,16 @@ const initials = computed(() => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 })
 
+onMounted(async () => {
+  // Initialize CSRF token automatically when admin panel is opened
+  try {
+    await authAPI.getCsrf()
+  } catch (err) {
+    console.error('Failed to pre-fetch CSRF token:', err)
+  }
+})
+
 function toggleSidebar() {
-  // On mobile (<768px) show overlay; on desktop collapse
   if (window.innerWidth < 768) {
     mobileOpen.value = !mobileOpen.value
   } else {
@@ -171,36 +213,55 @@ function toggleSidebar() {
   }
 }
 
-const navItems = [
-  {
-    to: '/admin', label: 'Dashboard', match: 'AdminDashboard',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'
-  },
-  {
-    to: '/admin/properties', label: 'Properties', match: 'AdminProperty',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>'
-  },
-  {
-    to: '/admin/projects', label: 'Projects', match: 'AdminProject',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>'
-  },
-  {
-    to: '/admin/bookings', label: 'Bookings', match: 'AdminBooking',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>'
-  },
-  {
-    to: '/admin/appointments', label: 'Appointments', match: 'AdminAppointment',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
-  },
-  {
-    to: '/admin/slides', label: 'Hero Slides', match: 'AdminSlide',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>'
-  },
-  {
-    to: '/admin/team', label: 'Team', match: 'AdminTeam',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>'
-  },
-]
+// Filtered navigation items based on User Role (RBAC)
+const navItems = computed(() => {
+  const role = user.value?.role
+  
+  if (role === 'admin') {
+    return [
+      {
+        to: '/dashboard/admin', label: 'Dashboard', match: 'SuperAdminDashboard',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'
+      },
+      {
+        to: '/dashboard/admin/properties', label: 'Properties', match: 'AdminProperty',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>'
+      },
+      {
+        to: '/dashboard/admin/projects', label: 'Projects', match: 'AdminProject',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>'
+      },
+      {
+        to: '/dashboard/admin/bookings', label: 'Bookings', match: 'AdminBooking',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>'
+      },
+      {
+        to: '/dashboard/admin/appointments', label: 'Appointments', match: 'AdminAppointment',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+      },
+      {
+        to: '/dashboard/webadmin', label: 'Web Content Portal', match: 'WebAdminDashboard',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M4 4h.01M4 9h.01M4 14h.01M4 19h.01M9 4h.01M14 4h.01"/></svg>'
+      }
+    ]
+  } else if (role === 'webadmin') {
+    return [
+      {
+        to: '/dashboard/webadmin', label: 'Dashboard', match: 'WebAdminDashboard',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'
+      },
+      {
+        to: '/dashboard/webadmin/slides', label: 'Hero Slides', match: 'AdminSlide',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>'
+      },
+      {
+        to: '/dashboard/webadmin/team', label: 'Team', match: 'AdminTeam',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>'
+      }
+    ]
+  }
+  return []
+})
 
 const isActive = (matchPrefix) => {
   const name = String(route.name || '')
@@ -215,16 +276,73 @@ const pageTitle = computed(() => {
   if (name.includes('Appointment')) return 'Appointments'
   if (name.includes('Slide'))    return 'Hero Slides'
   if (name.includes('Team'))     return 'Team'
-  return 'Dashboard'
+  if (name === 'WebAdminDashboard') return 'Web Admin Portal'
+  return 'Superadmin Dashboard'
 })
 
 async function handleLogout() {
   await authStore.logout()
   router.push('/admin/login')
 }
+
+async function handleStopImpersonation() {
+  impersonationLoading.value = true
+  try {
+    const res = await authStore.stopImpersonation()
+    if (res.success) {
+      router.push('/dashboard/admin')
+    }
+  } catch (err) {
+    console.error('Stop impersonation failed:', err)
+  } finally {
+    impersonationLoading.value = false
+  }
+}
 </script>
 
 <style scoped>
+/* ── Impersonation Warning Bar ────────────────────────────────────────────── */
+.impersonation-warning-bar {
+  background: #ea580c;
+  color: #ffffff;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.88rem;
+  z-index: 9999;
+  position: relative;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+.iw-content {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.iw-content svg {
+  flex-shrink: 0;
+}
+.iw-btn {
+  background: #ffffff;
+  color: #ea580c;
+  border: none;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.iw-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+  transform: translateY(-1px);
+}
+.iw-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* ── Reset & shell ─────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 

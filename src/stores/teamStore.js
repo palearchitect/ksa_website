@@ -1,115 +1,99 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { teamServiceContent } from '@/services/api'
 
 export const useTeamStore = defineStore('team', () => {
   const teamMembers = ref([])
   const loading = ref(false)
   const error = ref(null)
 
-  const defaultTeamMembers = [
-    {
-      id: 1,
-      name: 'ESV. Markson Ajiboye',
-      role: 'Head Business Unit',
-      tag: 'Certified Estate Surveyor & Valuer',
-      image: 'IMG-20240405-WA0009-233x300.jpg',
-      description: 'With extensive experience in real estate, Markson leads our agency and sales division. His expertise ensures optimal property valuations and successful client transactions across major Nigerian markets.',
-      email: 'info@ksavaluers.com'
-    },
-    {
-      id: 2,
-      name: 'Eniola Abiola Kayode',
-      role: 'Human Resource Manager',
-      tag: 'HR Specialist',
-      image: 'IMG-20240405-WA0011-e1712320368546-300x268.jpg',
-      description: 'A dynamic HR professional skilled in recruitment, employee relations, training, and development. Eniola ensures our team maintains the highest standards of professionalism and client service.',
-      email: 'info@ksavaluers.com'
-    },
-    {
-      id: 3,
-      name: 'ESV Akinyele Abiodun',
-      role: 'Head of Estate Management & Valuation',
-      tag: 'Estate Surveyor',
-      image: 'DSC00129-240x300.jpeg',
-      description: 'A seasoned estate surveyor with strong problem-solving and communication skills. Akinyele specializes in property valuation, estate management, and ensuring compliance with regulatory standards.',
-      email: 'abiodun@ksavaluers.com'
-    },
-    {
-      id: 4,
-      name: 'ESV Olaoluwa Isaac Ojewumi',
-      role: 'Head of Sales Department',
-      tag: 'Sales & Agency Expert',
-      image: 'DSC00141-scaled.jpeg',
-      description: 'Experienced in real estate sales and agency leadership. Olaoluwa drives our sales initiatives with strategic market insights and exceptional client relationship management.',
-      email: 'olaoluwaisaac@ksavaluers.com'
-    }
-  ]
+  const mapMember = (m) => ({
+    id: m.id,
+    name: m.name,
+    role: m.role,
+    tag: m.tag,
+    image: m.imageUrl || m.image, // supports both backend and legacy frontend naming
+    imageUrl: m.imageUrl || m.image,
+    description: m.description,
+    email: m.email
+  })
 
-  const fetchTeamMembers = () => {
+  const fetchTeamMembers = async () => {
     loading.value = true
+    error.value = null
     try {
-      const stored = localStorage.getItem('ksa_team_members')
-      if (stored) {
-        teamMembers.value = JSON.parse(stored)
-      } else {
-        teamMembers.value = [...defaultTeamMembers]
-        localStorage.setItem('ksa_team_members', JSON.stringify(defaultTeamMembers))
-      }
+      const response = await teamServiceContent.getTeam()
+      teamMembers.value = response.data.map(mapMember)
       return { success: true, data: teamMembers.value }
     } catch (err) {
-      error.value = err.message
+      error.value = err.response?.data?.message || err.message
       return { success: false, message: error.value }
     } finally {
       loading.value = false
     }
   }
 
-  const addTeamMember = (payload) => {
+  const addTeamMember = async (payload) => {
     loading.value = true
+    error.value = null
     try {
-      const nextId = teamMembers.value.length ? Math.max(...teamMembers.value.map(m => m.id)) + 1 : 1
-      const newMember = {
-        ...payload,
-        id: nextId,
-        image: payload.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop'
+      // Map frontend `image` to backend `imageUrl`
+      const data = {
+        name: payload.name,
+        role: payload.role,
+        tag: payload.tag,
+        imageUrl: payload.imageUrl || payload.image,
+        description: payload.description,
+        email: payload.email
       }
+      const response = await teamServiceContent.createTeam(data)
+      const newMember = mapMember(response.data)
       teamMembers.value.push(newMember)
-      localStorage.setItem('ksa_team_members', JSON.stringify(teamMembers.value))
       return { success: true, data: newMember }
     } catch (err) {
-      error.value = err.message
+      error.value = err.response?.data?.message || err.message
       return { success: false, message: error.value }
     } finally {
       loading.value = false
     }
   }
 
-  const updateTeamMember = (id, payload) => {
+  const updateTeamMember = async (id, payload) => {
     loading.value = true
+    error.value = null
     try {
+      const data = {
+        name: payload.name,
+        role: payload.role,
+        tag: payload.tag,
+        imageUrl: payload.imageUrl || payload.image,
+        description: payload.description,
+        email: payload.email
+      }
+      const response = await teamServiceContent.updateTeam(id, data)
+      const updatedMember = mapMember(response.data)
       const idx = teamMembers.value.findIndex(m => m.id === id)
       if (idx !== -1) {
-        teamMembers.value[idx] = { ...payload, id }
-        localStorage.setItem('ksa_team_members', JSON.stringify(teamMembers.value))
-        return { success: true, data: teamMembers.value[idx] }
+        teamMembers.value[idx] = updatedMember
       }
-      throw new Error('Member not found')
+      return { success: true, data: updatedMember }
     } catch (err) {
-      error.value = err.message
+      error.value = err.response?.data?.message || err.message
       return { success: false, message: error.value }
     } finally {
       loading.value = false
     }
   }
 
-  const deleteTeamMember = (id) => {
+  const deleteTeamMember = async (id) => {
     loading.value = true
+    error.value = null
     try {
+      await teamServiceContent.deleteTeam(id)
       teamMembers.value = teamMembers.value.filter(m => m.id !== id)
-      localStorage.setItem('ksa_team_members', JSON.stringify(teamMembers.value))
       return { success: true }
     } catch (err) {
-      error.value = err.message
+      error.value = err.response?.data?.message || err.message
       return { success: false, message: error.value }
     } finally {
       loading.value = false

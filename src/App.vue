@@ -15,7 +15,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import AppHeader from './components/global/AppHeader.vue'
 import AppFooter from './components/global/AppFooter.vue'
-import ErrorBoundary from './components/ErrorBoundary.vue'
+import ErrorBoundary from './components/global/ErrorBoundary.vue'
 
 const route = useRoute()
 const hideLayout = computed(() => route.path.startsWith('/admin') || route.path.startsWith('/dashboard'))
