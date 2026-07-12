@@ -33,8 +33,8 @@
         <div class="flex flex-col md:flex-row justify-between items-center">
           <p class="text-gray-400 mb-4 md:mb-0">&copy; 2026 KSA Valuers. All rights reserved.</p>
           <div class="flex space-x-6">
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" class="text-gray-400 hover:text-white transition-colors">Terms of Service</a>
+            <router-link to="/privacy-policy" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</router-link>
+            <router-link to="/terms-of-service" class="text-gray-400 hover:text-white transition-colors">Terms of Service</router-link>
           </div>
         </div>
       </div>

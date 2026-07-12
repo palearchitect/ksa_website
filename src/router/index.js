@@ -144,6 +144,18 @@ const routes = [
     meta: { requiresAuth: true, title: 'My Profile Settings' }
   },
 
+  // Privacy Policy and Terms of Service
+  {
+    path: '/privacy-policy',
+    name: 'PrivacyPolicy',
+    component: () => import('../views/PrivacyPolicy.vue')
+  },
+  {
+    path: '/terms-of-service',
+    name: 'TermsOfService',
+    component: () => import('../views/TermsOfService.vue')
+  },
+
   // Catch-all 404 route
   {
     path: '/:pathMatch(.*)*',
