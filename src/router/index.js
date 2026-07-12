@@ -84,6 +84,12 @@ const routes = [
       { path: 'projects/:id', name: 'AdminProjectEdit', component: () => import('../views/admin/AdminProjectForm.vue'), props: true }
     ]
   },
+  // Admin login MUST be declared before the /admin wildcard catch-all
+  {
+    path: '/admin/login',
+    name: 'AdminLogin',
+    component: () => import('../views/admin/AdminLogin.vue')
+  },
   {
     path: '/dashboard/webadmin',
     redirect: '/dashboard/admin'
@@ -99,11 +105,6 @@ const routes = [
   {
     path: '/admin/:catchAll(.*)',
     redirect: to => `/dashboard/admin/${to.params.catchAll}`
-  },
-  {
-    path: '/admin/login',
-    name: 'AdminLogin',
-    component: () => import('../views/admin/AdminLogin.vue')
   },
 
   // Auth Routes

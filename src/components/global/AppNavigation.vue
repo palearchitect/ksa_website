@@ -256,7 +256,7 @@ const roleDashboardMap = {
   tenant:        '/',
 }
 
-const portalPath = computed(() => roleDashboardMap[userRole.value] || '/admin')
+const portalPath = computed(() => roleDashboardMap[userRole.value] || '/admin/login')
 
 // Import Heroicons
 import {
