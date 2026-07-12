@@ -1,0 +1,1 @@
+import{_ as s,b as t,c as o,d as c}from"./index-7d6a6753.js";const r={},n={class:"flex flex-col items-center justify-center min-h-[60vh]"};function a(l,e){return t(),o("div",n,[...e[0]||(e[0]=[c("h1",{class:"text-4xl font-bold"},"Reset Password Page",-1)])])}const f=s(r,[["render",a]]);export{f as default};
