@@ -13,16 +13,24 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
   }
 
-  // Load from localStorage on init
-  const loadSession = async () => {
-    try {
-      const response = await authAPI.me()
-      user.value = response.data
-      isAuthenticated.value = true
-    } catch (err) {
-      user.value = null
-      isAuthenticated.value = false
+  let sessionPromise = null
+
+  // Load from session API on init
+  const loadSession = () => {
+    if (!sessionPromise) {
+      sessionPromise = authAPI.me()
+        .then(response => {
+          user.value = response.data
+          isAuthenticated.value = true
+          return response.data
+        })
+        .catch(err => {
+          user.value = null
+          isAuthenticated.value = false
+          return null
+        })
     }
+    return sessionPromise
   }
 
   // Login
@@ -33,6 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authAPI.login({ email, password })
       user.value = response.data
       isAuthenticated.value = true
+      sessionPromise = Promise.resolve(response.data)
       return { success: true, user: response.data }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
@@ -79,6 +88,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       user.value = response.data
       isAuthenticated.value = true
+      sessionPromise = Promise.resolve(response.data)
       return { success: true, user: response.data }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
@@ -96,6 +106,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authAPI.verifyOTP({ email, code })
       user.value = response.data
       isAuthenticated.value = true
+      sessionPromise = Promise.resolve(response.data)
       return { success: true, user: response.data }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
@@ -129,6 +140,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (response.registered) {
         user.value = response.data
         isAuthenticated.value = true
+        sessionPromise = Promise.resolve(response.data)
       }
       return response
     } catch (err) {
@@ -147,6 +159,7 @@ export const useAuthStore = defineStore('auth', () => {
       const response = await authAPI.onboard({ name, role, onboardingToken })
       user.value = response.data
       isAuthenticated.value = true
+      sessionPromise = Promise.resolve(response.data)
       return { success: true, user: response.data }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
@@ -279,6 +292,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
       isAuthenticated.value = false
       error.value = null
+      sessionPromise = null
       sessionStorage.clear()
     }
   }

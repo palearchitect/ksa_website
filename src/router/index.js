@@ -196,8 +196,13 @@ router.beforeEach(async (to, from, next) => {
 
   // Only call loadSession once per app lifecycle
   if (!_sessionLoaded) {
-    await authStore.loadSession()
-    _sessionLoaded = true
+    if (to.meta.requiresAuth) {
+      await authStore.loadSession()
+      _sessionLoaded = true
+    } else {
+      // Trigger in the background so it doesn't block rendering public pages
+      authStore.loadSession()
+    }
   }
 
   const isAuth   = authStore.isAuthenticated

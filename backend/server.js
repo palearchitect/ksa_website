@@ -3520,8 +3520,8 @@ app.post('/api/upload', requireAuth, async (req, res) => {
 // PRODUCTION STATIC FILE SERVING
 // ============================================
 // In production, serve the Vue frontend build from ../dist
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '..', 'dist');
+const distPath = path.join(__dirname, '..', 'dist');
+if (process.env.NODE_ENV === 'production' || fs.existsSync(distPath)) {
   app.use(express.static(distPath));
 
   // SPA fallback — any route not matching /api/* returns index.html
