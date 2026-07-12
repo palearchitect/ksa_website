@@ -175,23 +175,6 @@
           </div>
 
           <div>
-            <label for="signup-role" class="block text-sm font-medium text-gray-700 mb-2">
-              Select Role
-            </label>
-            <select
-              id="signup-role"
-              v-model="signupForm.role"
-              required
-              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white"
-            >
-              <option value="admin">Admin</option>
-              <option value="management">Management</option>
-              <option value="tenant">Tenant</option>
-              <option value="propertyowner">PropertyOwner</option>
-            </select>
-          </div>
-
-          <div>
             <label for="signup-password" class="block text-sm font-medium text-gray-700 mb-2">
               Password
             </label>
@@ -288,16 +271,17 @@ const signupForm = ref({
   name: '',
   email: '',
   password: '',
-  role: 'admin'
+  role: 'tenant'
 })
 
 // Role → home dashboard mapping
 const roleDashboardMap = {
   admin:         '/dashboard/admin',
-  manager:       '/dashboard/management',
-  management:    '/dashboard/management',
-  propertyowner: '/dashboard/owner',
-  tenant:        '/dashboard/tenant',
+  webadmin:      '/dashboard/admin',
+  manager:       '/',
+  management:    '/',
+  propertyowner: '/',
+  tenant:        '/',
 }
 
 // If already authenticated, redirect to the appropriate dashboard

@@ -205,10 +205,11 @@ async function handleVerify() {
       // Route based on role
       const roleMap = {
         admin: '/dashboard/admin',
-        manager: '/dashboard/management',
-        management: '/dashboard/management',
-        propertyowner: '/dashboard/owner',
-        tenant: '/dashboard/tenant'
+        webadmin: '/dashboard/admin',
+        manager: '/',
+        management: '/',
+        propertyowner: '/',
+        tenant: '/'
       }
       router.push(roleMap[res.user?.role] || '/')
     }, 1500)

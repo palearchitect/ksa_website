@@ -1,3 +1,32 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --color-brand-blue: #1b4d84;
+    --color-brand-blue-hover: #123966;
+    --color-brand-blue-dark: #0f294a;
+    --color-brand-blue-light: #e8eff8;
+    
+    --color-brand-orange: #f96816;
+    --color-brand-orange-hover: #e05315;
+    --color-brand-orange-light: #fffaf5;
+  }
+
+  /* Sleek premium scrollbar for the browser window */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f4f7fc;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #ccdcee;
+    border: 2px solid #f4f7fc;
+    border-radius: 5px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a0bfe0;
+  }
+}

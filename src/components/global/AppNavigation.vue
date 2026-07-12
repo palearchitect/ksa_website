@@ -248,11 +248,12 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 const userRole = computed(() => authStore.user?.role)
 
 const roleDashboardMap = {
-  admin:         '/admin',
-  manager:       '/dashboard/management',
-  management:    '/dashboard/management',
-  propertyowner: '/dashboard/owner',
-  tenant:        '/dashboard/tenant',
+  admin:         '/dashboard/admin',
+  webadmin:      '/dashboard/admin',
+  manager:       '/',
+  management:    '/',
+  propertyowner: '/',
+  tenant:        '/',
 }
 
 const portalPath = computed(() => roleDashboardMap[userRole.value] || '/admin')
@@ -422,13 +423,13 @@ onUnmounted(() => {
 }
 
 .nav-link:hover {
-  color: #2563eb;
+  color: #1b4d84;
   background-color: #f3f4f6;
 }
 
 .nav-link-active {
-  color: #2563eb;
-  background-color: #eff6ff;
+  color: #1b4d84;
+  background-color: #e8eff8;
   font-weight: 600;
 }
 
@@ -489,13 +490,13 @@ onUnmounted(() => {
 }
 
 .dropdown-link:hover {
-  color: #2563eb;
+  color: #1b4d84;
   background-color: #f8fafc;
 }
 
 .dropdown-link-active {
-  color: #2563eb;
-  background-color: #eff6ff;
+  color: #1b4d84;
+  background-color: #e8eff8;
   font-weight: 600;
 }
 
@@ -509,7 +510,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   padding: 8px 16px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, #1b4d84, #0f294a);
   color: white;
   font-size: 14px;
   font-weight: 600;
@@ -522,13 +523,13 @@ onUnmounted(() => {
 }
 
 .nav-cta:hover {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  background: linear-gradient(135deg, #0f294a, #0a1d35);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
+  box-shadow: 0 4px 12px rgba(27, 77, 132, 0.3);
 }
 
 .nav-cta-active {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  background: linear-gradient(135deg, #0f294a, #0a1d35);
 }
 
 .nav-admin {
@@ -613,8 +614,8 @@ onUnmounted(() => {
 }
 
 .mobile-link-active {
-  color: #2563eb;
-  background-color: #eff6ff;
+  color: #1b4d84;
+  background-color: #e8eff8;
   font-weight: 600;
 }
 
@@ -685,12 +686,12 @@ onUnmounted(() => {
 }
 
 .mobile-dropdown-item:hover {
-  color: #2563eb;
+  color: #1b4d84;
   background-color: white;
 }
 
 .mobile-dropdown-item-active {
-  color: #2563eb;
+  color: #1b4d84;
   background-color: white;
   font-weight: 600;
 }
@@ -705,7 +706,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, #1b4d84, #0f294a);
   color: white;
   font-size: 16px;
   font-weight: 600;
@@ -717,11 +718,11 @@ onUnmounted(() => {
 }
 
 .mobile-cta:hover {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  background: linear-gradient(135deg, #0f294a, #0a1d35);
 }
 
 .mobile-cta-active {
-  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+  background: linear-gradient(135deg, #0f294a, #0a1d35);
 }
 
 .mobile-admin {

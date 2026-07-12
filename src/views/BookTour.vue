@@ -703,7 +703,7 @@ const resetBooking = () => {
 const printConfirmation = () => {
   const printContent = `
     <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #1e40af;">Kayode Segun & Associates</h2>
+      <h2 style="color: #1b4d84;">Kayode Segun & Associates</h2>
       <h3 style="color: #374151;">Tour Booking Confirmation</h3>
       <hr style="margin: 20px 0;">
       <p><strong>Booking ID:</strong> ${bookingId.value}</p>

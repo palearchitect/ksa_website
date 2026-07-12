@@ -25,7 +25,7 @@
             <h2 class="text-2xl font-bold text-gray-900 mb-6 md:mb-8">Send us a Message</h2>
             
             <!-- Form submits directly to Formspree - no JavaScript interception -->
-            <form action="https://formspree.io/f/xjgerbag" method="POST" class="space-y-6">
+            <form action="https://formspree.io/f/mkodweqd" method="POST" class="space-y-6">
               <!-- Name -->
               <div>
                 <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
@@ -292,12 +292,19 @@
       </div>
     </div>
 
-    <!-- Live Chat Widget -->
+    <!-- Live Chat Widget Toggle -->
     <button
       @click="toggleChat"
-      class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-40 hover:scale-110"
+      class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 flex items-center justify-center z-[1000] hover:scale-110 active:scale-95 group focus:outline-none"
       aria-label="Open chat"
     >
+      <span class="absolute right-16 bg-blue-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap border border-blue-800">
+        Chat with Expert AI
+      </span>
+      <span class="absolute top-0 right-0 flex h-3 w-3" v-if="!showChat">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
+      </span>
       <svg v-if="!showChat" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
       </svg>
@@ -307,21 +314,25 @@
     </button>
 
     <!-- Chat Window -->
-    <div v-if="showChat" class="fixed bottom-20 right-6 w-80 bg-white rounded-xl shadow-2xl z-50">
-      <div class="p-4 border-b border-gray-200">
+    <div v-if="showChat" class="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-2rem)] h-[480px] max-h-[75vh] bg-white rounded-2xl shadow-2xl z-[1010] flex flex-col overflow-hidden border border-gray-150 transition-all duration-300">
+      <!-- Header -->
+      <div class="p-4 bg-gradient-to-r from-blue-900 to-indigo-800 text-white flex-shrink-0">
         <div class="flex items-center justify-between">
           <div class="flex items-center">
-            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 backdrop-blur-sm">
+              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
             <div>
-              <h4 class="font-bold text-gray-900">Live Chat Support</h4>
-              <p class="text-xs text-green-600">● Online Now</p>
+              <h4 class="font-bold text-sm tracking-wide">KSA Virtual Assistant</h4>
+              <p class="text-[10px] text-green-300 font-semibold flex items-center gap-1">
+                <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-ping"></span>
+                AI Agent Online
+              </p>
             </div>
           </div>
-          <button @click="toggleChat" class="text-gray-400 hover:text-gray-600">
+          <button @click="toggleChat" class="text-white/80 hover:text-white transition-colors">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -329,35 +340,56 @@
         </div>
       </div>
       
-      <div class="p-4 h-64 overflow-y-auto">
-        <div v-if="chatMessages.length === 0" class="text-center py-8">
-          <p class="text-gray-500 text-sm">Start chatting with our support team</p>
+      <!-- Messages List -->
+      <div ref="chatContainer" class="flex-grow p-4 overflow-y-auto space-y-4 bg-gray-50/50">
+        <div v-for="(msg, index) in chatMessages" :key="index" :class="['flex', msg.sender === 'user' ? 'justify-end' : 'justify-start']">
+          <div :class="['max-w-[85%] rounded-2xl px-4 py-2.5 shadow-sm text-sm', msg.sender === 'user' ? 'bg-[#1b4d84] text-white rounded-br-none' : 'bg-white border border-gray-150 text-gray-800 rounded-bl-none']">
+            <p class="leading-relaxed">{{ msg.text }}</p>
+            <p class="text-[10px] mt-1 text-right opacity-60">{{ formatTime(msg.timestamp) }}</p>
+          </div>
         </div>
-        <div v-else class="space-y-3">
-          <div v-for="(msg, index) in chatMessages" :key="index" :class="['flex', msg.sender === 'user' ? 'justify-end' : 'justify-start']">
-            <div :class="['max-w-xs rounded-lg px-4 py-2', msg.sender === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-800']">
-              <p class="text-sm">{{ msg.text }}</p>
-              <p class="text-xs mt-1 opacity-70">{{ formatTime(msg.timestamp) }}</p>
-            </div>
+        
+        <!-- Bouncing Dots Typing Loader -->
+        <div v-if="chatLoading" class="flex justify-start">
+          <div class="bg-white border border-gray-150 rounded-2xl rounded-bl-none px-4 py-3 flex items-center space-x-1 shadow-sm">
+            <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+            <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+            <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce"></span>
           </div>
         </div>
       </div>
       
-      <div class="p-4 border-t border-gray-200">
-        <div class="flex items-center">
+      <!-- Quick Prompts Chips -->
+      <div v-if="chatMessages.length === 1 && !chatLoading" class="px-4 py-2 bg-gray-50 flex flex-wrap gap-2 border-t border-gray-100 flex-shrink-0">
+        <button
+          v-for="prompt in quickPrompts"
+          :key="prompt"
+          @click="sendQuickPrompt(prompt)"
+          class="text-xs bg-white hover:bg-orange-50 hover:text-orange-600 border border-gray-200 hover:border-orange-200 text-gray-600 px-2.5 py-1.5 rounded-full transition-all duration-200 shadow-sm"
+        >
+          {{ prompt }}
+        </button>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="p-3 border-t border-gray-100 bg-white flex-shrink-0">
+        <div class="flex items-center gap-2">
           <input
             v-model="chatMessage"
             @keyup.enter="sendChatMessage"
             type="text"
-            placeholder="Type your message..."
-            class="flex-1 px-4 py-2 text-sm border border-gray-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Ask a question..."
+            class="flex-grow px-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#1b4d84] focus:border-[#1b4d84] bg-gray-50"
+            :disabled="chatLoading"
           />
           <button
             @click="sendChatMessage"
-            class="px-4 py-2 bg-blue-600 text-white rounded-r-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-            :disabled="!chatMessage.trim()"
+            class="p-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all duration-200 flex-shrink-0 shadow-sm disabled:opacity-50"
+            :disabled="!chatMessage.trim() || chatLoading"
           >
-            Send
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
           </button>
         </div>
       </div>
@@ -369,7 +401,7 @@
 <script setup>
 import ErrorBoundary from '../components/global/ErrorBoundary.vue'
 import { useSEO } from '../hooks/useSEO'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import api from '@/services/api'
 
 useSEO({
@@ -377,11 +409,6 @@ useSEO({
   description: 'Get in touch with Nigeria’s premier property valuers for expert consultation, property valuation, and comprehensive real estate solutions.'
 })
 
-// Chat state
-const showChat = ref(false)
-const chatMessage = ref('')
-const chatMessages = ref([])
-const chatLoading = ref(false)
 
 onMounted(() => {
   if (typeof window !== 'undefined' && window.L) {
@@ -398,13 +425,46 @@ onMounted(() => {
   }
 })
 
-// Chat Functions
+// Chat state
+const showChat = ref(false)
+const chatMessage = ref('')
+const chatMessages = ref([])
+const chatLoading = ref(false)
+const chatContainer = ref(null)
+
+const quickPrompts = [
+  'What services do you offer?',
+  'How do I book a property tour?',
+  'Where is your office located?',
+  'Tell me about your ongoing projects'
+]
+
 const toggleChat = () => {
   showChat.value = !showChat.value
+  if (showChat.value && chatMessages.value.length === 0) {
+    chatMessages.value.push({
+      text: "Hello! Welcome to KSA Valuers. I am your virtual assistant. How can I help you with property valuations, ongoing projects, or our real estate services today?",
+      sender: 'support',
+      timestamp: new Date()
+    })
+    scrollToBottom()
+  }
 }
 
-const sendChatMessage = async () => {
-  const text = chatMessage.value.trim()
+const sendQuickPrompt = (promptText) => {
+  sendChatMessage(promptText)
+}
+
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (chatContainer.value) {
+      chatContainer.value.scrollTop = chatContainer.value.scrollHeight
+    }
+  })
+}
+
+const sendChatMessage = async (overrideText = null) => {
+  const text = typeof overrideText === 'string' ? overrideText.trim() : chatMessage.value.trim()
   if (!text || chatLoading.value) return
 
   chatMessages.value.push({
@@ -412,25 +472,31 @@ const sendChatMessage = async () => {
     sender: 'user',
     timestamp: new Date()
   })
-  chatMessage.value = ''
+  
+  if (!overrideText) {
+    chatMessage.value = ''
+  }
+  
   chatLoading.value = true
+  scrollToBottom()
 
   try {
     const res = await api.post('/api/ask-ai', { question: text })
     chatMessages.value.push({
-      text: res.answer || res.data?.answer || "Thanks for your message. Our support team will respond shortly.",
+      text: res.data?.answer || res.answer || "Thanks for your message. Our support team will respond shortly.",
       sender: 'support',
       timestamp: new Date()
     })
   } catch (err) {
     console.error('Failed to get AI response:', err)
     chatMessages.value.push({
-      text: "Sorry, I'm having trouble connecting right now. Please call one of our contact numbers or try again later.",
+      text: "Sorry, I'm having trouble connecting to our AI assistant right now. Please call us directly or try again later.",
       sender: 'support',
       timestamp: new Date()
     })
   } finally {
     chatLoading.value = false
+    scrollToBottom()
   }
 }
 

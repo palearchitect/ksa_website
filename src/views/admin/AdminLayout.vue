@@ -32,7 +32,7 @@
           <transition name="fade-label">
             <div class="brand-text" v-if="!collapsed">
               <span class="brand-name">KSA Valuers</span>
-              <span class="brand-sub">{{ user?.role === 'admin' ? 'Superadmin Panel' : 'Web Admin Panel' }}</span>
+              <span class="brand-sub">Admin Panel</span>
             </div>
           </transition>
         </div>
@@ -56,25 +56,6 @@
               class="nav-badge"
             >{{ item.badge }}</span>
           </router-link>
-
-          <template v-if="user?.role === 'admin'">
-            <div class="nav-divider" />
-            <div class="nav-group-label" v-if="!collapsed">Property Management</div>
-            <router-link
-              to="/dashboard/management"
-              class="nav-link"
-              :class="{ active: isActive('ManagementDashboard') }"
-              :title="collapsed ? 'PMS Gateway' : ''"
-              @click="mobileOpen = false"
-            >
-              <span class="nav-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </span>
-              <span class="nav-label" v-if="!collapsed">PMS Gateway</span>
-            </router-link>
-          </template>
 
           <div class="nav-divider" />
           <div class="nav-group-label" v-if="!collapsed">Account</div>
@@ -139,16 +120,12 @@
 
           <!-- Breadcrumb -->
           <div class="topbar-breadcrumb">
-            <router-link :to="user?.role === 'admin' ? '/dashboard/admin' : '/dashboard/webadmin'" class="breadcrumb-home">Admin</router-link>
+            <router-link to="/dashboard/admin" class="breadcrumb-home">Admin</router-link>
             <span class="breadcrumb-sep">/</span>
             <span class="breadcrumb-current">{{ pageTitle }}</span>
           </div>
 
           <div class="topbar-right">
-            <!-- Property Switcher for Admin/Managers -->
-            <div class="mr-2" v-if="user?.role === 'admin'">
-              <PropertySwitcher />
-            </div>
             <!-- Visit site -->
             <a href="/" target="_blank" class="topbar-site-link">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -180,7 +157,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { authAPI } from '@/services/api'
-import PropertySwitcher from '@/components/properties/PropertySwitcher.vue'
 
 const route     = useRoute()
 const router    = useRouter()
@@ -217,45 +193,26 @@ function toggleSidebar() {
 const navItems = computed(() => {
   const role = user.value?.role
   
-  if (role === 'admin') {
+  if (role === 'admin' || role === 'webadmin') {
     return [
       {
-        to: '/dashboard/admin', label: 'Dashboard', match: 'SuperAdminDashboard',
+        to: '/dashboard/admin', label: 'Dashboard', match: 'AdminDashboard',
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'
+      },
+      {
+        to: '/dashboard/admin/slides', label: 'Hero Slides', match: 'AdminSlide',
+        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>'
       },
       {
         to: '/dashboard/admin/properties', label: 'Properties', match: 'AdminProperty',
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>'
       },
       {
-        to: '/dashboard/admin/projects', label: 'Projects', match: 'AdminProject',
+        to: '/dashboard/admin/projects', label: 'Ongoing Projects', match: 'AdminProject',
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>'
       },
       {
-        to: '/dashboard/admin/bookings', label: 'Bookings', match: 'AdminBooking',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>'
-      },
-      {
-        to: '/dashboard/admin/appointments', label: 'Appointments', match: 'AdminAppointment',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
-      },
-      {
-        to: '/dashboard/webadmin', label: 'Web Content Portal', match: 'WebAdminDashboard',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M4 4h.01M4 9h.01M4 14h.01M4 19h.01M9 4h.01M14 4h.01"/></svg>'
-      }
-    ]
-  } else if (role === 'webadmin') {
-    return [
-      {
-        to: '/dashboard/webadmin', label: 'Dashboard', match: 'WebAdminDashboard',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'
-      },
-      {
-        to: '/dashboard/webadmin/slides', label: 'Hero Slides', match: 'AdminSlide',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>'
-      },
-      {
-        to: '/dashboard/webadmin/team', label: 'Team', match: 'AdminTeam',
+        to: '/dashboard/admin/team', label: 'Team', match: 'AdminTeam',
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>'
       }
     ]
@@ -270,14 +227,11 @@ const isActive = (matchPrefix) => {
 
 const pageTitle = computed(() => {
   const name = String(route.name || '')
+  if (name.includes('Slide')) return 'Hero Slides'
+  if (name.includes('Team'))  return 'Team'
   if (name.includes('Property')) return 'Properties'
-  if (name.includes('Project'))  return 'Projects'
-  if (name.includes('Booking'))  return 'Bookings'
-  if (name.includes('Appointment')) return 'Appointments'
-  if (name.includes('Slide'))    return 'Hero Slides'
-  if (name.includes('Team'))     return 'Team'
-  if (name === 'WebAdminDashboard') return 'Web Admin Portal'
-  return 'Superadmin Dashboard'
+  if (name.includes('Project')) return 'Ongoing Projects'
+  return 'Admin Dashboard'
 })
 
 async function handleLogout() {
@@ -387,7 +341,7 @@ async function handleStopImpersonation() {
 }
 .brand-logo {
   width: 36px; height: 36px; flex-shrink: 0;
-  background: #1d4ed8;
+  background: #1b4d84;
   border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
 }
@@ -431,7 +385,7 @@ async function handleStopImpersonation() {
   text-align: left;
 }
 .nav-link:hover    { background: #1f2937; color: #d1d5db; }
-.nav-link.active   { background: #1d4ed8; color: #fff; }
+.nav-link.active   { background: #1b4d84; color: #fff; }
 .nav-link.nav-link-btn:hover { background: rgba(239,68,68,0.15); color: #f87171; }
 .nav-icon { width: 18px; height: 18px; flex-shrink: 0; display: flex; align-items: center; }
 .nav-icon :deep(svg) { width: 18px; height: 18px; }
@@ -462,7 +416,7 @@ async function handleStopImpersonation() {
 .su-avatar {
   width: 32px; height: 32px;
   border-radius: 50%;
-  background: #1d4ed8;
+  background: #1b4d84;
   color: #fff;
   font-size: 0.72rem;
   font-weight: 700;
@@ -550,7 +504,7 @@ async function handleStopImpersonation() {
 }
 .pill-avatar {
   width: 26px; height: 26px; border-radius: 50%;
-  background: #1d4ed8; color: #fff;
+  background: #1b4d84; color: #fff;
   font-size: 0.65rem; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
 }

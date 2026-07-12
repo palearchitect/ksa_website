@@ -650,7 +650,7 @@ section {
 
 /* Gradient text animation */
 .text-gradient {
-  background: linear-gradient(90deg, #1e40af, #3b82f6, #1d4ed8);
+  background: linear-gradient(90deg, #0f294a, #f96816, #1b4d84);
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

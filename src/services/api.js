@@ -236,6 +236,10 @@ export const formatError = (error) => {
   }
 }
 
+export const uploadService = {
+  uploadFile: (fileName, fileData) => api.post('/api/upload', { fileName, fileData }).then((r) => r.data)
+}
+
 // ============================================
 // DEFAULT EXPORT
 // ============================================

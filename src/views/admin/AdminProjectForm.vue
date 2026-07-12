@@ -176,16 +176,50 @@
           </div>
         </div>
 
-        <!-- Image URL -->
+        <!-- Image URL & Device Upload -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Image URL
-          </label>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Image Source</label>
+          <div class="flex items-center gap-4 mb-3">
+            <label class="flex items-center text-sm text-gray-700 cursor-pointer">
+              <input type="radio" v-model="imageSource" value="upload" class="mr-2 text-blue-600 focus:ring-blue-500">
+              Upload from Device
+            </label>
+            <label class="flex items-center text-sm text-gray-700 cursor-pointer">
+              <input type="radio" v-model="imageSource" value="url" class="mr-2 text-blue-600 focus:ring-blue-500">
+              Paste Image URL
+            </label>
+          </div>
+
+          <!-- Upload input -->
+          <div v-if="imageSource === 'upload'" class="space-y-2 mb-2">
+            <div class="flex items-center justify-center w-full">
+              <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition relative">
+                <div v-if="uploadingFile" class="flex flex-col items-center justify-center pt-5 pb-6">
+                  <svg class="animate-spin h-8 w-8 text-blue-600 mb-2" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <p class="text-sm text-gray-500 font-medium">Uploading file...</p>
+                </div>
+                <div v-else class="flex flex-col items-center justify-center pt-5 pb-6">
+                  <svg class="w-8 h-8 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <p class="text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                  <p class="text-xs text-gray-400">PNG, JPG or JPEG (max 8MB)</p>
+                </div>
+                <input type="file" class="hidden" accept="image/*" @change="handleFileUpload" :disabled="uploadingFile" />
+              </label>
+            </div>
+          </div>
+
+          <!-- URL input -->
           <input
+            v-else
             v-model="form.image"
             type="url"
             placeholder="https://images.unsplash.com/photo-..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
           >
           <p class="text-xs text-gray-500 mt-1">Enter image URL (Unsplash, ImageKit, etc.)</p>
           
@@ -257,6 +291,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
+import { uploadService } from '@/services/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -295,6 +330,37 @@ const availableAmenities = [
 
 const submitting = ref(false)
 const errorMessage = ref('')
+const imageSource = ref('upload')
+const uploadingFile = ref(false)
+
+const handleFileUpload = async (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  if (file.size > 8 * 1024 * 1024) {
+    alert('File size exceeds 8MB limit.')
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = async () => {
+    uploadingFile.value = true
+    try {
+      const res = await uploadService.uploadFile(file.name, reader.result)
+      if (res.success && res.url) {
+        form.value.image = res.url
+      } else {
+        alert(res.message || 'File upload failed.')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Error uploading file. Please try again.')
+    } finally {
+      uploadingFile.value = false
+    }
+  }
+  reader.readAsDataURL(file)
+}
 
 const isEditMode = computed(() => !!route.params.id)
 

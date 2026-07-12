@@ -163,9 +163,9 @@ useSEO({
 const router = useRouter()
 const propertyStore = usePropertyStore()
 
-// Load sample properties if empty
+// Load properties if empty
 if (propertyStore.properties.length === 0) {
-  propertyStore.loadSampleData()
+  propertyStore.fetchProperties()
 }
 
 const viewProperty = (id) => {

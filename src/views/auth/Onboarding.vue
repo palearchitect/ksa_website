@@ -27,18 +27,7 @@
           />
         </div>
 
-        <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2">Account Role</label>
-          <select
-            v-model="form.role"
-            required
-            class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-[#D4755B] text-gray-950 font-medium"
-          >
-            <option value="" disabled>Select your role...</option>
-            <option value="tenant">Tenant (Renting a property)</option>
-            <option value="propertyowner">Property Owner (Asset Owner)</option>
-          </select>
-        </div>
+
 
         <div v-if="error" class="text-red-500 text-sm bg-red-50 p-3 rounded-lg border border-red-100">
           {{ error }}
@@ -72,7 +61,7 @@ const route = useRoute()
 const form = ref({
   name: '',
   email: '',
-  role: '',
+  role: 'tenant',
   googleId: ''
 })
 
@@ -98,8 +87,8 @@ async function handleOnboarding() {
   )
   if (result.success) {
     const roleDashboardMap = {
-      propertyowner: '/dashboard/owner',
-      tenant: '/dashboard/tenant'
+      propertyowner: '/',
+      tenant: '/'
     }
     router.push(roleDashboardMap[form.value.role] || '/')
   } else {

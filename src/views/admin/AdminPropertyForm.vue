@@ -27,8 +27,27 @@
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Primary Image URL</label>
-            <input v-model="form.image" type="url" placeholder="https://images.unsplash.com/photo-..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Primary Image</label>
+            <div class="flex items-center gap-4 mb-2">
+              <label class="flex items-center text-sm text-gray-700 cursor-pointer">
+                <input type="radio" v-model="imageSource" value="upload" class="mr-2 text-blue-600 focus:ring-blue-500">
+                Upload
+              </label>
+              <label class="flex items-center text-sm text-gray-700 cursor-pointer">
+                <input type="radio" v-model="imageSource" value="url" class="mr-2 text-blue-600 focus:ring-blue-500">
+                Paste URL
+              </label>
+            </div>
+            
+            <div v-if="imageSource === 'upload'" class="flex items-center gap-2">
+              <label class="flex items-center justify-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg cursor-pointer transition text-sm">
+                <span>{{ uploadingFile ? 'Uploading...' : 'Choose File' }}</span>
+                <input type="file" class="hidden" accept="image/*" @change="handleFileUpload" :disabled="uploadingFile">
+              </label>
+              <span class="text-xs text-gray-500 truncate max-w-xs" v-if="form.image">{{ form.image }}</span>
+            </div>
+            
+            <input v-else v-model="form.image" type="url" placeholder="https://images.unsplash.com/photo-..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
           </div>
         </div>
 
@@ -76,14 +95,24 @@
           <div class="space-y-3 mb-3">
             <div v-for="(imgUrl, idx) in form.images" :key="idx" class="flex gap-2 items-center">
               <input v-model="form.images[idx]" type="url" placeholder="Gallery Image URL" class="flex-grow px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+              <label class="flex items-center justify-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg cursor-pointer transition text-sm flex-shrink-0">
+                <span>{{ uploadingGalleryIdx === idx ? 'Uploading...' : 'Upload' }}</span>
+                <input type="file" class="hidden" accept="image/*" @change="handleGalleryFileUpload($event, idx)" :disabled="uploadingGalleryIdx !== null">
+              </label>
               <button type="button" @click="removeImage(idx)" class="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-lg transition text-sm">
                 Remove
               </button>
             </div>
           </div>
-          <button type="button" @click="addImageUrl" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold rounded-lg transition text-sm">
-            + Add Image URL to Gallery
-          </button>
+          <div class="flex gap-2">
+            <button type="button" @click="addImageUrl" class="px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold rounded-lg transition text-sm">
+              + Add Image URL
+            </button>
+            <label class="px-4 py-2 bg-green-50 hover:bg-green-100 text-green-600 font-semibold rounded-lg cursor-pointer transition text-sm flex items-center justify-center">
+              <span>+ Upload Image File</span>
+              <input type="file" class="hidden" accept="image/*" @change="handleNewGalleryUpload" :disabled="uploadingGalleryIdx !== null">
+            </label>
+          </div>
         </div>
 
         <div class="flex items-center">
@@ -112,6 +141,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePropertyStore } from '@/stores/propertyStore'
+import { uploadService } from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -119,6 +149,103 @@ const propertyStore = usePropertyStore()
 const isEditMode = computed(() => Boolean(route.params.id))
 const submitting = ref(false)
 const errorMessage = ref('')
+const imageSource = ref('upload')
+const uploadingFile = ref(false)
+const uploadingGalleryIdx = ref(null)
+
+const handleFileUpload = async (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  if (file.size > 8 * 1024 * 1024) {
+    alert('File size exceeds 8MB limit.')
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = async () => {
+    uploadingFile.value = true
+    try {
+      const res = await uploadService.uploadFile(file.name, reader.result)
+      if (res.success && res.url) {
+        form.value.image = res.url
+      } else {
+        alert(res.message || 'File upload failed.')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Error uploading file. Please try again.')
+    } finally {
+      uploadingFile.value = false
+    }
+  }
+  reader.readAsDataURL(file)
+}
+
+const handleGalleryFileUpload = async (event, idx) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  if (file.size > 8 * 1024 * 1024) {
+    alert('File size exceeds 8MB limit.')
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = async () => {
+    uploadingGalleryIdx.value = idx
+    try {
+      const res = await uploadService.uploadFile(file.name, reader.result)
+      if (res.success && res.url) {
+        form.value.images[idx] = res.url
+      } else {
+        alert(res.message || 'File upload failed.')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('Error uploading file. Please try again.')
+    } finally {
+      uploadingGalleryIdx.value = null
+    }
+  }
+  reader.readAsDataURL(file)
+}
+
+const handleNewGalleryUpload = async (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  if (file.size > 8 * 1024 * 1024) {
+    alert('File size exceeds 8MB limit.')
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = async () => {
+    if (!form.value.images) {
+      form.value.images = []
+    }
+    const idx = form.value.images.length
+    form.value.images.push('')
+    uploadingGalleryIdx.value = idx
+    try {
+      const res = await uploadService.uploadFile(file.name, reader.result)
+      if (res.success && res.url) {
+        form.value.images[idx] = res.url
+      } else {
+        form.value.images.splice(idx, 1)
+        alert(res.message || 'File upload failed.')
+      }
+    } catch (err) {
+      console.error(err)
+      form.value.images.splice(idx, 1)
+      alert('Error uploading file. Please try again.')
+    } finally {
+      uploadingGalleryIdx.value = null
+    }
+  }
+  reader.readAsDataURL(file)
+}
 
 const form = ref({
   title: '',

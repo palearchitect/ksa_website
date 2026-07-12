@@ -1,5 +1,6 @@
 require('dotenv').config();
 const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -15,8 +16,8 @@ const { getTemplate } = require('./services/emailTemplates');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'replace-me';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'replace-me-too';
+const JWT_SECRET = process.env.JWT_SECRET || 'f91373f359e5fc7cec3d41d5120b302e6d3ec6750cdfa033bb5f57749b625ec036e6deb5ee2ac9a8d354b0c940ccf1fd0781aea43ca541fcb6082590397552e4';
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || '7df6457e1a2cb98621e7e70935bab46e826515c9b5a89311bd54d9e1b9b81f5ac86a020c6b2de95b37af8cd8f1d2495d01012843257f7d3e57b88a9152d4a8f6';
 const ACCESS_TOKEN_TTL = process.env.JWT_ACCESS_TTL || '15m';
 const REFRESH_TOKEN_TTL = process.env.JWT_REFRESH_TTL || '7d';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -32,7 +33,7 @@ const pool = new Pool({
 // CORS Configuration
 const getAllowedOrigins = () => {
   const nodeEnv = process.env.NODE_ENV || 'development';
-  
+
   // Development - allow localhost
   if (nodeEnv !== 'production') {
     return [
@@ -42,7 +43,7 @@ const getAllowedOrigins = () => {
       'http://127.0.0.1:5173'
     ];
   }
-  
+
   // Production - require explicit ALLOWED_ORIGINS
   const allowedOrigins = process.env.ALLOWED_ORIGINS;
   if (!allowedOrigins) {
@@ -52,7 +53,7 @@ const getAllowedOrigins = () => {
     );
     return []; // No origins allowed if not configured
   }
-  
+
   // Parse comma-separated origins and validate they're https in production
   return allowedOrigins
     .split(',')
@@ -76,9 +77,9 @@ const allowedOrigins = getAllowedOrigins();
 const aiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 30, // limit each IP to 30 requests per windowMs
-  message: { 
-    success: false, 
-    message: 'Too many AI requests, please try again later.' 
+  message: {
+    success: false,
+    message: 'Too many AI requests, please try again later.'
   }
 });
 
@@ -110,8 +111,15 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-csrf-token']
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(cookieParser());
+
+// Ensure local uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsDir));
 
 // Express Security Headers
 app.use((req, res, next) => {
@@ -131,12 +139,12 @@ const csrfProtection = (req, res, next) => {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
     return next();
   }
-  
+
   // Only enforce CSRF if there is an active session cookie present
   if (req.cookies.ksa_access) {
     const csrfCookie = req.cookies.ksa_csrf;
     const csrfHeader = req.headers['x-csrf-token'];
-    
+
     if (!csrfCookie || !csrfHeader || csrfCookie !== csrfHeader) {
       return res.status(403).json({ success: false, message: 'Invalid or missing CSRF token' });
     }
@@ -242,7 +250,7 @@ const setAuthCookies = (res, accessToken, refreshToken) => {
   const base = { httpOnly: true, secure: IS_PROD, sameSite: 'lax', path: '/' };
   res.cookie('ksa_access', accessToken, { ...base, maxAge: 15 * 60 * 1000 });
   res.cookie('ksa_refresh', refreshToken, { ...base, maxAge: 7 * 24 * 60 * 60 * 1000 });
-  
+
   // Set CSRF token cookie on successful authentication
   const csrfToken = crypto.randomBytes(32).toString('hex');
   res.cookie('ksa_csrf', csrfToken, { httpOnly: false, secure: IS_PROD, sameSite: 'lax', path: '/' });
@@ -457,12 +465,12 @@ const initializeDatabase = async () => {
         `\n   Example: MySecure_Pass123\n`
       );
     }
-    
+
     // Test database connection
     console.log('🔌 Testing database connection...');
     const testConnection = await pool.query('SELECT NOW()');
     console.log('✅ Database connection successful');
-    
+
     // Check if DATABASE_URL is configured
     if (!process.env.DATABASE_URL) {
       throw new Error(
@@ -470,12 +478,12 @@ const initializeDatabase = async () => {
         'Please add DATABASE_URL to your .env file (e.g., postgres://user:password@localhost:5432/ksa_valuers)'
       );
     }
-    
+
     // Run migrations
     console.log('\n🔧 Running database migrations...');
     await runMigrations();
     console.log('✅ Database migrations completed\n');
-    
+
     // Seed admin user if needed
     const existingAdmin = await pool.query(`SELECT id FROM users WHERE email = $1 LIMIT 1`, ['admin@ksavaluers.com']);
     if (existingAdmin.rowCount === 0) {
@@ -487,7 +495,7 @@ const initializeDatabase = async () => {
       console.log('✅ Seeded admin user (admin@ksavaluers.com)');
       console.log('⚠️  Keep your ADMIN_PASSWORD secure. Do not share it or commit it to version control.');
     }
-    
+
     return true;
   } catch (error) {
     console.error('\n❌ Database initialization error:');
@@ -511,7 +519,7 @@ const initializeEmailService = async () => {
   try {
     emailService = createEmailService();
     const testResult = await emailService.testConnection();
-    
+
     if (testResult.success) {
       console.log(`✅ Email service ready (${testResult.provider})`);
     } else {
@@ -531,9 +539,9 @@ app.post('/api/contact', publicFormLimiter, async (req, res) => {
     const { name, email, phone, subject, message } = req.body;
 
     if (!name || !email || !subject || !message) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'All fields marked with * are required' 
+      return res.status(400).json({
+        success: false,
+        message: 'All fields marked with * are required'
       });
     }
 
@@ -552,7 +560,7 @@ app.post('/api/contact', publicFormLimiter, async (req, res) => {
           subject,
           message
         });
-        
+
         await emailService.send({
           to: email,
           subject: confirmationTemplate.subject,
@@ -591,17 +599,17 @@ app.post('/api/contact', publicFormLimiter, async (req, res) => {
         console.error('Admin notification email failed:', emailError.message);
       }
     }
-    
-    res.json({ 
-      success: true, 
-      message: 'Message sent successfully!' 
+
+    res.json({
+      success: true,
+      message: 'Message sent successfully!'
     });
 
   } catch (error) {
     console.error('Contact endpoint error:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error. Please try again later.' 
+    res.status(500).json({
+      success: false,
+      message: 'Server error. Please try again later.'
     });
   }
 });
@@ -652,7 +660,7 @@ app.post('/api/v1/auth/login', authLimiter, async (req, res) => {
     }
 
     const result = await pool.query(
-      `SELECT * FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1`, 
+      `SELECT * FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1`,
       [String(email).toLowerCase()]
     );
     if (result.rowCount === 0) {
@@ -672,7 +680,7 @@ app.post('/api/v1/auth/login', authLimiter, async (req, res) => {
     if (user.status === 'pending_verification') {
       const otp = crypto.randomInt(100000, 999999).toString();
       const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-      
+
       await pool.query(
         'UPDATE users SET otp_code = $1, otp_expires_at = $2 WHERE id = $3',
         [otp, otpExpires, user.id]
@@ -704,11 +712,11 @@ app.post('/api/v1/auth/login', authLimiter, async (req, res) => {
         console.error('Failed to send verification email on login:', mailError);
       }
 
-      return res.status(400).json({ 
-        success: false, 
-        pendingVerification: true, 
-        email: user.email, 
-        message: 'Please verify your email address. A verification OTP has been sent.' 
+      return res.status(400).json({
+        success: false,
+        pendingVerification: true,
+        email: user.email,
+        message: 'Please verify your email address. A verification OTP has been sent.'
       });
     }
 
@@ -735,7 +743,7 @@ app.post('/api/v1/auth/register', authLimiter, async (req, res) => {
     }
 
     const checkUser = await pool.query(
-      'SELECT id, status FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1', 
+      'SELECT id, status FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1',
       [String(email).toLowerCase().trim()]
     );
     if (checkUser.rowCount > 0) {
@@ -743,13 +751,13 @@ app.post('/api/v1/auth/register', authLimiter, async (req, res) => {
       if (existingUser.status === 'pending_verification') {
         const otp = crypto.randomInt(100000, 999999).toString();
         const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-        
+
         await pool.query(
           `UPDATE users SET name = $1, password_hash = $2, role = $3, otp_code = $4, otp_expires_at = $5, updated_at = NOW()
            WHERE id = $6`,
           [name, await bcrypt.hash(String(password), 12), resolvedRole, otp, otpExpires, existingUser.id]
         );
-        
+
         try {
           if (emailService) {
             await emailService.send({
@@ -775,7 +783,7 @@ app.post('/api/v1/auth/register', authLimiter, async (req, res) => {
         } catch (mailError) {
           console.error('Failed to send verification email on re-registration:', mailError);
         }
-        
+
         return res.json({ success: true, status: 'pending_verification', email: String(email).toLowerCase().trim() });
       } else {
         return res.status(400).json({ success: false, message: 'Email address already registered' });
@@ -793,7 +801,7 @@ app.post('/api/v1/auth/register', authLimiter, async (req, res) => {
     if (!['tenant', 'propertyowner'].includes(resolvedRole)) {
       resolvedRole = 'tenant';
     }
-    
+
     const otp = crypto.randomInt(100000, 999999).toString();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -957,9 +965,9 @@ app.post('/api/v1/auth/refresh', authLimiter, async (req, res) => {
     const refresh = req.cookies.ksa_refresh;
     if (!refresh) return res.status(401).json({ success: false, message: 'No refresh token' });
     const decoded = jwt.verify(refresh, JWT_REFRESH_SECRET);
-    
+
     const result = await pool.query(
-      `SELECT id, email, role, name, status FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1`, 
+      `SELECT id, email, role, name, status FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1`,
       [decoded.sub]
     );
     if (result.rowCount === 0) return res.status(401).json({ success: false, message: 'User not found' });
@@ -985,12 +993,12 @@ app.post('/api/v1/auth/logout', (req, res) => {
 
 app.get('/api/v1/auth/me', requireAuth, async (req, res) => {
   const result = await pool.query(
-    `SELECT id, email, role, name, status, google_id FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1`, 
+    `SELECT id, email, role, name, status, google_id FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1`,
     [req.user.sub]
   );
   if (result.rowCount === 0) return res.status(401).json({ success: false, message: 'User not found' });
   const user = result.rows[0];
-  
+
   if (user.status === 'suspended') {
     clearAuthCookies(res);
     return res.status(403).json({ success: false, message: 'Account suspended.' });
@@ -1010,7 +1018,7 @@ app.get('/api/v1/auth/me', requireAuth, async (req, res) => {
     data.impersonatorId = req.user.impersonatorId;
     data.impersonatorEmail = req.user.impersonatorEmail;
   }
-  
+
   if (user.role === 'propertyowner') {
     const ownerVerify = await pool.query(
       `SELECT 1 FROM owner_property WHERE owner_id = $1 LIMIT 1`,
@@ -1018,7 +1026,7 @@ app.get('/api/v1/auth/me', requireAuth, async (req, res) => {
     );
     data.hasLinkedProperties = ownerVerify.rowCount > 0;
   }
-  
+
   return res.json({ success: true, data });
 });
 
@@ -1035,7 +1043,7 @@ app.post('/api/v1/auth/google', authLimiter, async (req, res) => {
     try {
       const response = await axios.get(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
       const payload = response.data;
-      
+
       const aud = payload.aud;
       const expectedAud = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID;
       if (expectedAud && aud !== expectedAud) {
@@ -1070,18 +1078,18 @@ app.post('/api/v1/auth/google', authLimiter, async (req, res) => {
       if (!user.google_id) {
         await pool.query('UPDATE users SET google_id = $1 WHERE id = $2', [googleId, user.id]);
       }
-      
+
       const authUser = { id: user.id, email: user.email, role: user.role, name: user.name };
       setAuthCookies(res, signAccessToken(authUser), signRefreshToken(authUser));
       return res.json({ success: true, registered: true, data: authUser });
     } else {
       // Social Onboarding Verification: generate a short-lived token to prevent client-side query parameters spoofing
       const onboardingToken = jwt.sign(
-        { email, googleId, name }, 
-        JWT_SECRET, 
+        { email, googleId, name },
+        JWT_SECRET,
         { expiresIn: '15m' }
       );
-      
+
       return res.json({
         success: true,
         registered: false,
@@ -1118,7 +1126,7 @@ app.post('/api/v1/auth/onboarding', authLimiter, async (req, res) => {
     }
 
     const checkUser = await pool.query(
-      'SELECT id FROM users WHERE (email = $1 OR google_id = $2) AND deleted_at IS NULL LIMIT 1', 
+      'SELECT id FROM users WHERE (email = $1 OR google_id = $2) AND deleted_at IS NULL LIMIT 1',
       [email, googleId]
     );
     if (checkUser.rowCount > 0) {
@@ -1220,7 +1228,7 @@ app.put('/api/v1/auth/password', requireAuth, async (req, res) => {
 app.post('/api/v1/auth/deboard', requireAuth, async (req, res) => {
   try {
     const { password } = req.body || {};
-    
+
     // Safety check: superadmin cannot delete the last superadmin account
     if (req.user.role === 'admin') {
       const activeAdmins = await pool.query(
@@ -1251,7 +1259,7 @@ app.post('/api/v1/auth/deboard', requireAuth, async (req, res) => {
 
     // Soft delete user
     await pool.query(
-      "UPDATE users SET deleted_at = NOW(), status = 'suspended', updated_at = NOW() WHERE id = $1", 
+      "UPDATE users SET deleted_at = NOW(), status = 'suspended', updated_at = NOW() WHERE id = $1",
       [req.user.sub]
     );
 
@@ -1282,7 +1290,7 @@ app.post('/api/v1/auth/link-google', requireAuth, async (req, res) => {
     }
 
     const checkGoogle = await pool.query(
-      'SELECT id FROM users WHERE google_id = $1 AND deleted_at IS NULL LIMIT 1', 
+      'SELECT id FROM users WHERE google_id = $1 AND deleted_at IS NULL LIMIT 1',
       [googleId]
     );
     if (checkGoogle.rowCount > 0) {
@@ -1352,30 +1360,30 @@ app.get('/api/pms/owner/verify', requireAuth, async (req, res) => {
 app.post('/api/ask-ai', aiLimiter, async (req, res) => {
   try {
     const { question } = req.body;
-    
+
     if (!question) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Question is required' 
+      return res.status(400).json({
+        success: false,
+        message: 'Question is required'
       });
     }
 
     // Check if API key exists
     if (!process.env.GEMINI_API_KEY) {
       console.error('❌ GEMINI_API_KEY not found in .env file');
-      return res.status(500).json({ 
-        success: false, 
-        message: 'AI service not configured - missing API key' 
+      return res.status(500).json({
+        success: false,
+        message: 'AI service not configured - missing API key'
       });
     }
 
     console.log('🤖 Asking Gemini:', question.substring(0, 50) + '...');
     console.log('🔑 Using API key starting with:', process.env.GEMINI_API_KEY.substring(0, 10) + '...');
 
-    // ✅ USING THE CORRECT MODEL FROM YOUR LIST: gemini-2.5-flash
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
-    
-    console.log('📡 Calling Gemini API with model: gemini-2.5-flash');
+    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GEMINI_API_KEY}`;
+
+    console.log('📡 Calling Gemini API with model:', modelName);
 
     const response = await axios.post(
       apiUrl,
@@ -1405,43 +1413,43 @@ app.post('/api/ask-ai', aiLimiter, async (req, res) => {
 
     // Extract the answer
     const answer = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
-    
+
     if (!answer) {
       console.error('❌ No answer in response');
-      return res.status(500).json({ 
-        success: false, 
-        message: 'AI returned empty response' 
+      return res.status(500).json({
+        success: false,
+        message: 'AI returned empty response'
       });
     }
 
     console.log('✅ AI response generated successfully');
-    res.json({ 
-      success: true, 
-      answer: answer 
+    res.json({
+      success: true,
+      answer: answer
     });
 
   } catch (error) {
     console.error('❌ Gemini API Error Details:');
-    
+
     if (error.response) {
       console.error('Status:', error.response.status);
       console.error('Data:', JSON.stringify(error.response.data, null, 2));
-      
-      return res.status(500).json({ 
-        success: false, 
-        message: `Gemini API error: ${error.response.data?.error?.message || 'Unknown error'}` 
+
+      return res.status(500).json({
+        success: false,
+        message: `Gemini API error: ${error.response.data?.error?.message || 'Unknown error'}`
       });
     } else if (error.request) {
       console.error('No response received from Gemini API');
-      return res.status(500).json({ 
-        success: false, 
-        message: 'No response from Gemini API - network issue?' 
+      return res.status(500).json({
+        success: false,
+        message: 'No response from Gemini API - network issue?'
       });
     } else {
       console.error('Error setting up request:', error.message);
-      return res.status(500).json({ 
-        success: false, 
-        message: `Request setup error: ${error.message}` 
+      return res.status(500).json({
+        success: false,
+        message: `Request setup error: ${error.message}`
       });
     }
   }
@@ -1455,27 +1463,28 @@ const answerCache = new Map();
 app.post('/api/ask-ai-cached', aiLimiter, async (req, res) => {
   try {
     const { question } = req.body;
-    
+
     if (!question) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Question is required' 
+      return res.status(400).json({
+        success: false,
+        message: 'Question is required'
       });
     }
 
     const cacheKey = question.toLowerCase().trim();
     if (answerCache.has(cacheKey)) {
       console.log('📦 Cache hit for:', cacheKey.substring(0, 30) + '...');
-      return res.json({ 
-        success: true, 
+      return res.json({
+        success: true,
         answer: answerCache.get(cacheKey),
-        cached: true 
+        cached: true
       });
     }
 
-    // Using gemini-2.5-flash for cached endpoint too
+    // Using configurable model for cached endpoint
+    const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GEMINI_API_KEY}`,
       {
         contents: [{
           parts: [{
@@ -1486,27 +1495,27 @@ app.post('/api/ask-ai-cached', aiLimiter, async (req, res) => {
       }
     );
 
-    const answer = response.data.candidates?.[0]?.content?.parts?.[0]?.text || 
+    const answer = response.data.candidates?.[0]?.content?.parts?.[0]?.text ||
       "I couldn't generate an answer. Please try again.";
 
     answerCache.set(cacheKey, answer);
-    
+
     if (answerCache.size > 100) {
       const firstKey = answerCache.keys().next().value;
       answerCache.delete(firstKey);
     }
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       answer: answer,
-      cached: false 
+      cached: false
     });
 
   } catch (error) {
     console.error('❌ Gemini API Error:', error.response?.data || error.message);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to get AI response. Please try again later.' 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get AI response. Please try again later.'
     });
   }
 });
@@ -1516,8 +1525,8 @@ app.post('/api/ask-ai-cached', aiLimiter, async (req, res) => {
 // ============================================
 app.post('/api/debug', express.json(), (req, res) => {
   console.log('📦 Debug - Received body:', req.body);
-  res.json({ 
-    success: true, 
+  res.json({
+    success: true,
     received: req.body,
     message: 'Debug endpoint working'
   });
@@ -1527,8 +1536,8 @@ app.post('/api/debug', express.json(), (req, res) => {
 // SIMPLE TEST ENDPOINT
 // ============================================
 app.get('/api/test', (req, res) => {
-  res.json({ 
-    success: true, 
+  res.json({
+    success: true,
     message: 'Backend is working!',
     timestamp: new Date().toISOString()
   });
@@ -1538,8 +1547,8 @@ app.get('/api/test', (req, res) => {
 // HEALTH CHECK
 // ============================================
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     service: 'KSA API',
     ai: process.env.GEMINI_API_KEY ? 'configured' : 'not configured',
     email: process.env.EMAIL_USER ? 'configured' : 'not configured'
@@ -1554,7 +1563,7 @@ app.get('/api/list-models', async (req, res) => {
     const response = await axios.get(
       `https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`
     );
-    
+
     const availableModels = response.data.models
       .filter(model => model.supportedGenerationMethods?.includes('generateContent'))
       .map(model => ({
@@ -1562,16 +1571,16 @@ app.get('/api/list-models', async (req, res) => {
         displayName: model.displayName,
         description: model.description
       }));
-    
+
     res.json({
       success: true,
       models: availableModels
     });
   } catch (error) {
     console.error('Error listing models:', error.response?.data || error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: error.response?.data || error.message 
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message
     });
   }
 });
@@ -1655,7 +1664,7 @@ app.post('/api/properties', requireAuth, requireRole('admin', 'manager'), async 
   try {
     const missing = requireFields(req.body || {}, ['title', 'location', 'price']);
     if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
-    
+
     const payload = req.body;
     const valError = validatePropertyInput(payload);
     if (valError) return res.status(400).json({ success: false, message: valError });
@@ -1670,7 +1679,7 @@ app.post('/api/properties', requireAuth, requireRole('admin', 'manager'), async 
         payload.description || null, Boolean(payload.featured), JSON.stringify(payload.tags || [])
       ]
     );
-    
+
     const newProperty = mapProperty(result.rows[0]);
     await logAudit(req.user.email, 'CREATE', 'properties', newProperty.id, null, newProperty);
 
@@ -1685,7 +1694,7 @@ app.put('/api/properties/:id', requireAuth, requireRole('admin', 'manager'), asy
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid property id' });
-    
+
     const payload = req.body || {};
     const valError = validatePropertyInput(payload);
     if (valError) return res.status(400).json({ success: false, message: valError });
@@ -1720,7 +1729,7 @@ app.put('/api/properties/:id', requireAuth, requireRole('admin', 'manager'), asy
         payload.tags ? JSON.stringify(payload.tags) : null
       ]
     );
-    
+
     const updatedProperty = mapProperty(result.rows[0]);
     await logAudit(req.user.email, 'UPDATE', 'properties', id, beforeData, updatedProperty);
 
@@ -1735,14 +1744,14 @@ app.delete('/api/properties/:id', requireAuth, requireRole('admin', 'manager'), 
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid property id' });
-    
+
     // Get before data for audit
     const beforeResult = await pool.query(`SELECT * FROM properties WHERE id = $1 LIMIT 1`, [id]);
     if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Property not found' });
     const beforeData = mapProperty(beforeResult.rows[0]);
 
     await pool.query(`DELETE FROM properties WHERE id = $1`, [id]);
-    
+
     await logAudit(req.user.email, 'DELETE', 'properties', id, beforeData, null);
 
     res.json({ success: true });
@@ -1827,7 +1836,7 @@ app.post('/api/projects', requireAuth, requireRole('admin', 'manager'), async (r
   try {
     const missing = requireFields(req.body || {}, ['title', 'location', 'status', 'type']);
     if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
-    
+
     const payload = req.body || {};
     const valError = validateProjectInput(payload);
     if (valError) return res.status(400).json({ success: false, message: valError });
@@ -1836,11 +1845,11 @@ app.post('/api/projects', requireAuth, requireRole('admin', 'manager'), async (r
       `INSERT INTO projects (title, location, image, description, status, type, total_units, completion_percentage, start_date, expected_completion, budget, featured, amenities)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
       [payload.title, payload.location, payload.image || null, payload.description || null, payload.status, payload.type,
-        payload.totalUnits || null, payload.completionPercentage || 0, payload.startDate || null, payload.expectedCompletion || null,
-        Number(payload.budget || 0), Boolean(payload.featured), JSON.stringify(payload.amenities || [])
+      payload.totalUnits || null, payload.completionPercentage || 0, payload.startDate || null, payload.expectedCompletion || null,
+      Number(payload.budget || 0), Boolean(payload.featured), JSON.stringify(payload.amenities || [])
       ]
     );
-    
+
     const newProject = mapProject(result.rows[0]);
     await logAudit(req.user.email, 'CREATE', 'projects', newProject.id, null, newProject);
 
@@ -1855,7 +1864,7 @@ app.put('/api/projects/:id', requireAuth, requireRole('admin', 'manager'), async
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid project id' });
-    
+
     const payload = req.body || {};
     const valError = validateProjectInput(payload);
     if (valError) return res.status(400).json({ success: false, message: valError });
@@ -1888,7 +1897,7 @@ app.put('/api/projects/:id', requireAuth, requireRole('admin', 'manager'), async
         payload.featured !== undefined ? Boolean(payload.featured) : null,
         payload.amenities ? JSON.stringify(payload.amenities) : null]
     );
-    
+
     const updatedProject = mapProject(result.rows[0]);
     await logAudit(req.user.email, 'UPDATE', 'projects', id, beforeData, updatedProject);
 
@@ -1903,14 +1912,14 @@ app.delete('/api/projects/:id', requireAuth, requireRole('admin', 'manager'), as
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid project id' });
-    
+
     // Get before data for audit
     const beforeResult = await pool.query(`SELECT * FROM projects WHERE id = $1 LIMIT 1`, [id]);
     if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Project not found' });
     const beforeData = mapProject(beforeResult.rows[0]);
 
     await pool.query(`DELETE FROM projects WHERE id = $1`, [id]);
-    
+
     await logAudit(req.user.email, 'DELETE', 'projects', id, beforeData, null);
 
     res.json({ success: true });
@@ -1982,7 +1991,7 @@ app.post('/api/bookings', publicFormLimiter, async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
       [id, data.property ? Number(data.property) : null, data.name, data.email, data.phone, data.date, data.time, data.guests || 1, data.notes || '', data.status || 'pending']
     );
-    
+
     const newBooking = mapBooking(result.rows[0]);
     await logAudit(data.email || 'anonymous', 'CREATE', 'bookings', id, null, newBooking);
 
@@ -1997,7 +2006,7 @@ app.post('/api/bookings', publicFormLimiter, async (req, res) => {
 app.put('/api/bookings/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
   try {
     const updates = req.body.data || req.body || {};
-    
+
     // Get before data for audit
     const beforeResult = await pool.query(`SELECT * FROM bookings WHERE id = $1 LIMIT 1`, [req.params.id]);
     if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Booking not found' });
@@ -2017,7 +2026,7 @@ app.put('/api/bookings/:id', requireAuth, requireRole('admin', 'manager'), async
         WHERE id = $1 RETURNING *`,
       [req.params.id, updates.name, updates.email, updates.phone, updates.date, updates.time, updates.guests, updates.notes, updates.status]
     );
-    
+
     const updatedBooking = mapBooking(result.rows[0]);
     await logAudit(req.user.email, 'UPDATE', 'bookings', req.params.id, beforeData, updatedBooking);
 
@@ -2037,7 +2046,7 @@ app.delete('/api/bookings/:id', requireAuth, requireRole('admin', 'manager'), as
     const beforeData = mapBooking(beforeResult.rows[0]);
 
     await pool.query(`DELETE FROM bookings WHERE id = $1`, [req.params.id]);
-    
+
     await logAudit(req.user.email, 'DELETE', 'bookings', req.params.id, beforeData, null);
 
     res.json({ success: true, message: 'Booking deleted successfully!' });
@@ -2080,7 +2089,7 @@ app.post('/api/appointments/schedule', publicFormLimiter, async (req, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *`,
       [id, data.property ? Number(data.property) : null, data.name, data.email, data.phone, data.date, data.time, data.guests || 1, data.notes || '', 'pending']
     );
-    
+
     const newBooking = mapBooking(result.rows[0]);
     await logAudit(data.email || 'anonymous', 'CREATE', 'bookings', id, null, newBooking);
 
@@ -2094,14 +2103,14 @@ app.post('/api/appointments/schedule', publicFormLimiter, async (req, res) => {
 app.put('/api/appointments/status', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
   try {
     const { id, status } = req.body;
-    
+
     // Get before data for audit
     const beforeResult = await pool.query(`SELECT * FROM bookings WHERE id = $1 LIMIT 1`, [id]);
     if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Appointment not found' });
     const beforeData = mapBooking(beforeResult.rows[0]);
 
     const result = await pool.query(`UPDATE bookings SET status = $2, updated_at = NOW() WHERE id = $1 RETURNING *`, [id, status]);
-    
+
     const updated = mapBooking(result.rows[0]);
     await logAudit(req.user.email, 'UPDATE', 'bookings', id, beforeData, updated);
 
@@ -2120,7 +2129,7 @@ app.put('/api/appointments/cancel/:id', requireAuth, requireRole('admin', 'manag
     const beforeData = mapBooking(beforeResult.rows[0]);
 
     const result = await pool.query(`UPDATE bookings SET status = 'cancelled', updated_at = NOW() WHERE id = $1 RETURNING *`, [req.params.id]);
-    
+
     const updated = mapBooking(result.rows[0]);
     await logAudit(req.user.email, 'UPDATE', 'bookings', req.params.id, beforeData, updated);
 
@@ -2139,9 +2148,9 @@ app.post('/email/booking-confirmation', async (req, res) => {
   const { booking } = req.body;
   try {
     if (!emailService) {
-      return res.status(503).json({ 
-        success: false, 
-        message: 'Email service not configured. Configure EMAIL_PROVIDER in .env' 
+      return res.status(503).json({
+        success: false,
+        message: 'Email service not configured. Configure EMAIL_PROVIDER in .env'
       });
     }
 
@@ -2162,9 +2171,9 @@ app.post('/email/booking-confirmation', async (req, res) => {
     res.json({ success: true, message: 'Confirmation email sent' });
   } catch (error) {
     console.error('Booking confirmation email error:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to send confirmation email. Your booking is still saved.' 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send confirmation email. Your booking is still saved.'
     });
   }
 });
@@ -2173,9 +2182,9 @@ app.post('/email/admin-notification', async (req, res) => {
   const { booking } = req.body;
   try {
     if (!emailService || !process.env.ADMIN_EMAIL) {
-      return res.status(503).json({ 
-        success: false, 
-        message: 'Email service not configured. Configure EMAIL_PROVIDER and ADMIN_EMAIL in .env' 
+      return res.status(503).json({
+        success: false,
+        message: 'Email service not configured. Configure EMAIL_PROVIDER and ADMIN_EMAIL in .env'
       });
     }
 
@@ -2205,9 +2214,9 @@ app.post('/email/admin-notification', async (req, res) => {
     res.json({ success: true, message: 'Admin notification sent' });
   } catch (error) {
     console.error('Admin notification email error:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to send notification. Please contact admin manually.' 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send notification. Please contact admin manually.'
     });
   }
 });
@@ -2246,7 +2255,7 @@ app.get('/api/status', async (req, res) => {
       pool.query('SELECT COUNT(*) FROM bookings'),
       pool.query('SELECT COUNT(*) FROM users')
     ]);
-    
+
     res.json({
       success: true,
       database: 'connected',
@@ -2281,7 +2290,7 @@ app.get('/api/hero-slides', async (req, res) => {
   }
 });
 
-app.get('/api/hero-slides/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+app.get('/api/hero-slides/:id', requireAuth, requireRole('admin', 'webadmin', 'manager'), async (req, res) => {
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid slide id' });
@@ -2298,7 +2307,7 @@ app.post('/api/hero-slides', requireAuth, requireRole('admin', 'webadmin', 'mana
   try {
     const missing = requireFields(req.body || {}, ['imageUrl', 'title']);
     if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing required fields: ${missing.join(', ')}` });
-    
+
     const payload = req.body || {};
     const valError = validateHeroSlideInput(payload);
     if (valError) return res.status(400).json({ success: false, message: valError });
@@ -2317,7 +2326,7 @@ app.post('/api/hero-slides', requireAuth, requireRole('admin', 'webadmin', 'mana
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
       [payload.imageUrl, payload.title, payload.tagline || null, payload.ctaText || 'Explore Properties', payload.ctaLink || '/properties', Number(payload.sortOrder || 0)]
     );
-    
+
     const newSlide = mapHeroSlide(result.rows[0]);
     const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
     await logAudit(auditUser, 'CREATE', 'hero_slides', newSlide.id, null, newSlide);
@@ -2333,7 +2342,7 @@ app.put('/api/hero-slides/:id', requireAuth, requireRole('admin', 'webadmin', 'm
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid slide id' });
-    
+
     const payload = req.body || {};
     const valError = validateHeroSlideInput(payload);
     if (valError) return res.status(400).json({ success: false, message: valError });
@@ -2366,7 +2375,7 @@ app.put('/api/hero-slides/:id', requireAuth, requireRole('admin', 'webadmin', 'm
         WHERE id = $1 RETURNING *`,
       [id, payload.imageUrl, payload.title, payload.tagline, payload.ctaText, payload.ctaLink, payload.sortOrder !== undefined ? Number(payload.sortOrder) : null]
     );
-    
+
     const updatedSlide = mapHeroSlide(result.rows[0]);
     const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
     await logAudit(auditUser, 'UPDATE', 'hero_slides', id, beforeData, updatedSlide);
@@ -2378,18 +2387,18 @@ app.put('/api/hero-slides/:id', requireAuth, requireRole('admin', 'webadmin', 'm
   }
 });
 
-app.delete('/api/hero-slides/:id', requireAuth, requireRole('admin', 'manager'), async (req, res) => {
+app.delete('/api/hero-slides/:id', requireAuth, requireRole('admin', 'webadmin', 'manager'), async (req, res) => {
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid slide id' });
-    
+
     // Get before data for audit
     const beforeResult = await pool.query(`SELECT * FROM hero_slides WHERE id = $1 LIMIT 1`, [id]);
     if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Hero slide not found' });
     const beforeData = mapHeroSlide(beforeResult.rows[0]);
 
     await pool.query(`DELETE FROM hero_slides WHERE id = $1`, [id]);
-    
+
     await logAudit(req.user.email, 'DELETE', 'hero_slides', id, beforeData, null);
 
     res.json({ success: true });
@@ -2582,7 +2591,7 @@ app.put('/api/pms/leases/:id', requireAuth, requireRole('admin', 'manager', 'man
         updated_at = NOW()
        WHERE id = $1 RETURNING *`,
       [id, rentAmount !== undefined ? Number(rentAmount) : null, startDate || null, endDate || null,
-       status || null, notes || null, unitDescription || null, ownerId || null]
+        status || null, notes || null, unitDescription || null, ownerId || null]
     );
     const updated = result.rows[0];
     await logAudit(req.user.email, 'UPDATE', 'leases', id, before.rows[0], updated);
@@ -2641,7 +2650,7 @@ app.post('/api/pms/tickets', requireAuth, requireRole('tenant'), async (req, res
       `INSERT INTO maintenance_tickets (tenant_id, lease_id, property_id, title, description, category, priority)
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
       [userId, leaseId || null, propertyId || null, title, description,
-       category || 'general', priority || 'medium']
+        category || 'general', priority || 'medium']
     );
     const ticket = result.rows[0];
     await logAudit(req.user.email, 'CREATE', 'maintenance_tickets', ticket.id, null, ticket);
@@ -2795,7 +2804,7 @@ app.post('/api/pms/payments/initiate', requireAuth, requireRole('tenant'), async
             'Content-Type': 'application/json'
           }
         });
-        
+
         return res.status(201).json({
           success: true,
           data: {
@@ -2918,8 +2927,6 @@ app.get('/api/pms/payments/history', requireAuth, requireRole('tenant', 'admin',
   }
 });
 
-});
-
 // ============================================
 // SUPERADMIN & GHOST ADMIN CONTROL ENDPOINTS
 // ============================================
@@ -2929,7 +2936,7 @@ app.post('/api/v1/admin/impersonate', requireAuth, requireRole('admin'), async (
   try {
     const { userId } = req.body || {};
     if (!userId) return res.status(400).json({ success: false, message: 'User ID is required' });
-    
+
     // Find target user
     const result = await pool.query(
       'SELECT id, email, role, name, status FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1',
@@ -2937,11 +2944,11 @@ app.post('/api/v1/admin/impersonate', requireAuth, requireRole('admin'), async (
     );
     if (result.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found' });
     const targetUser = result.rows[0];
-    
+
     if (targetUser.id === req.user.sub) {
       return res.status(400).json({ success: false, message: 'Cannot impersonate yourself' });
     }
-    
+
     // Log impersonation start in audit logs
     const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
     await logAudit(
@@ -2958,7 +2965,7 @@ app.post('/api/v1/admin/impersonate', requireAuth, requireRole('admin'), async (
         targetRole: targetUser.role
       }
     );
-    
+
     // Sign target access token with impersonator claims
     const impersonatedAccessToken = jwt.sign(
       {
@@ -2971,7 +2978,7 @@ app.post('/api/v1/admin/impersonate', requireAuth, requireRole('admin'), async (
       JWT_SECRET,
       { expiresIn: ACCESS_TOKEN_TTL }
     );
-    
+
     // Overwrite access token cookie (refresh cookie remains admin's refresh token)
     res.cookie('ksa_access', impersonatedAccessToken, {
       httpOnly: true,
@@ -2979,7 +2986,7 @@ app.post('/api/v1/admin/impersonate', requireAuth, requireRole('admin'), async (
       sameSite: 'lax',
       path: '/'
     });
-    
+
     return res.json({
       success: true,
       data: {
@@ -3002,43 +3009,43 @@ app.post('/api/v1/admin/impersonate/stop', async (req, res) => {
   try {
     const refresh = req.cookies.ksa_refresh;
     if (!refresh) return res.status(401).json({ success: false, message: 'Session expired' });
-    
+
     const decoded = jwt.verify(refresh, JWT_REFRESH_SECRET);
     if (decoded.type !== 'refresh') {
       return res.status(401).json({ success: false, message: 'Invalid session' });
     }
-    
+
     const result = await pool.query(
       'SELECT id, email, role, name, status FROM users WHERE id = $1 AND deleted_at IS NULL LIMIT 1',
       [decoded.sub]
     );
     if (result.rowCount === 0) return res.status(401).json({ success: false, message: 'Admin user not found' });
     const adminUser = result.rows[0];
-    
+
     if (adminUser.status !== 'active') {
       return res.status(401).json({ success: false, message: 'Admin account suspended' });
     }
-    
+
     // Whitelist check
     const superadminEmails = (process.env.SUPERADMIN_EMAILS || '')
       .split(',')
       .map(e => e.trim().toLowerCase())
       .filter(Boolean);
-      
+
     if (adminUser.role !== 'admin' || !superadminEmails.includes(adminUser.email.toLowerCase())) {
       return res.status(403).json({ success: false, message: 'Unauthorized' });
     }
-    
+
     // Sign new normal admin access token
     const newAccessToken = signAccessToken(adminUser);
-    
+
     res.cookie('ksa_access', newAccessToken, {
       httpOnly: true,
       secure: IS_PROD,
       sameSite: 'lax',
       path: '/'
     });
-    
+
     return res.json({ success: true, data: adminUser });
   } catch (error) {
     console.error('Impersonation stop error:', error);
@@ -3066,26 +3073,26 @@ app.post('/api/v1/admin/users', requireAuth, requireRole('admin'), async (req, r
     const { name, email, role, password } = req.body || {};
     const missing = requireFields(req.body || {}, ['name', 'email', 'role']);
     if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
-    
+
     const checkEmail = await pool.query('SELECT id FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1', [String(email).toLowerCase().trim()]);
     if (checkEmail.rowCount > 0) return res.status(400).json({ success: false, message: 'Email address already registered' });
-    
+
     // Require password if not google user (creation from panel always defaults to local user password first)
     const pass = password || 'KsaValuers@2026!'; // default password if not provided
     const passError = validatePasswordPolicy(pass);
     if (passError) return res.status(400).json({ success: false, message: passError });
-    
+
     const hash = await bcrypt.hash(pass, 12);
     const result = await pool.query(
       `INSERT INTO users (name, email, password_hash, role, status)
        VALUES ($1, $2, $3, $4, 'active') RETURNING id, email, role, name, status, created_at`,
       [name, String(email).toLowerCase().trim(), hash, role]
     );
-    
+
     const createdUser = result.rows[0];
     const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
     await logAudit(auditUser, 'CREATE_USER', 'users', createdUser.id, null, { name: createdUser.name, email: createdUser.email, role: createdUser.role });
-    
+
     return res.status(201).json({ success: true, data: createdUser });
   } catch (error) {
     console.error('Create user error:', error);
@@ -3098,24 +3105,24 @@ app.put('/api/v1/admin/users/:id', requireAuth, requireRole('admin'), async (req
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid user ID' });
-    
+
     const { name, role, status, email } = req.body || {};
-    
+
     const beforeResult = await pool.query('SELECT name, role, status, email FROM users WHERE id = $1 AND deleted_at IS NULL', [id]);
     if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found' });
     const beforeData = beforeResult.rows[0];
-    
+
     // Safety check: Cannot demote or suspend oneself
     if (id === req.user.sub && (status === 'suspended' || role !== 'admin')) {
       return res.status(400).json({ success: false, message: 'Security Constraint: Cannot suspend or demote your own active account.' });
     }
-    
+
     // If updating email, check for conflicts
     if (email && email.toLowerCase().trim() !== beforeData.email.toLowerCase().trim()) {
       const checkConflict = await pool.query('SELECT id FROM users WHERE email = $1 AND deleted_at IS NULL AND id != $2 LIMIT 1', [email.toLowerCase().trim(), id]);
       if (checkConflict.rowCount > 0) return res.status(400).json({ success: false, message: 'Email address already in use by another user' });
     }
-    
+
     const result = await pool.query(
       `UPDATE users SET
         name = COALESCE($1, name),
@@ -3126,11 +3133,11 @@ app.put('/api/v1/admin/users/:id', requireAuth, requireRole('admin'), async (req
        WHERE id = $5 RETURNING id, email, role, name, status, updated_at`,
       [name, role, status, email ? email.toLowerCase().trim() : null, id]
     );
-    
+
     const updatedUser = result.rows[0];
     const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
     await logAudit(auditUser, 'EDIT_USER', 'users', id, beforeData, updatedUser);
-    
+
     return res.json({ success: true, data: updatedUser });
   } catch (error) {
     console.error('Edit user error:', error);
@@ -3143,14 +3150,14 @@ app.delete('/api/v1/admin/users/:id', requireAuth, requireRole('admin'), async (
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid user ID' });
-    
+
     if (id === req.user.sub) {
       return res.status(400).json({ success: false, message: 'Security Constraint: Cannot delete your own active session.' });
     }
-    
+
     const checkUser = await pool.query('SELECT role, email FROM users WHERE id = $1 AND deleted_at IS NULL', [id]);
     if (checkUser.rowCount === 0) return res.status(404).json({ success: false, message: 'User not found' });
-    
+
     // Safety check: Cannot delete the last superadmin
     if (checkUser.rows[0].role === 'admin') {
       const activeAdmins = await pool.query(
@@ -3160,12 +3167,12 @@ app.delete('/api/v1/admin/users/:id', requireAuth, requireRole('admin'), async (
         return res.status(400).json({ success: false, message: 'Security Constraint: Cannot delete the last active Superadmin.' });
       }
     }
-    
+
     await pool.query("UPDATE users SET deleted_at = NOW(), status = 'suspended' WHERE id = $1", [id]);
-    
+
     const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
     await logAudit(auditUser, 'DELETE_USER', 'users', id, { email: checkUser.rows[0].email }, null);
-    
+
     return res.json({ success: true, message: 'User soft-deleted successfully' });
   } catch (error) {
     console.error('Delete user error:', error);
@@ -3179,15 +3186,15 @@ app.get('/api/v1/admin/audit-logs', requireAuth, requireRole('admin'), async (re
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.max(1, Math.min(100, parseInt(req.query.limit) || 20));
     const offset = (page - 1) * limit;
-    
+
     const countResult = await pool.query('SELECT count(*) FROM audit_logs');
     const totalLogs = parseInt(countResult.rows[0].count);
-    
+
     const logsResult = await pool.query(
       `SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
       [limit, offset]
     );
-    
+
     const logs = logsResult.rows.map(row => {
       // Re-verify hash to detect tampering
       const email = row.user_email || 'system';
@@ -3195,13 +3202,13 @@ app.get('/api/v1/admin/audit-logs', requireAuth, requireRole('admin'), async (re
       const beforeStr = row.before_data ? JSON.stringify(row.before_data) : null;
       const afterStr = row.after_data ? JSON.stringify(row.after_data) : null;
       const ts = new Date(row.created_at);
-      
+
       const hashInput = `${email}|${row.action}|${row.table_name}|${recId}|${beforeStr || ''}|${afterStr || ''}|${ts.toISOString()}`;
       const recomputedHash = crypto.createHmac('sha256', JWT_SECRET).update(hashInput).digest('hex');
-      
+
       // If row has no hash stored, mark as unverified (except for old legacy migrations logs)
       const verified = row.hash ? row.hash === recomputedHash : false;
-      
+
       return {
         id: row.id,
         userEmail: row.user_email,
@@ -3214,7 +3221,7 @@ app.get('/api/v1/admin/audit-logs', requireAuth, requireRole('admin'), async (re
         verified
       };
     });
-    
+
     return res.json({
       success: true,
       data: logs,
@@ -3275,7 +3282,7 @@ app.post('/api/team', requireAuth, requireRole('admin', 'webadmin'), async (req,
     const { name, role, tag, imageUrl, description, email } = req.body || {};
     const missing = requireFields(req.body || {}, ['name', 'role', 'imageUrl']);
     if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
-    
+
     // Asset Policy Check: Reject binary uploads / relative paths; only absolute URLs or seeded filenames
     const isAssetSeeded = imageUrl.endsWith('.jpg') || imageUrl.endsWith('.jpeg') || imageUrl.endsWith('.png');
     if (!isAbsoluteUrl(imageUrl) && !isAssetSeeded) {
@@ -3284,17 +3291,17 @@ app.post('/api/team', requireAuth, requireRole('admin', 'webadmin'), async (req,
         message: 'Asset Strategy Violation: Image URL must be an absolute URL (e.g. from Cloudinary, Imgur, or CDN).'
       });
     }
-    
+
     const result = await pool.query(
       `INSERT INTO team_members (name, role, tag, image_url, description, email)
        VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
       [name, role, tag || null, imageUrl, description || null, email || null]
     );
-    
+
     const team = result.rows[0];
     const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
     await logAudit(auditUser, 'CREATE_TEAM_MEMBER', 'team_members', team.id, null, team);
-    
+
     return res.status(201).json({ success: true, data: team });
   } catch (error) {
     console.error('Create team member error:', error);
@@ -3307,13 +3314,13 @@ app.put('/api/team/:id', requireAuth, requireRole('admin', 'webadmin'), async (r
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid team member ID' });
-    
+
     const { name, role, tag, imageUrl, description, email } = req.body || {};
-    
+
     const beforeResult = await pool.query('SELECT * FROM team_members WHERE id = $1 AND deleted_at IS NULL', [id]);
     if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'Team member not found' });
     const beforeData = beforeResult.rows[0];
-    
+
     // Asset Policy Check if imageUrl is changed
     if (imageUrl) {
       const isAssetSeeded = imageUrl.endsWith('.jpg') || imageUrl.endsWith('.jpeg') || imageUrl.endsWith('.png');
@@ -3324,7 +3331,7 @@ app.put('/api/team/:id', requireAuth, requireRole('admin', 'webadmin'), async (r
         });
       }
     }
-    
+
     const result = await pool.query(
       `UPDATE team_members SET
         name = COALESCE($1, name),
@@ -3337,11 +3344,11 @@ app.put('/api/team/:id', requireAuth, requireRole('admin', 'webadmin'), async (r
        WHERE id = $7 RETURNING *`,
       [name, role, tag, imageUrl, description, email, id]
     );
-    
+
     const updated = result.rows[0];
     const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
     await logAudit(auditUser, 'UPDATE_TEAM_MEMBER', 'team_members', id, beforeData, updated);
-    
+
     return res.json({ success: true, data: updated });
   } catch (error) {
     console.error('Update team member error:', error);
@@ -3354,15 +3361,15 @@ app.delete('/api/team/:id', requireAuth, requireRole('admin', 'webadmin'), async
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid team member ID' });
-    
+
     const check = await pool.query('SELECT name FROM team_members WHERE id = $1 AND deleted_at IS NULL', [id]);
     if (check.rowCount === 0) return res.status(404).json({ success: false, message: 'Team member not found' });
-    
+
     await pool.query('UPDATE team_members SET deleted_at = NOW() WHERE id = $1', [id]);
-    
+
     const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
     await logAudit(auditUser, 'DELETE_TEAM_MEMBER', 'team_members', id, { name: check.rows[0].name }, null);
-    
+
     return res.json({ success: true, message: 'Team member soft-deleted successfully' });
   } catch (error) {
     console.error('Delete team member error:', error);
@@ -3398,17 +3405,17 @@ app.post('/api/faqs', requireAuth, requireRole('admin', 'webadmin'), async (req,
     const { question, answer, category, sortOrder } = req.body || {};
     const missing = requireFields(req.body || {}, ['question', 'answer', 'category']);
     if (missing.length > 0) return res.status(400).json({ success: false, message: `Missing fields: ${missing.join(', ')}` });
-    
+
     const result = await pool.query(
       `INSERT INTO faqs (question, answer, category, sort_order)
        VALUES ($1, $2, $3, $4) RETURNING *`,
       [question, answer, category, sortOrder || 0]
     );
-    
+
     const faq = result.rows[0];
     const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
     await logAudit(auditUser, 'CREATE_FAQ', 'faqs', faq.id, null, faq);
-    
+
     return res.status(201).json({ success: true, data: faq });
   } catch (error) {
     console.error('Create FAQ error:', error);
@@ -3421,13 +3428,13 @@ app.put('/api/faqs/:id', requireAuth, requireRole('admin', 'webadmin'), async (r
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid FAQ ID' });
-    
+
     const { question, answer, category, sortOrder } = req.body || {};
-    
+
     const beforeResult = await pool.query('SELECT * FROM faqs WHERE id = $1 AND deleted_at IS NULL', [id]);
     if (beforeResult.rowCount === 0) return res.status(404).json({ success: false, message: 'FAQ not found' });
     const beforeData = beforeResult.rows[0];
-    
+
     const result = await pool.query(
       `UPDATE faqs SET
         question = COALESCE($1, question),
@@ -3438,11 +3445,11 @@ app.put('/api/faqs/:id', requireAuth, requireRole('admin', 'webadmin'), async (r
        WHERE id = $5 RETURNING *`,
       [question, answer, category, sortOrder, id]
     );
-    
+
     const updated = result.rows[0];
     const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
     await logAudit(auditUser, 'UPDATE_FAQ', 'faqs', id, beforeData, updated);
-    
+
     return res.json({ success: true, data: updated });
   } catch (error) {
     console.error('Update FAQ error:', error);
@@ -3455,19 +3462,57 @@ app.delete('/api/faqs/:id', requireAuth, requireRole('admin', 'webadmin'), async
   try {
     const id = parseId(req.params.id);
     if (!id) return res.status(400).json({ success: false, message: 'Invalid FAQ ID' });
-    
+
     const check = await pool.query('SELECT question FROM faqs WHERE id = $1 AND deleted_at IS NULL', [id]);
     if (check.rowCount === 0) return res.status(404).json({ success: false, message: 'FAQ not found' });
-    
+
     await pool.query('UPDATE faqs SET deleted_at = NOW() WHERE id = $1', [id]);
-    
+
     const auditUser = req.user.impersonatorEmail ? `${req.user.impersonatorEmail} [impersonating ${req.user.email}]` : req.user.email;
     await logAudit(auditUser, 'DELETE_FAQ', 'faqs', id, { question: check.rows[0].question }, null);
-    
+
     return res.json({ success: true, message: 'FAQ soft-deleted successfully' });
   } catch (error) {
     console.error('Delete FAQ error:', error);
     return res.status(500).json({ success: false, message: 'Failed to delete FAQ' });
+  }
+});
+
+// ============================================
+// FILE UPLOAD ENDPOINT
+// ============================================
+app.post('/api/upload', requireAuth, async (req, res) => {
+  try {
+    const { fileName, fileData } = req.body || {};
+    if (!fileName || !fileData) {
+      return res.status(400).json({ success: false, message: 'Filename and base64 file data are required.' });
+    }
+
+    // Expecting base64 data url, e.g. "data:image/jpeg;base64,..."
+    const matches = fileData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    if (!matches || matches.length !== 3) {
+      return res.status(400).json({ success: false, message: 'Invalid base64 data format. Must be a valid Data URL.' });
+    }
+
+    const fileBuffer = Buffer.from(matches[2], 'base64');
+
+    // Sanitize file name to avoid directory traversal
+    const sanitizedFileName = path.basename(fileName).replace(/[^a-zA-Z0-9.\-_]/g, '_');
+
+    // Prefix with a timestamp to avoid naming collisions
+    const finalFileName = `${Date.now()}-${sanitizedFileName}`;
+    const uploadPath = path.join(__dirname, 'uploads', finalFileName);
+
+    // Save to disk
+    fs.writeFileSync(uploadPath, fileBuffer);
+
+    // Generate absolute URL
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${finalFileName}`;
+
+    return res.json({ success: true, url: fileUrl });
+  } catch (error) {
+    console.error('File upload failed:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error during file upload.' });
   }
 });
 
@@ -3511,11 +3556,11 @@ if (process.env.NODE_ENV === 'production') {
     const gracefulShutdown = (signal) => {
       console.log(`\n=================================`);
       console.log(`♻️  Received ${signal}. Starting graceful shutdown...`);
-      
+
       // Close server first
       server.close(() => {
         console.log('🛑 Express HTTP server closed.');
-        
+
         // End PostgreSQL connection pool
         pool.end(() => {
           console.log('🗄️  PostgreSQL database pool terminated.');
@@ -3528,7 +3573,7 @@ if (process.env.NODE_ENV === 'production') {
 
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-    
+
   } catch (error) {
     console.error('❌ Failed to start server:', error.message);
     process.exit(1);
