@@ -43,6 +43,11 @@ const pool = new Pool({
   connectionTimeoutMillis: 5000,
 });
 
+// Catch idle PostgreSQL client errors to prevent unexpected process crashes
+pool.on('error', (err) => {
+  console.error('⚠️  PostgreSQL connection pool error (idle client):', err.message);
+});
+
 // CORS Configuration
 const getAllowedOrigins = () => {
   const nodeEnv = process.env.NODE_ENV || 'development';
@@ -57,31 +62,17 @@ const getAllowedOrigins = () => {
     ];
   }
 
-  // Production - require explicit ALLOWED_ORIGINS
+  // Production - parse ALLOWED_ORIGINS if set
   const allowedOrigins = process.env.ALLOWED_ORIGINS;
   if (!allowedOrigins) {
-    console.warn(
-      '⚠️  WARNING: ALLOWED_ORIGINS environment variable not set in production!\n' +
-      '   Set ALLOWED_ORIGINS=https://example.com,https://api.example.com'
-    );
-    return []; // No origins allowed if not configured
+    return null; // Null indicates permissive mode with warning
   }
 
-  // Parse comma-separated origins and validate they're https in production
+  // Parse comma-separated origins and validate format
   return allowedOrigins
     .split(',')
     .map(origin => origin.trim())
-    .filter(origin => {
-      if (!origin.startsWith('https://') && !origin.startsWith('http://')) {
-        console.warn(`⚠️  Skipping invalid origin: ${origin} (must be https:// or http://)`);
-        return false;
-      }
-      if (nodeEnv === 'production' && !origin.startsWith('https://')) {
-        console.warn(`⚠️  Skipping insecure origin in production: ${origin} (must be https://)`);
-        return false;
-      }
-      return true;
-    });
+    .filter(origin => origin.startsWith('https://') || origin.startsWith('http://'));
 };
 
 const allowedOrigins = getAllowedOrigins();
@@ -109,16 +100,15 @@ const authLimiter = rateLimit({
 // Middleware
 app.use(cors({
   origin: (origin, callback) => {
-    // In development, allow any origin (e.g. ngrok, LAN) to prevent CORS blocker errors
-    if (process.env.NODE_ENV !== 'production') {
+    // If request has no Origin (same-origin, curl, server-to-server) or no restrictive list is set
+    if (!origin || !allowedOrigins || allowedOrigins.length === 0) {
       return callback(null, true);
     }
-    // In production, enforce ALLOWED_ORIGINS
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    // If origin is in the allowed list or we are in development
+    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
     }
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
