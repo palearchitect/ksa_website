@@ -6,7 +6,7 @@
   "scripts": {
     "prebuild": "node -e \"try{require('fs').chmodSync('node_modules/.bin/vite', 0o755)}catch(e){}\"",
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/hostinger-deploy.js",
     "preview": "vite preview",
     "backend": "cd backend && npm run dev",
     "dev:all": "concurrently \"npm run dev\" \"npm run backend\"",

@@ -1,3 +1,5 @@
+DirectoryIndex index.html
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
@@ -9,3 +11,4 @@
   # Otherwise, rewrite all requests to index.html so Vue Router can handle them
   RewriteRule . /index.html [L]
 </IfModule>
+
