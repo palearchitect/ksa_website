@@ -1,6 +1,19 @@
-require('dotenv').config();
 const path = require('path');
 const fs = require('fs');
+
+// Multi-path environment configuration loader (ensures envs load regardless of execution cwd)
+const envPaths = [
+  path.resolve(__dirname, '..', '.env'),
+  path.resolve(__dirname, '.env'),
+  path.resolve(process.cwd(), '.env')
+];
+envPaths.forEach((p) => {
+  if (fs.existsSync(p)) {
+    require('dotenv').config({ path: p });
+  }
+});
+require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
@@ -27,7 +40,7 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   // Connection timeout and limits
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 5000,
 });
 
 // CORS Configuration
@@ -436,79 +449,50 @@ const logAudit = async (userEmail, action, tableName, recordId, beforeData, afte
 
 const initializeDatabase = async () => {
   try {
-    // Check if ADMIN_PASSWORD is configured
-    if (!process.env.ADMIN_PASSWORD) {
-      throw new Error(
-        'ADMIN_PASSWORD environment variable is not set.\n' +
-        '\n   ❌ ERROR: Admin account cannot be created without a password.\n' +
-        '\n   📋 To fix this:\n' +
-        '      1. Set ADMIN_PASSWORD in backend/.env\n' +
-        '      2. Password must be at least 12 characters with uppercase, lowercase, numbers, and special chars\n' +
-        '         Example: MySecure_Pass123\n' +
-        '      3. Run: npm run db:setup\n' +
-        '\n   ℹ️  On first run, you can also use npm run db:seed to auto-generate a secure password.\n'
-      );
+    // 1. Check if DATABASE_URL is configured
+    if (!process.env.DATABASE_URL) {
+      console.warn('\n⚠️  DATABASE_URL environment variable is not set.');
+      console.warn('   Please set DATABASE_URL in your hosting environment variables or .env file.');
+      console.warn('   Example: postgres://user:password@hostname:5432/ksa_valuers\n');
+      return false;
     }
 
-    // Validate password policy
-    const passwordError = validatePasswordPolicy(process.env.ADMIN_PASSWORD);
-    if (passwordError) {
-      throw new Error(
-        `ADMIN_PASSWORD does not meet security requirements:\n` +
-        `   ${passwordError}\n` +
-        `\n   Password must:\n` +
-        `   - Be at least 12 characters long\n` +
-        `   - Contain uppercase letters (A-Z)\n` +
-        `   - Contain lowercase letters (a-z)\n` +
-        `   - Contain numbers (0-9)\n` +
-        `   - Contain special characters (!@#$%^&*)\n` +
-        `\n   Example: MySecure_Pass123\n`
-      );
-    }
-
-    // Test database connection
+    // 2. Test database connection
     console.log('🔌 Testing database connection...');
-    const testConnection = await pool.query('SELECT NOW()');
+    await pool.query('SELECT NOW()');
     console.log('✅ Database connection successful');
 
-    // Check if DATABASE_URL is configured
-    if (!process.env.DATABASE_URL) {
-      throw new Error(
-        'DATABASE_URL environment variable is not set. ' +
-        'Please add DATABASE_URL to your .env file (e.g., postgres://user:password@localhost:5432/ksa_valuers)'
-      );
-    }
-
-    // Run migrations
-    console.log('\n🔧 Running database migrations...');
+    // 3. Run migrations
+    console.log('🔧 Running database migrations...');
     await runMigrations();
     console.log('✅ Database migrations completed\n');
 
-    // Seed admin user if needed
-    const existingAdmin = await pool.query(`SELECT id FROM users WHERE email = $1 LIMIT 1`, ['admin@ksavaluers.com']);
-    if (existingAdmin.rowCount === 0) {
-      const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
-      await pool.query(
-        `INSERT INTO users (email, password_hash, role, name) VALUES ($1, $2, $3, $4)`,
-        ['admin@ksavaluers.com', hash, 'admin', 'Admin User']
-      );
-      console.log('✅ Seeded admin user (admin@ksavaluers.com)');
-      console.log('⚠️  Keep your ADMIN_PASSWORD secure. Do not share it or commit it to version control.');
+    // 4. Seed admin user if configured
+    if (process.env.ADMIN_PASSWORD) {
+      const passwordError = validatePasswordPolicy(process.env.ADMIN_PASSWORD);
+      if (passwordError) {
+        console.warn(`⚠️  ADMIN_PASSWORD does not meet full policy requirements: ${passwordError}`);
+      }
+      
+      const adminEmail = process.env.ADMIN_EMAIL || 'admin@ksavaluers.com';
+      const existingAdmin = await pool.query(`SELECT id FROM users WHERE email = $1 LIMIT 1`, [adminEmail]);
+      if (existingAdmin.rowCount === 0) {
+        const hash = await bcrypt.hash(process.env.ADMIN_PASSWORD, 12);
+        await pool.query(
+          `INSERT INTO users (email, password_hash, role, name) VALUES ($1, $2, $3, $4)`,
+          [adminEmail, hash, 'admin', 'Admin User']
+        );
+        console.log(`✅ Seeded admin user (${adminEmail})`);
+      }
+    } else {
+      console.log('ℹ️  ADMIN_PASSWORD not set. Skipping automatic admin seeding.');
     }
 
     return true;
   } catch (error) {
-    console.error('\n❌ Database initialization error:');
-    console.error(`   ${error.message}`);
-    console.error('\n📖 Setup Instructions:');
-    console.error('   1. Install PostgreSQL locally or use a cloud provider (Heroku, AWS RDS, etc.)');
-    console.error('   2. Create a database: createdb ksa_valuers');
-    console.error('   3. Add DATABASE_URL to backend/.env:');
-    console.error('      DATABASE_URL=postgres://user:password@localhost:5432/ksa_valuers');
-    console.error('   4. Set ADMIN_PASSWORD (min 12 chars with uppercase, lowercase, numbers, special chars):');
-    console.error('      ADMIN_PASSWORD=MySecurePass123!');
-    console.error('   5. Run: npm run db:setup');
-    throw error;
+    console.error('\n⚠️  Database initialization error:', error.message);
+    console.error('📖 Please verify your DATABASE_URL and database connectivity in Hostinger / environment settings.\n');
+    return false;
   }
 };
 
@@ -3517,17 +3501,50 @@ app.post('/api/upload', requireAuth, async (req, res) => {
 });
 
 // ============================================
+// API HEALTH ENDPOINT
+// ============================================
+app.get('/api/health', async (req, res) => {
+  let dbStatus = 'disconnected';
+  if (process.env.DATABASE_URL) {
+    try {
+      await pool.query('SELECT 1');
+      dbStatus = 'connected';
+    } catch (err) {
+      dbStatus = `error: ${err.message}`;
+    }
+  }
+
+  return res.json({
+    status: 'ok',
+    environment: process.env.NODE_ENV || 'development',
+    port: PORT,
+    database: dbStatus,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ============================================
 // PRODUCTION STATIC FILE SERVING
 // ============================================
-// In production, serve the Vue frontend build from ../dist
-const distPath = path.join(__dirname, '..', 'dist');
-if (process.env.NODE_ENV === 'production' || fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
+// Locate dist directory across common hosting directory layouts
+const distCandidates = [
+  path.join(__dirname, '..', 'dist'),
+  path.join(__dirname, 'dist'),
+  path.join(process.cwd(), 'dist'),
+  path.join(process.cwd(), '..', 'dist')
+];
+const resolvedDistPath = distCandidates.find((p) => fs.existsSync(path.join(p, 'index.html')));
+
+if (resolvedDistPath) {
+  console.log(`📁 Serving static frontend from: ${resolvedDistPath}`);
+  app.use(express.static(resolvedDistPath));
 
   // SPA fallback — any route not matching /api/* returns index.html
   app.get(/^(?!\/api).*/, (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'));
+    res.sendFile(path.join(resolvedDistPath, 'index.html'));
   });
+} else {
+  console.log('ℹ️  No static dist/ build directory found. Running in API-only mode.');
 }
 
 // ============================================
@@ -3537,7 +3554,7 @@ if (process.env.NODE_ENV === 'production' || fs.existsSync(distPath)) {
 (async () => {
   try {
     // Initialize database
-    await initializeDatabase();
+    const dbOk = await initializeDatabase();
 
     // Initialize email service
     await initializeEmailService();
@@ -3545,9 +3562,9 @@ if (process.env.NODE_ENV === 'production' || fs.existsSync(distPath)) {
     // Start listening
     const server = app.listen(PORT, () => {
       console.log('=================================');
-      console.log(`🚀 Backend running on http://localhost:${PORT}`);
-      console.log(`🗄️ PostgreSQL: ✅`);
-      console.log(`📧 Email: ${emailService ? `✅ (${process.env.EMAIL_PROVIDER || 'gmail'})` : '⚠️  Not configured'}`);
+      console.log(`🚀 Server running on http://localhost:${PORT}`);
+      console.log(`🗄️ Database: ${dbOk ? '✅ Connected' : '⚠️ Disconnected / Check Config'}`);
+      console.log(`📧 Email: ${emailService ? `✅ (${process.env.EMAIL_PROVIDER || 'gmail'})` : '⚠️ Not configured'}`);
       console.log(`🤖 Gemini AI: ${process.env.GEMINI_API_KEY ? '✅' : '❌'}`);
       console.log('=================================');
     });

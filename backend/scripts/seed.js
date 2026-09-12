@@ -5,9 +5,16 @@
  * Run with: node backend/scripts/seed.js
  */
 
-require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
-const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
+const path = require('path');
+const fs = require('fs');
+
+const envPaths = [
+  path.join(__dirname, '..', '..', '.env'),
+  path.join(__dirname, '..', '.env'),
+  path.join(process.cwd(), '.env')
+];
+envPaths.forEach(p => { if (fs.existsSync(p)) require('dotenv').config({ path: p }); });
+require('dotenv').config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,

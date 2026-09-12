@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authAPI, adminService } from '@/services/api'
+import { identifyUser, resetUser } from '@/plugins/posthog'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -22,6 +23,13 @@ export const useAuthStore = defineStore('auth', () => {
         .then(response => {
           user.value = response.data
           isAuthenticated.value = true
+          if (response.data?.id) {
+            identifyUser(response.data.id, {
+              email: response.data.email,
+              name: response.data.name,
+              role: response.data.role
+            })
+          }
           return response.data
         })
         .catch(err => {
@@ -42,6 +50,13 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response.data
       isAuthenticated.value = true
       sessionPromise = Promise.resolve(response.data)
+      if (response.data?.id) {
+        identifyUser(response.data.id, {
+          email: response.data.email,
+          name: response.data.name,
+          role: response.data.role
+        })
+      }
       return { success: true, user: response.data }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
@@ -64,6 +79,13 @@ export const useAuthStore = defineStore('auth', () => {
       if (response.data) {
         user.value = response.data
         isAuthenticated.value = true
+        if (response.data?.id) {
+          identifyUser(response.data.id, {
+            email: response.data.email,
+            name: response.data.name,
+            role: response.data.role
+          })
+        }
         return { success: true, user: response.data }
       }
       error.value = 'Invalid refresh response'
@@ -89,6 +111,13 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response.data
       isAuthenticated.value = true
       sessionPromise = Promise.resolve(response.data)
+      if (response.data?.id) {
+        identifyUser(response.data.id, {
+          email: response.data.email,
+          name: response.data.name,
+          role: response.data.role
+        })
+      }
       return { success: true, user: response.data }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
@@ -107,6 +136,13 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response.data
       isAuthenticated.value = true
       sessionPromise = Promise.resolve(response.data)
+      if (response.data?.id) {
+        identifyUser(response.data.id, {
+          email: response.data.email,
+          name: response.data.name,
+          role: response.data.role
+        })
+      }
       return { success: true, user: response.data }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
@@ -141,6 +177,13 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = response.data
         isAuthenticated.value = true
         sessionPromise = Promise.resolve(response.data)
+        if (response.data?.id) {
+          identifyUser(response.data.id, {
+            email: response.data.email,
+            name: response.data.name,
+            role: response.data.role
+          })
+        }
       }
       return response
     } catch (err) {
@@ -160,6 +203,13 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = response.data
       isAuthenticated.value = true
       sessionPromise = Promise.resolve(response.data)
+      if (response.data?.id) {
+        identifyUser(response.data.id, {
+          email: response.data.email,
+          name: response.data.name,
+          role: response.data.role
+        })
+      }
       return { success: true, user: response.data }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
@@ -288,12 +338,13 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {
-      // Full state reset
+      // Full state reset & analytics identity reset
       user.value = null
       isAuthenticated.value = false
       error.value = null
       sessionPromise = null
       sessionStorage.clear()
+      resetUser()
     }
   }
 

@@ -84,6 +84,13 @@ This document describes all active services, backend API endpoints, state stores
   - **Token Refresh Interceptor:** Intercepts `401 Unauthorized` responses on administrative routes. If a refresh cookie exists, it automatically requests token renewal via `/api/v1/auth/refresh` and transparently retries the failed requests.
   - **Credential Routing:** Automatically sets `withCredentials: true` to forward access cookies.
 
+### **PostHog Analytics Client & Composable** (`src/plugins/posthog.js`, `src/composables/usePostHog.js`)
+* **Purpose:** Provides client-side analytics, user identity tracking, session telemetry, and feature flagging.
+* **Key Features:**
+  - **Zero-Crash Mock Fallback:** Automatically switches to safe mock mode in local/dev environments when `VITE_POSTHOG_KEY` is not present.
+  - **SPA Pageview Capture:** Tracks page transitions and query params automatically on `router.afterEach`.
+  - **Identity Lifecycle:** Synchronized with `authStore` to identify user profiles upon login/session load and reset sessions upon logout.
+
 ---
 
 ## 2. Backend API Agents
@@ -153,6 +160,11 @@ Main HTTP router built using Node.js and Express. Persists data to a PostgreSQL 
 ### **Audit Logger Agent**
 * **Function:** `logAudit(userEmail, action, tableName, recordId, beforeData, afterData)`
 * **Description:** Persists before/after JSON structures inside the `audit_logs` table for mutations (insert/update/delete) in properties, projects, bookings, and hero slides.
+
+### **PostHog Backend Telemetry Service (`backend/services/posthogService.js`)**
+* **Driver:** `posthog-node` client wrapper.
+* **Methods:** `capture({ distinctId, event, properties })`, `identify({ distinctId, properties })`, `isFeatureEnabled(key, distinctId)`, `shutdown()`.
+* **Description:** Provides telemetry for backend audit events, transaction mutations, and server-side feature flags with automatic mock mode fallback when keys are absent.
 
 ### **Security & Rate Limiting Middleware**
 * **CORS Policy:** Restricts connections to dynamic domains in `ALLOWED_ORIGINS` (enforces HTTPS in production environments).

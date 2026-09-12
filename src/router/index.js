@@ -240,7 +240,7 @@ router.beforeEach(async (to, from, next) => {
   next()
 })
 
-// Set page titles
+// Set page titles & track analytics
 router.afterEach((to) => {
   // Use meta title or generate from route name
   const title = to.meta?.title || 
@@ -248,6 +248,21 @@ router.afterEach((to) => {
   
   const suffix = to.path.startsWith('/admin') ? 'KSA Valuers Admin' : 'KSA Valuers'
   document.title = `${title} | ${suffix}`
+
+  // PostHog Pageview tracking
+  try {
+    import('../plugins/posthog').then(({ captureEvent }) => {
+      captureEvent('$pageview', {
+        $current_url: window.location.href,
+        path: to.path,
+        name: to.name,
+        params: to.params,
+        query: to.query
+      })
+    })
+  } catch (e) {
+    // Non-blocking telemetry failure
+  }
 })
 
 export default router
