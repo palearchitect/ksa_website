@@ -1,38 +1,24 @@
 <template>
-  <div class="min-h-screen flex flex-col justify-between bg-[radial-gradient(ellipse_100%_100%_at_50%_0%,#0f294a_0%,#071324_60%,#030810_100%)] text-slate-100 px-4 py-8 sm:px-6 lg:px-8 selection:bg-blue-500 selection:text-white">
+  <div class="min-h-screen flex flex-col justify-center items-center bg-[radial-gradient(ellipse_100%_100%_at_50%_0%,#0f294a_0%,#071324_60%,#030810_100%)] text-slate-100 px-4 py-6 selection:bg-blue-500 selection:text-white relative">
     
-    <!-- Top Header Navigation -->
-    <div class="max-w-6xl w-full mx-auto flex items-center justify-between">
-      <router-link to="/" class="flex items-center gap-3 group">
-        <div class="p-2 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-lg group-hover:border-white/20 transition">
-          <img 
-            src="@/assets/images/logo.png" 
-            alt="KSA Valuers" 
-            class="h-8 w-auto object-contain bg-white px-2 py-1 rounded-lg"
-          >
-        </div>
-        <div class="flex flex-col">
-          <span class="text-white font-extrabold text-base tracking-tight group-hover:text-blue-300 transition-colors">KSA Valuers</span>
-          <span class="text-[10px] text-slate-400 font-medium tracking-widest uppercase">Client & Staff Portal</span>
-        </div>
-      </router-link>
-
+    <!-- Top Navigation (Back to Website only, no top-left banner) -->
+    <div class="absolute top-6 right-6 z-10">
       <router-link 
         to="/" 
-        class="text-xs font-bold text-slate-300 hover:text-white transition-all flex items-center gap-2 bg-slate-900/60 hover:bg-slate-800/80 backdrop-blur-md px-4 py-2.5 rounded-xl border border-slate-800 hover:border-slate-700 shadow-sm"
+        class="text-xs font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-1.5 bg-slate-900/60 hover:bg-slate-800/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-slate-800 hover:border-slate-700 shadow-sm"
       >
-        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
         <span>Back to Website</span>
       </router-link>
     </div>
 
-    <!-- Central Authentication Section -->
-    <div class="my-auto py-10 max-w-md w-full mx-auto flex flex-col items-center">
+    <!-- Central Authentication Card -->
+    <div class="w-full max-w-[380px] mx-auto my-auto flex flex-col items-center">
       
-      <!-- Clerk Authentication Component (Luxury Dark Card Appearance) -->
-      <div v-if="hasClerkKey" class="w-full flex justify-center">
+      <!-- Clerk Authentication Component (Compact Dark Card) -->
+      <div v-if="hasClerkKey" class="w-full flex justify-center clerk-dark-wrapper">
         <SignIn 
           v-if="activeTab === 'login'" 
           routing="path" 
@@ -52,55 +38,49 @@
       </div>
 
       <!-- Fallback Custom Dark Form -->
-      <div v-else class="w-full bg-slate-900/90 backdrop-blur-2xl rounded-3xl p-8 border border-slate-800/80 shadow-2xl shadow-blue-950/40">
-        <div class="text-center mb-8">
-          <h2 class="text-2xl font-extrabold text-white tracking-tight">Portal Authentication</h2>
-          <p class="text-slate-400 text-xs mt-1.5">Enter your credentials to access your portal</p>
+      <div v-else class="w-full bg-slate-900/90 backdrop-blur-xl rounded-2xl p-6 border border-slate-800 shadow-2xl shadow-blue-950/40">
+        <div class="text-center mb-6">
+          <h2 class="text-xl font-bold text-white tracking-tight">Portal Sign In</h2>
+          <p class="text-slate-400 text-xs mt-1">Enter your credentials to continue</p>
         </div>
 
-        <div v-if="errorMessage" class="mb-5 p-4 bg-red-950/60 border border-red-800/60 rounded-xl text-xs font-medium text-red-200">
+        <div v-if="errorMessage" class="mb-4 p-3 bg-red-950/60 border border-red-800/60 rounded-lg text-xs text-red-200">
           {{ errorMessage }}
         </div>
 
-        <form @submit.prevent="handleCustomLogin" class="space-y-5">
+        <form @submit.prevent="handleCustomLogin" class="space-y-4">
           <div>
-            <label for="email" class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">Email Address</label>
+            <label for="email" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Email</label>
             <input 
               id="email" 
               v-model="loginForm.email" 
               type="email" 
               required 
               placeholder="admin@ksavaluers.com" 
-              class="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-white text-sm outline-none transition placeholder:text-slate-600"
+              class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-600"
             >
           </div>
           <div>
-            <label for="password" class="block text-xs font-bold text-slate-300 mb-1.5 uppercase tracking-wider">Password</label>
+            <label for="password" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Password</label>
             <input 
               id="password" 
               v-model="loginForm.password" 
               type="password" 
               required 
               placeholder="••••••••••••" 
-              class="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-white text-sm outline-none transition placeholder:text-slate-600"
+              class="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-600"
             >
           </div>
           <button 
             type="submit" 
             :disabled="loading" 
-            class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold rounded-xl text-sm shadow-lg shadow-blue-600/25 transition-all disabled:opacity-50"
+            class="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-lg text-xs shadow-md transition-all disabled:opacity-50"
           >
-            Sign In to Dashboard
+            Sign In
           </button>
         </form>
       </div>
 
-    </div>
-
-    <!-- Footer Privacy & Security Note -->
-    <div class="text-center text-[11px] text-slate-500 max-w-md mx-auto leading-relaxed">
-      Secured by enterprise encryption & Clerk identity protocol.<br>
-      © {{ new Date().getFullYear() }} KSA Valuers. All rights reserved.
     </div>
 
   </div>
@@ -136,25 +116,25 @@ const hasClerkKey = computed(() => {
   return key && key.startsWith('pk_')
 })
 
-// Custom Clerk appearance styling matching KSA Valuers Editorial Luxury Dark aesthetics
+// Compact Clerk appearance styling matching dark aesthetic
 const clerkAppearance = {
   elements: {
     rootBox: 'w-full flex justify-center',
-    card: 'shadow-2xl shadow-blue-950/40 rounded-3xl border border-slate-800/80 bg-slate-900/90 backdrop-blur-2xl p-6 sm:p-8 w-full max-w-md text-white',
-    headerTitle: 'text-white font-extrabold text-2xl text-center tracking-tight',
-    headerSubtitle: 'text-slate-400 text-xs text-center mt-1.5 font-medium',
-    socialButtonsBlockButton: 'border border-slate-700/70 hover:border-slate-500 bg-slate-800/70 hover:bg-slate-800 text-white rounded-xl font-semibold text-sm shadow-sm py-2.5 transition',
-    socialButtonsBlockButtonText: 'text-slate-200 font-semibold text-sm',
-    dividerRow: 'my-6',
-    dividerText: 'text-slate-500 text-[11px] font-bold uppercase tracking-widest',
-    formFieldLabel: 'text-slate-300 text-xs font-bold mb-1.5 uppercase tracking-wider',
-    formFieldInput: 'bg-slate-950/80 border border-slate-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-white text-sm py-2.5 px-4 transition outline-none placeholder:text-slate-600',
-    formButtonPrimary: 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-sm py-3.5 rounded-xl shadow-lg shadow-blue-600/25 transition-all border-0',
-    footerActionLink: 'text-blue-400 hover:text-blue-300 font-bold text-xs',
-    footer: 'border-t border-slate-800/60 pt-4 mt-6 text-slate-400 text-xs',
-    footerActionText: 'text-slate-400 text-xs',
-    identityPreviewText: 'text-white text-sm font-semibold',
-    identityPreviewEditButton: 'text-blue-400 hover:text-blue-300 font-bold text-xs'
+    cardBox: 'w-full max-w-[380px]',
+    card: 'shadow-2xl rounded-2xl border border-slate-800 bg-slate-900 text-white w-full max-w-[380px] p-5',
+    headerTitle: 'text-white font-bold text-xl text-center tracking-tight',
+    headerSubtitle: 'text-slate-400 text-xs text-center mt-1 font-normal',
+    socialButtonsBlockButton: 'border border-slate-700 bg-slate-800/80 hover:bg-slate-800 text-white rounded-lg font-medium text-xs py-2 transition',
+    socialButtonsBlockButtonText: 'text-slate-200 font-medium text-xs',
+    dividerRow: 'my-4',
+    dividerText: 'text-slate-500 text-[10px] font-semibold uppercase tracking-widest',
+    formFieldLabel: 'text-slate-300 text-[11px] font-semibold mb-1 uppercase tracking-wider',
+    formFieldInput: 'bg-slate-950 border border-slate-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 rounded-lg text-white text-xs py-2 px-3 transition outline-none placeholder:text-slate-600',
+    formButtonPrimary: 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs py-2.5 rounded-lg shadow-md transition-all border-0',
+    footer: 'hidden',
+    footerAction: 'hidden',
+    footerPages: 'hidden',
+    devModeBadge: 'hidden'
   },
   variables: {
     colorPrimary: '#2563eb',
@@ -162,7 +142,7 @@ const clerkAppearance = {
     colorBackground: '#0f172a',
     colorInputBackground: '#020617',
     colorInputText: '#f8fafc',
-    borderRadius: '0.75rem'
+    borderRadius: '0.5rem'
   }
 }
 
@@ -183,3 +163,48 @@ const handleCustomLogin = async () => {
   }
 }
 </script>
+
+<style scoped>
+/* Scoped overrides to enforce dark styling on Clerk internal elements & hide split footer */
+.clerk-dark-wrapper :deep(.cl-cardBox),
+.clerk-dark-wrapper :deep(.cl-card) {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(51, 65, 85, 0.8) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 1rem !important;
+  max-width: 380px !important;
+}
+
+.clerk-dark-wrapper :deep(.cl-headerTitle) {
+  color: #ffffff !important;
+}
+
+.clerk-dark-wrapper :deep(.cl-headerSubtitle) {
+  color: #94a3b8 !important;
+}
+
+.clerk-dark-wrapper :deep(.cl-formFieldLabel) {
+  color: #cbd5e1 !important;
+}
+
+.clerk-dark-wrapper :deep(.cl-formFieldInput) {
+  background-color: #020617 !important;
+  color: #f8fafc !important;
+  border-color: #1e293b !important;
+}
+
+.clerk-dark-wrapper :deep(.cl-formButtonPrimary) {
+  background: linear-gradient(to right, #2563eb, #4f46e5) !important;
+  color: #ffffff !important;
+}
+
+/* Hide the split bottom footer section from Clerk */
+.clerk-dark-wrapper :deep(.cl-footer),
+.clerk-dark-wrapper :deep(.cl-footerAction),
+.clerk-dark-wrapper :deep(.cl-footerPages),
+.clerk-dark-wrapper :deep(.cl-devModeBadge) {
+  display: none !important;
+}
+</style>
+
