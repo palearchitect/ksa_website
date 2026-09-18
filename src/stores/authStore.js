@@ -88,15 +88,46 @@ export const useAuthStore = defineStore('auth', () => {
           role: response.data.role
         })
       }
-      captureEvent('user_logged_in', {
-        user_role: response.data?.role
-      })
       return { success: true, user: response.data }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
+      const code = err.response?.data?.code
       return { 
         success: false, 
-        error: error.value
+        error: error.value,
+        code
+      }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Google Login
+  const googleLogin = async (credential, intent = 'signin') => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.googleLogin({ credential, intent })
+      if (response.data) {
+        user.value = response.data
+        isAuthenticated.value = true
+        sessionPromise = Promise.resolve(response.data)
+        if (response.data?.id) {
+          identifyUser(response.data.id, {
+            email: response.data.email,
+            name: response.data.name,
+            role: response.data.role
+          })
+        }
+      }
+      return { success: true, ...response }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      const code = err.response?.data?.code
+      return { 
+        success: false, 
+        error: error.value,
+        code
       }
     } finally {
       loading.value = false
@@ -112,7 +143,8 @@ export const useAuthStore = defineStore('auth', () => {
       return { success: true, ...response }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
-      return { success: false, error: error.value }
+      const code = err.response?.data?.code
+      return { success: false, error: error.value, code }
     } finally {
       loading.value = false
     }
@@ -213,6 +245,7 @@ export const useAuthStore = defineStore('auth', () => {
     syncClerkUser,
     loadSession,
     login,
+    googleLogin,
     register,
     verifyOTP,
     resendOTP,

@@ -1140,7 +1140,7 @@ app.get('/api/v1/auth/me', requireAuth, async (req, res) => {
 
 app.post('/api/v1/auth/google', authLimiter, async (req, res) => {
   try {
-    const { credential } = req.body || {};
+    const { credential, intent = 'signin' } = req.body || {};
     if (!credential) {
       return res.status(400).json({ success: false, message: 'Google credential is required' });
     }
@@ -1177,7 +1177,17 @@ app.post('/api/v1/auth/google', authLimiter, async (req, res) => {
       [googleId, email]
     );
 
-    if (userResult.rowCount > 0) {
+    const userExists = userResult.rowCount > 0;
+
+    if (intent === 'signin') {
+      if (!userExists) {
+        return res.status(404).json({
+          success: false,
+          code: 'USER_NOT_FOUND',
+          message: 'No account found with this Google email. Please sign up to create an account.'
+        });
+      }
+
       const user = userResult.rows[0];
       if (user.status === 'suspended') {
         return res.status(403).json({ success: false, message: 'Your account has been suspended.' });
@@ -1191,7 +1201,16 @@ app.post('/api/v1/auth/google', authLimiter, async (req, res) => {
       setAuthCookies(res, signAccessToken(authUser), signRefreshToken(authUser));
       return res.json({ success: true, registered: true, data: authUser });
     } else {
-      // Social Onboarding Verification: generate a short-lived token to prevent client-side query parameters spoofing
+      // intent === 'signup'
+      if (userExists) {
+        return res.status(409).json({
+          success: false,
+          code: 'USER_ALREADY_EXISTS',
+          message: 'An account already exists with this email. Please sign in instead.'
+        });
+      }
+
+      // Social Onboarding Verification: generate a short-lived token
       const onboardingToken = jwt.sign(
         { email, googleId, name },
         JWT_SECRET,

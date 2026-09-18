@@ -115,6 +115,8 @@ const handleRegister = async () => {
     const res = await authStore.register(name.value, email.value, password.value)
     if (res.success) {
       router.push(`/verify-email?email=${encodeURIComponent(email.value)}`)
+    } else if (res.code === 'USER_ALREADY_EXISTS' || (res.error && (res.error.toLowerCase().includes('already') || res.error.toLowerCase().includes('exist')))) {
+      router.push('/admin/login?tab=login&notice=account_exists')
     } else {
       errorMsg.value = res.error || 'Registration failed.'
     }

@@ -48,6 +48,10 @@
           </p>
         </div>
 
+        <div v-if="noticeMessage" class="mb-4 p-3 bg-amber-950/80 border border-amber-600/80 rounded-lg text-xs text-amber-200 leading-relaxed font-medium">
+          {{ noticeMessage }}
+        </div>
+
         <div v-if="errorMessage" class="mb-4 p-3 bg-red-950/80 border border-red-800/80 rounded-lg text-xs text-red-200">
           {{ errorMessage }}
         </div>
@@ -163,7 +167,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { SignIn, SignUp } from '@clerk/vue'
 import { useAuthStore } from '@/stores/authStore'
@@ -181,8 +185,19 @@ const authStore = useAuthStore()
 const activeTab = ref(route.query.tab === 'signup' ? 'signup' : 'login')
 const loading = ref(false)
 const errorMessage = ref('')
+const noticeMessage = ref('')
 const loginForm = ref({ email: '', password: '' })
 const registerForm = ref({ name: '', email: '', password: '' })
+
+onMounted(() => {
+  if (route.query.notice === 'account_not_found' || route.query.error === 'user_not_found') {
+    activeTab.value = 'signup'
+    noticeMessage.value = 'No account found with this email. Please sign up to create a new account.'
+  } else if (route.query.notice === 'account_exists' || route.query.error === 'user_exists') {
+    activeTab.value = 'login'
+    noticeMessage.value = 'An account already exists with this email. Please sign in instead.'
+  }
+})
 
 watch(() => route.query.tab, (newTab) => {
   activeTab.value = newTab === 'signup' ? 'signup' : 'login'
@@ -190,6 +205,8 @@ watch(() => route.query.tab, (newTab) => {
 
 const switchTab = (tab) => {
   activeTab.value = tab
+  errorMessage.value = ''
+  noticeMessage.value = ''
   router.replace({ query: { ...route.query, tab } })
 }
 
@@ -231,10 +248,15 @@ const clerkAppearance = {
 const handleCustomLogin = async () => {
   loading.value = true
   errorMessage.value = ''
+  noticeMessage.value = ''
   try {
     const res = await authStore.login(loginForm.value.email, loginForm.value.password)
     if (res.success) {
       router.push('/dashboard/admin')
+    } else if (res.code === 'USER_NOT_FOUND' || (res.error && res.error.toLowerCase().includes('not found'))) {
+      switchTab('signup')
+      registerForm.value.email = loginForm.value.email
+      noticeMessage.value = 'No account found with this email. Please sign up to create an account.'
     } else {
       errorMessage.value = res.error || 'Login failed.'
     }
@@ -248,11 +270,15 @@ const handleCustomLogin = async () => {
 const handleCustomRegister = async () => {
   loading.value = true
   errorMessage.value = ''
+  noticeMessage.value = ''
   try {
     const res = await authStore.register(registerForm.value.name, registerForm.value.email, registerForm.value.password)
     if (res.success) {
-      // Direct to verify email with Resend OTP code
       router.push(`/verify-email?email=${encodeURIComponent(registerForm.value.email)}`)
+    } else if (res.code === 'USER_ALREADY_EXISTS' || (res.error && (res.error.toLowerCase().includes('already') || res.error.toLowerCase().includes('exist')))) {
+      switchTab('login')
+      loginForm.value.email = registerForm.value.email
+      noticeMessage.value = 'An account already exists with this email. Please sign in instead.'
     } else {
       errorMessage.value = res.error || 'Registration failed.'
     }

@@ -5,7 +5,7 @@
     {
       "id": "236b42d6-89a1-4e3f-b78a-a23546f898d3",
       "type": "warehouse",
-      "status": "pending",
+      "status": "running",
       "dependsOn": [
         "65655920-b477-40b9-8f54-e8d59460074e",
         "2a274515-a832-4267-a02f-81a7ec65c221",
@@ -49,11 +49,12 @@
           }
         ]
       },
-      "attempts": 0,
+      "attempts": 1,
       "maxAttempts": 2,
       "enqueuedBy": "orchestrator",
       "optional": true,
-      "createdAt": "2026-09-18T21:37:37.557Z"
+      "createdAt": "2026-09-18T21:37:37.557Z",
+      "startedAt": "2026-09-18T21:46:08.455Z"
     },
     {
       "id": "65655920-b477-40b9-8f54-e8d59460074e",
@@ -191,7 +192,7 @@
       "id": "9d2bd5ed-a39b-4b69-af18-6b929d5db178",
       "type": "review",
       "label": "Review integration",
-      "status": "running",
+      "status": "done",
       "dependsOn": [
         "65655920-b477-40b9-8f54-e8d59460074e",
         "2a274515-a832-4267-a02f-81a7ec65c221",
@@ -204,13 +205,24 @@
       "maxAttempts": 2,
       "enqueuedBy": "orchestrator",
       "createdAt": "2026-09-18T21:38:55.483Z",
-      "startedAt": "2026-09-18T21:42:29.153Z"
+      "startedAt": "2026-09-18T21:42:29.153Z",
+      "handoff": {
+        "goals": "Install the declared PostHog dependencies, verify the project’s defined build/typecheck/lint commands, and strictly review the upstream PostHog changeset for minimality, unrelated changes, codebase patterns, and Vue reference-example correctness.",
+        "did": "Ran the required npm install successfully and reviewed every upstream changeset source file plus the env-key handoff state, the existing router capture pattern, helper callers, and the root ErrorBoundary caller. Made 1 fix under the example-shapes/runtime-wiring dimension: removed `return false` from `src/components/global/ErrorBoundary.vue`'s `onErrorCaptured` callback. The boundary still sets its fallback UI state, but errors now propagate to the global Vue handler added in `src/main.js`, allowing both the preserved Sentry handler and PostHog `captureException` to run. Review results: Minimal — pass; Unrelated — pass; Codebase patterns — pass; Example shapes — pass after the fix. No event names, event properties, or capture action boundaries were changed.",
+        "forNextAgent": "The integration installs and builds. Both required Vite PostHog environment keys are present. The project has no lint or typecheck scripts, so only its declared build was run. The build produced non-fatal existing optimization warnings (mixed dynamic/static import of the PostHog module and a >500 kB chunk); no dashboard or report work was performed here.",
+        "filesTouched": [
+          "src/components/global/ErrorBoundary.vue"
+        ],
+        "evidence": "`npm install` completed successfully and reported the tree up to date. `npm run build` completed successfully with Vite 5.4.21 after transforming 878 modules. `check_env_keys` reported both `VITE_POSTHOG_PROJECT_TOKEN` and `VITE_POSTHOG_HOST` present in `.env` and `.env.example`.",
+        "assumptions": "The upstream handoffs accurately identify the full integration changeset and the real env values written through wizard tools. Browser delivery was not exercised, as this task’s verification bar is install and production build."
+      },
+      "finishedAt": "2026-09-18T21:46:01.615Z"
     },
     {
       "id": "6c307bcb-22b5-484b-b928-99223aa19f79",
       "type": "dashboard",
       "label": "Build product dashboard",
-      "status": "running",
+      "status": "done",
       "dependsOn": [
         "f54b5466-0a98-4bbe-b407-ad0e40960ffe"
       ],
@@ -219,7 +231,15 @@
       "maxAttempts": 2,
       "enqueuedBy": "orchestrator",
       "createdAt": "2026-09-18T21:38:55.489Z",
-      "startedAt": "2026-09-18T21:42:29.163Z"
+      "startedAt": "2026-09-18T21:42:29.163Z",
+      "handoff": {
+        "goals": "Create a starter PostHog dashboard with a handful of insights built on the Vue integration's captured events, and provide its URL.",
+        "did": "Created the PostHog dashboard `Analytics basics (wizard)` and attached five saved `(wizard)` insights. The dashboard supports recurring monitoring of property interest, saved-property engagement, administrator sign-ins, feedback/support activity, and the property-detail-to-tour-request conversion funnel. No project files were edited.",
+        "forNextAgent": "Dashboard URL: https://us.posthog.com/project/598823/dashboard/2112566. It contains five attached insights: Tour booking funnel (wizard), Property detail interest (wizard), Saved-property engagement (wizard), Administrator sign-ins (wizard), and Visitor feedback and support engagement (wizard). These definitions use the seven events recorded in `.posthog-wizard-cache/.posthog-events.json`; fresh integrations may show empty results until events arrive.",
+        "filesTouched": [],
+        "evidence": "PostHog MCP returned dashboard ID 2112566 and URL https://us.posthog.com/project/598823/dashboard/2112566. Each of the five successful insight-create responses returned `saved: true`, `dashboards: [2112566]`, and a dashboard tile ID."
+      },
+      "finishedAt": "2026-09-18T21:43:55.403Z"
     },
     {
       "id": "8351d8b4-7503-479a-b947-7760b7f59f10",
