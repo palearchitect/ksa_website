@@ -27,6 +27,7 @@
     "@clerk/express": "^2.1.69",
     "@clerk/vue": "^2.5.3",
     "@heroicons/vue": "^2.2.0",
+    "@sentry/vue": "^10.75.0",
     "@supabase/supabase-js": "^2.116.0",
     "@vueuse/core": "^14.2.1",
     "axios": "^1.6.0",
