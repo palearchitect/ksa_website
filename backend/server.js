@@ -29,8 +29,16 @@ const { getTemplate } = require('./services/emailTemplates');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'f91373f359e5fc7cec3d41d5120b302e6d3ec6750cdfa033bb5f57749b625ec036e6deb5ee2ac9a8d354b0c940ccf1fd0781aea43ca541fcb6082590397552e4';
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || '7df6457e1a2cb98621e7e70935bab46e826515c9b5a89311bd54d9e1b9b81f5ac86a020c6b2de95b37af8cd8f1d2495d01012843257f7d3e57b88a9152d4a8f6';
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+
+if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
+  console.error('❌ CRITICAL ERROR: JWT_SECRET environment variable is missing in production!');
+  process.exit(1);
+}
+
+const EFFECTIVE_JWT_SECRET = JWT_SECRET || 'dev_only_jwt_secret_change_in_production_key_123';
+const EFFECTIVE_JWT_REFRESH_SECRET = JWT_REFRESH_SECRET || 'dev_only_refresh_secret_change_in_production_key_123';
 const ACCESS_TOKEN_TTL = process.env.JWT_ACCESS_TTL || '15m';
 const REFRESH_TOKEN_TTL = process.env.JWT_REFRESH_TTL || '7d';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -249,20 +257,39 @@ const signAccessToken = (user) =>
 const signRefreshToken = (user) =>
   jwt.sign({ sub: user.id, type: 'refresh' }, JWT_REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_TTL });
 
+const COOKIE_DOMAIN = process.env.COOKIE_DOMAIN || undefined;
+const COOKIE_SAMESITE = process.env.COOKIE_SAMESITE || (IS_PROD ? 'none' : 'lax');
+
 const setAuthCookies = (res, accessToken, refreshToken) => {
-  const base = { httpOnly: true, secure: IS_PROD, sameSite: 'lax', path: '/' };
+  const base = { 
+    httpOnly: true, 
+    secure: IS_PROD, 
+    sameSite: COOKIE_SAMESITE, 
+    path: '/',
+    ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {})
+  };
   res.cookie('ksa_access', accessToken, { ...base, maxAge: 15 * 60 * 1000 });
   res.cookie('ksa_refresh', refreshToken, { ...base, maxAge: 7 * 24 * 60 * 60 * 1000 });
 
   // Set CSRF token cookie on successful authentication
   const csrfToken = crypto.randomBytes(32).toString('hex');
-  res.cookie('ksa_csrf', csrfToken, { httpOnly: false, secure: IS_PROD, sameSite: 'lax', path: '/' });
+  res.cookie('ksa_csrf', csrfToken, { 
+    httpOnly: false, 
+    secure: IS_PROD, 
+    sameSite: COOKIE_SAMESITE, 
+    path: '/',
+    ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {})
+  });
 };
 
 const clearAuthCookies = (res) => {
-  res.clearCookie('ksa_access', { path: '/' });
-  res.clearCookie('ksa_refresh', { path: '/' });
-  res.clearCookie('ksa_csrf', { path: '/' });
+  const opts = { 
+    path: '/', 
+    ...(COOKIE_DOMAIN ? { domain: COOKIE_DOMAIN } : {}) 
+  };
+  res.clearCookie('ksa_access', opts);
+  res.clearCookie('ksa_refresh', opts);
+  res.clearCookie('ksa_csrf', opts);
 };
 
 const requireAuth = (req, res, next) => {
@@ -1352,7 +1379,6 @@ app.post('/api/ask-ai', aiLimiter, async (req, res) => {
     }
 
     console.log('🤖 Asking Gemini:', question.substring(0, 50) + '...');
-    console.log('🔑 Using API key starting with:', process.env.GEMINI_API_KEY.substring(0, 10) + '...');
 
     const modelName = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${process.env.GEMINI_API_KEY}`;

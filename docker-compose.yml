@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ksa_website_app
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgres://ksa_user:ksa_password@db:5432/ksa_valuers_db
+      - JWT_SECRET=change_this_to_a_secure_random_string_in_production
+      - JWT_REFRESH_SECRET=change_this_to_another_secure_random_string
+      - EMAIL_PROVIDER=smtp
+      - ALLOWED_ORIGINS=http://localhost:3001
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: ksa_website_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ksa_user
+      POSTGRES_PASSWORD: ksa_password
+      POSTGRES_DB: ksa_valuers_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ksa_user -d ksa_valuers_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

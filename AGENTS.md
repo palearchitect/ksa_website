@@ -195,26 +195,244 @@ The following components represent legacy code, simulation fallbacks, or structu
 
 ---
 
-## 5. Communication Patterns & Data Flow
+## 5. System Architecture & Component Wiring
+
+The following diagram illustrates how all frontend layers, stores, network clients, backend middlewares, service agents, external third parties, and the persistence tier are interconnected.
+
+```mermaid
+flowchart TB
+    subgraph ClientTier ["Frontend Client Tier (Vue 3 + Vite SPA)"]
+        direction TB
+        subgraph UIViews ["Views & Routing"]
+            Router["Vue Router 4 (Route Guards)"]
+            PubViews["Public Views (Home, Properties, Projects, Bookings, AI, Contact)"]
+            AdminViews["Admin Views (Dashboard, Listings, PMS, Slides, Audit)"]
+        end
+
+        subgraph StateLayer ["Pinia Reactive State Stores"]
+            AuthStore["authStore.js (User, Session, Roles)"]
+            PropStore["propertyStore.js (Properties, Filters, Pagination)"]
+            ProjStore["projectStore.js (Projects, Milestones)"]
+            BookStore["bookingStore.js (Bookings, Schedule Stats)"]
+            HeroStore["heroSlideStore.js (Hero Carousel)"]
+            PmsStore["pmsStore.js (Units, Leases, Payments)"]
+        end
+
+        subgraph ClientServices ["Client Utilities & Telemetry"]
+            AxiosClient["Axios HTTP Client (api.js)<br/>• Automatic 401 Interceptor<br/>• Transparent Token Refresh<br/>• withCredentials: true"]
+            PostHogClient["PostHog Composable / Plugin<br/>• SPA Pageviews & Custom Events<br/>• Identity Tracking"]
+        end
+
+        Router --> PubViews & AdminViews
+        PubViews & AdminViews --> StateLayer
+        StateLayer --> AxiosClient
+        UIViews -.-> PostHogClient
+    end
+
+    subgraph NetworkGateway ["Reverse Proxy & Network Gateway"]
+        direction TB
+        ViteProxy["Vite Dev Server Proxy (/api -> localhost:3000)"]
+        ExpressStatic["Production Static Server (Express dist/)"]
+    end
+
+    AxiosClient ==>|HTTP/JSON Requests with HTTP-Only Cookies| ExpressServer
+
+    subgraph BackendTier ["Backend API & Middleware Tier (Express.js)"]
+        direction TB
+        ExpressServer["Express HTTP Router (backend/server.js)"]
+        
+        subgraph Middlewares ["Security & Routing Middlewares"]
+            CorsMW["CORS Policy & Helmet (Dynamic Origin Whitelist)"]
+            RateLimitMW["Rate Limiters (Auth, AI, Form Submission)"]
+            AuthMW["Auth Guard (JWT Verification & Role Access Checks)"]
+        end
+
+        subgraph Controllers ["API Route Handlers"]
+            AuthRoute["/api/v1/auth (Login, Register, Refresh, Logout, Me)"]
+            PropRoute["/api/properties (CRUD, Search, Featured Filter)"]
+            ProjRoute["/api/projects (CRUD, Progress Tracking)"]
+            BookRoute["/api/bookings (Create, Conflict Check, Status)"]
+            HeroRoute["/api/hero-slides (Sort Order & Carousel CRUD)"]
+            PmsRoute["/api/pms (Tenants, Leases, Invoices)"]
+            AiRoute["/api/ask-ai & /api/ask-ai-cached (Conversational Search)"]
+            ContactRoute["/api/contact (Inquiries & Lead Captures)"]
+        end
+
+        subgraph CoreServices ["Backend Engine & Worker Services"]
+            EmailService["EmailService & Templates (Gmail, SMTP, SendGrid, SES)"]
+            AuditLogger["Audit Logger Agent (logAudit before/after JSON)"]
+            PostHogNode["PostHog Node SDK (Backend Telemetry & Flags)"]
+            AiEngine["Gemini AI Client (gemini-2.5-flash + Memory Cache)"]
+            MigrationEngine["Migration Engine (backend/migrations/init.js)"]
+        end
+
+        ExpressServer --> CorsMW --> RateLimitMW --> AuthMW
+        AuthMW --> Controllers
+        Controllers --> CoreServices
+    end
+
+    subgraph ExternalThirdParties ["External Services & AI Providers"]
+        GoogleGemini["Google Gemini API (gemini-2.5-flash)"]
+        PostHogCloud["PostHog Telemetry Platform"]
+        MailServers["SMTP / Mail Delivery Providers"]
+    end
+
+    AiEngine <-->|Prompt & Schema Query| GoogleGemini
+    PostHogNode & PostHogClient -.->|Analytics Stream| PostHogCloud
+    EmailService -->|Deliver Notification Emails| MailServers
+
+    subgraph PersistenceTier ["Persistence Tier (PostgreSQL Database)"]
+        direction TB
+        DbPool["PostgreSQL Connection Pool (pg.Pool / DATABASE_URL)"]
+        
+        subgraph Tables ["Relational Tables"]
+            UsersTable[("users")]
+            PropsTable[("properties")]
+            ProjectsTable[("projects")]
+            BookingsTable[("bookings")]
+            SlidesTable[("hero_slides")]
+            AuditTable[("audit_logs")]
+            MessagesTable[("contact_messages")]
+            PaymentsTable[("payments")]
+        end
+
+        DbPool --> Tables
+    end
+
+    CoreServices --> DbPool
+    Controllers --> DbPool
+    MigrationEngine -->|Schema Initialization & Seed Checks| DbPool
+```
+
+---
+
+## 6. End-to-End Workflow & Data Flow Diagrams
+
+### A. Authentication & Transparent Token Refresh Cycle
 
 ```mermaid
 sequenceDiagram
-    participant UI as Vue Component
-    participant Store as Pinia Store
-    participant API as Axios Client
+    autonumber
+    actor User as Admin / Agent User
+    participant Router as Vue Router Guard
+    participant AuthStore as Pinia Auth Store
+    participant Axios as Axios Client (api.js)
     participant Server as Express Server
-    participant DB as PostgreSQL Database
-    
-    UI->>Store: dispatchAction(data)
-    Store->>API: axios.post('/api/endpoint', data)
-    API->>Server: HTTP POST (cookies attached)
-    Note over Server: Verify Auth & Role
-    Note over Server: Validate Inputs
-    Server->>DB: INSERT/UPDATE Query
-    DB-->>Server: Return updated row
-    Note over Server: Log Audit Entry
-    Server-->>API: JSON response { success: true, data }
-    API-->>Store: Resolve promise
-    Note over Store: Update reactive state
-    Store-->>UI: Reactive update triggers re-render
+    participant DB as PostgreSQL (users)
+
+    User->>AuthStore: login(email, password)
+    AuthStore->>Axios: post('/api/v1/auth/login')
+    Axios->>Server: HTTP POST credentials
+    Server->>DB: Query user by email & verify bcrypt hash
+    DB-->>Server: User record matched
+    Server-->>Axios: Set HTTP-Only Cookies (ksa_access, ksa_refresh) + JSON { user }
+    Axios-->>AuthStore: Resolve user state
+    AuthStore-->>Router: Set isAuthenticated = true & redirect to /admin
+
+    Note over Axios,Server: Access Token expires (e.g. 15 minutes later)
+    User->>Axios: Authenticated Request (e.g. GET /api/bookings)
+    Axios->>Server: HTTP GET with expired ksa_access cookie
+    Server-->>Axios: 401 Unauthorized Response
+    Note over Axios: Interceptor halts queue & initiates token renewal
+    Axios->>Server: POST /api/v1/auth/refresh (carries ksa_refresh cookie)
+    Server->>Server: Verify refresh JWT
+    Server-->>Axios: Set fresh HTTP-Only ksa_access cookie
+    Note over Axios: Replays original failed request automatically
+    Axios->>Server: Retry GET /api/bookings with fresh credentials
+    Server-->>Axios: 200 OK + Booking Payload
+    Axios-->>User: Seamless UI update without session interrupt
+```
+
+### B. Admin Mutation & Audit Trail Pipeline
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Admin as Admin User
+    participant AdminUI as Property Edit Form
+    participant PropStore as Pinia propertyStore
+    participant Axios as Axios Client
+    participant Server as Express Server
+    participant Audit as Audit Logger (logAudit)
+    participant DB as PostgreSQL (properties, audit_logs)
+
+    Admin->>AdminUI: Submit Property Price/Details Update
+    AdminUI->>PropStore: updateProperty(id, formData)
+    PropStore->>Axios: put('/api/properties/' + id, data)
+    Axios->>Server: HTTP PUT /api/properties/:id (with auth cookies)
+    Server->>Server: Verify token & assert Admin/Manager role
+    Server->>DB: SELECT * FROM properties WHERE id = :id (Fetch before-state)
+    DB-->>Server: Returns beforeData JSON
+    Server->>DB: UPDATE properties SET ... RETURNING *
+    DB-->>Server: Returns afterData JSON
+    Server->>Audit: logAudit(adminEmail, 'UPDATE', 'properties', id, beforeData, afterData)
+    Audit->>DB: INSERT INTO audit_logs (email, action, table, record_id, before, after)
+    Server-->>Axios: JSON { success: true, property: updatedRecord }
+    Axios-->>PropStore: Update reactive property state
+    PropStore-->>AdminUI: Render success toast & refresh table
+```
+
+### C. Site Viewing Booking & Notification Pipeline
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Visitor as Client / Buyer
+    participant UI as Book Tour Form (Public)
+    participant BookStore as Pinia bookingStore
+    participant Server as Express Server
+    participant Email as EmailService
+    participant PostHog as PostHog Telemetry
+    participant DB as PostgreSQL (bookings)
+
+    Visitor->>UI: Fill name, email, property, date & time slot
+    UI->>BookStore: createBooking(bookingPayload)
+    BookStore->>Server: POST /api/bookings
+    Server->>Server: Check rate limiter (10 req/hr)
+    Server->>DB: Check for schedule conflicts on date/time slot
+    alt Slot is Available
+        Server->>DB: INSERT INTO bookings (name, email, date, status='pending')
+        DB-->>Server: Return booking record (id, ref)
+        par Send Confirmation Emails
+            Server->>Email: sendBookingConfirmation(clientEmail, details)
+            Server->>Email: sendAdminBookingAlert(adminEmail, details)
+        and Record Telemetry
+            Server->>PostHog: capture('booking_created', { propertyId, slot })
+        end
+        Server-->>BookStore: 201 Created { success: true, booking }
+        BookStore-->>UI: Display confirmation modal & calendar invite
+    else Slot Conflict Detected
+        Server-->>BookStore: 409 Conflict { message: 'Slot already reserved' }
+        BookStore-->>UI: Prompt user to pick alternative slot
+    end
+```
+
+### D. AI Assistant Query & Multi-Tier Caching Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Website Visitor
+    participant AIChat as AI Assistant UI
+    participant Server as Express Server
+    participant Cache as Memory Cache Map
+    participant Gemini as Google Gemini 2.5 Flash API
+    participant DB as PostgreSQL (properties)
+
+    User->>AIChat: "Find a 3 bedroom duplex for sale in Lekki under 150M"
+    AIChat->>Server: POST /api/ask-ai-cached { prompt }
+    Server->>Server: Check AI rate limiter (30 req/15min)
+    Server->>Cache: Lookup hash(prompt)
+    alt Cache Hit
+        Cache-->>Server: Return cached structured response
+        Server-->>AIChat: Instant response from cache (0 latency, 0 tokens)
+    else Cache Miss
+        Server->>DB: Fetch current available listings for system grounding context
+        DB-->>Server: Active properties catalog
+        Server->>Gemini: Prompt + System Grounding Context + Properties Data
+        Gemini-->>Server: Structured response with matching property references
+        Server->>Cache: Set cache[hash(prompt)] = response (TTL 1 hour)
+        Server-->>AIChat: 200 OK with recommended listings & AI explanation
+    end
+    AIChat-->>User: Render formatted answer cards with direct links
 ```

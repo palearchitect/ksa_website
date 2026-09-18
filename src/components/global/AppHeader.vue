@@ -1,5 +1,5 @@
 <template>
-  <header class="app-header shadow-sm">
+  <header class="app-header" :class="{ 'is-scrolled': isScrolled }">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
       <div class="flex items-center justify-between">
         <!-- Logo Section -->
@@ -72,10 +72,15 @@
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import AppNavigation from './AppNavigation.vue'
 
 const mobileMenuOpen = ref(false)
+const isScrolled = ref(false)
+
+const handleScroll = () => {
+  isScrolled.value = window.scrollY > 20
+}
 
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
@@ -90,9 +95,14 @@ watch(mobileMenuOpen, (isOpen) => {
   }
 })
 
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll, { passive: true })
+})
+
 // Clean up body class if component is destroyed while menu is open
 onUnmounted(() => {
   document.body.classList.remove('menu-open')
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
@@ -102,11 +112,20 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 100; /* High z-index to ensure it sits on top of all page elements */
-  background-color: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-b: 1px solid #f3f4f6;
-  transition: background-color 0.3s ease;
+  background-color: transparent;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid transparent;
+  box-shadow: none;
+  transition: all 0.3s ease;
+}
+
+.app-header.is-scrolled {
+  background-color: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
 }
 
 /* Enhanced logo hover effect */

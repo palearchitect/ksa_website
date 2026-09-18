@@ -187,22 +187,23 @@ const roleDashboardMap = {
   tenant:        '/',
 }
 
+import { useAuthStore } from '../stores/authStore'
+
 // One-time session load flag to avoid re-hitting /api/v1/auth/me on every nav
 let _sessionLoaded = false
 
 // Route guard with auth store
 router.beforeEach(async (to, from, next) => {
-  const { useAuthStore } = await import('../stores/authStore')
   const authStore = useAuthStore()
 
   // Only call loadSession once per app lifecycle
   if (!_sessionLoaded) {
+    _sessionLoaded = true
     if (to.meta.requiresAuth) {
       await authStore.loadSession()
-      _sessionLoaded = true
     } else {
-      // Trigger in the background so it doesn't block rendering public pages
-      authStore.loadSession()
+      // Trigger in background for public pages without blocking navigation
+      authStore.loadSession().catch(() => {})
     }
   }
 

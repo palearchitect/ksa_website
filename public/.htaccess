@@ -1,14 +1,19 @@
-DirectoryIndex index.html
-
+# Hostinger & Apache SPA Routing + Compression Rules
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
-  
-  # If the request is for a real file or directory, serve it directly
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  
-  # Otherwise, rewrite all requests to index.html so Vue Router can handle them
-  RewriteRule . /index.html [L]
+
+  # Allow direct access to existing static files & assets
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Route all non-API client-side page requests (e.g. /properties, /about) to index.html
+  RewriteCond %{REQUEST_URI} !^/api/
+  RewriteRule ^ index.html [L]
 </IfModule>
 
+# Enable Browser Caching & Gzip Compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
