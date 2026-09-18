@@ -434,6 +434,7 @@ import { emailService } from '@/services/api'
 import ServiceCard from '@/components/sections/ServiceCard.vue'
 import CityCard from '@/components/sections/CityCard.vue'
 import TestimonialCard from '@/components/sections/TestimonialCard.vue'
+import { captureEvent } from '@/plugins/posthog'
 
 const services = ref([
   {
@@ -609,6 +610,10 @@ const submitFeedback = async () => {
       rating: feedbackForm.rating
     })
     
+    captureEvent('testimonial_submitted', {
+      rating: feedbackForm.rating
+    })
+
     // Close modal & reset form
     showFeedbackModal.value = false
     Object.assign(feedbackForm, {

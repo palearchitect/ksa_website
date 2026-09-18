@@ -433,6 +433,7 @@ import ErrorBoundary from '../components/global/ErrorBoundary.vue'
 import LoadingState from '../components/global/LoadingState.vue'
 import { useSEO } from '../hooks/useSEO'
 import { propertyService, bookingService } from '@/services/api'
+import { captureEvent } from '@/plugins/posthog'
 
 // SEO
 useSEO({
@@ -542,6 +543,10 @@ const toggleFavorite = () => {
   
   localStorage.setItem('propertyFavorites', JSON.stringify(favorites))
   isFavorite.value = !isFavorite.value
+  captureEvent('property_favorite_updated', {
+    property_id: propertyId,
+    is_favorite: isFavorite.value
+  })
 }
 
 const formatPrice = (price) => {

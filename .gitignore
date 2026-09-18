@@ -20,3 +20,4 @@ logs/
 **/.env.*
 !.env.example
 !backend/.env.example
+.env

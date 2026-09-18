@@ -175,7 +175,9 @@ export const authAPI = {
   linkGoogle: (payload) => api.post('/api/v1/auth/link-google', payload).then((r) => r.data),
   unlinkGoogle: () => api.post('/api/v1/auth/unlink-google').then((r) => r.data),
   verifyOTP: (payload) => api.post('/api/v1/auth/verify-otp', payload).then((r) => r.data),
-  resendOTP: (payload) => api.post('/api/v1/auth/resend-otp', payload).then((r) => r.data)
+  resendOTP: (payload) => api.post('/api/v1/auth/resend-otp', payload).then((r) => r.data),
+  forgotPassword: (payload) => api.post('/api/v1/auth/forgot-password', payload).then((r) => r.data),
+  resetPassword: (payload) => api.post('/api/v1/auth/reset-password', payload).then((r) => r.data)
 }
 
 export const adminService = {

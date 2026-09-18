@@ -154,6 +154,7 @@
 import { useRouter } from 'vue-router'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { useSEO } from '../hooks/useSEO'
+import { captureEvent } from '@/plugins/posthog'
 
 useSEO({
   title: 'All Properties | KSA Valuers',
@@ -169,6 +170,13 @@ if (propertyStore.properties.length === 0) {
 }
 
 const viewProperty = (id) => {
+  const property = propertyStore.properties.find(item => item.id === id)
+  captureEvent('property_details_viewed', {
+    property_id: id,
+    property_status: property?.status,
+    property_type: property?.type,
+    is_featured: Boolean(property?.featured)
+  })
   router.push(`/properties/${id}`)
 }
 

@@ -4,7 +4,7 @@ import router from './router';
 import { createPinia } from 'pinia';
 import { createMetaManager } from 'vue-meta';
 import { clerkPlugin } from '@clerk/vue';
-import { posthogPlugin } from './plugins/posthog';
+import { captureException, posthogPlugin } from './plugins/posthog';
 import * as Sentry from '@sentry/vue';
 
 import './assets/tailwind.css';
@@ -33,6 +33,12 @@ app.use(pinia);
 app.use(router);
 app.use(createMetaManager());
 app.use(posthogPlugin);
+
+const existingErrorHandler = app.config.errorHandler;
+app.config.errorHandler = (error, instance, info) => {
+  existingErrorHandler?.(error, instance, info);
+  captureException(error);
+};
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_placeholder_key';
 app.use(clerkPlugin, {

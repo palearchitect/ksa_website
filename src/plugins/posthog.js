@@ -1,16 +1,21 @@
 import posthog from 'posthog-js'
 
-const apiKey = import.meta.env.VITE_POSTHOG_KEY
-const apiHost = import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com'
+const apiKey = import.meta.env.VITE_POSTHOG_PROJECT_TOKEN
+const apiHost = import.meta.env.VITE_POSTHOG_HOST
 
 let isInitialized = false
 
 export const initPostHog = () => {
   if (isInitialized) return posthog
 
-  if (!apiKey) {
+  if (!apiKey || !apiHost) {
     if (import.meta.env.DEV) {
-      console.info('[PostHog] VITE_POSTHOG_KEY not set. Operating in no-op mock mode.')
+      const missingVariable = !apiKey ? 'VITE_POSTHOG_PROJECT_TOKEN' : 'VITE_POSTHOG_HOST'
+      console.error(
+        new Error(
+          `${missingVariable} variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once ${missingVariable} is configured`
+        )
+      )
     }
     return posthog
   }
@@ -53,6 +58,16 @@ export const captureEvent = (eventName, properties = {}) => {
     }
   } catch (err) {
     console.warn('[PostHog] Failed to capture event:', eventName, err)
+  }
+}
+
+export const captureException = (error) => {
+  try {
+    if (apiKey && isInitialized) {
+      posthog.captureException(error)
+    }
+  } catch (err) {
+    console.warn('[PostHog] Failed to capture exception:', err)
   }
 }
 

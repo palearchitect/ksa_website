@@ -382,6 +382,7 @@ useSEO({
 import { ref, computed, onMounted, watch } from 'vue'
 import { propertyService, bookingService, emailService } from '@/services/api'
 import { useBookingStore } from '@/stores/bookingStore'
+import { captureEvent } from '@/plugins/posthog'
 
 const bookingStore = useBookingStore()
 
@@ -605,6 +606,9 @@ const loadPropertyDetails = async () => {
 
 const nextStep = () => {
   if (selectedDate.value && selectedTime.value) {
+    captureEvent('tour_booking_details_started', {
+      has_selected_property: Boolean(selectedPropertyId.value)
+    })
     currentStep.value = 2
   }
 }
@@ -665,6 +669,11 @@ const submitBooking = async () => {
     // Update UI
     bookingSuccess.value = true
     currentStep.value = 3
+    captureEvent('tour_booking_submitted', {
+      property_id: selectedPropertyId.value || undefined,
+      guest_count: Number(bookingDetails.value.guests) || 1,
+      booking_source: 'website'
+    })
     
   } catch (error) {
     console.error('Booking error:', error)

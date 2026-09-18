@@ -961,6 +961,113 @@ app.post('/api/v1/auth/resend-otp', authLimiter, async (req, res) => {
   }
 });
 
+// POST /api/v1/auth/forgot-password — request password reset link / OTP via Resend
+app.post('/api/v1/auth/forgot-password', authLimiter, async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ success: false, message: 'Email address is required' });
+    }
+
+    const cleanEmail = String(email).toLowerCase().trim();
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1',
+      [cleanEmail]
+    );
+
+    // Return generic success to prevent account enumeration
+    if (result.rowCount === 0) {
+      return res.json({ success: true, message: 'If an account exists with that email, a password reset code has been sent.' });
+    }
+
+    const user = result.rows[0];
+    const resetOtp = crypto.randomInt(100000, 999999).toString();
+    const resetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+    await pool.query(
+      'UPDATE users SET reset_token = $1, reset_expires_at = $2, updated_at = NOW() WHERE id = $3',
+      [resetOtp, resetExpires, user.id]
+    );
+
+    try {
+      if (emailService) {
+        await emailService.send({
+          to: user.email,
+          subject: 'Password Reset Request - KSA Valuers',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px;">
+              <h2 style="color: #1e3a5f; text-align: center;">KSA Valuers Password Reset</h2>
+              <p style="font-size: 16px; color: #374151;">Hello ${user.name || 'Valued User'},</p>
+              <p style="font-size: 16px; color: #374151;">You requested a password reset for your portal account. Enter the 6-digit code below to set a new password:</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #2563eb; background-color: #eff6ff; padding: 10px 20px; border-radius: 8px; border: 1px dashed #bfdbfe;">
+                  ${resetOtp}
+                </span>
+              </div>
+              <p style="font-size: 14px; color: #6b7280; text-align: center;">This code will expire in 15 minutes.</p>
+              <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+              <p style="font-size: 12px; color: #9ca3af; text-align: center;">If you did not request a password reset, please secure your account immediately.</p>
+            </div>
+          `
+        });
+      }
+    } catch (mailError) {
+      console.error('Failed to send password reset email:', mailError);
+    }
+
+    return res.json({ success: true, message: 'Password reset code sent successfully to your email.' });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to process password reset request' });
+  }
+});
+
+// POST /api/v1/auth/reset-password — submit new password with OTP code
+app.post('/api/v1/auth/reset-password', authLimiter, async (req, res) => {
+  try {
+    const { email, code, newPassword } = req.body || {};
+    if (!email || !code || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Email, reset code, and new password are required' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters long' });
+    }
+
+    const cleanEmail = String(email).toLowerCase().trim();
+    const result = await pool.query(
+      'SELECT * FROM users WHERE email = $1 AND deleted_at IS NULL LIMIT 1',
+      [cleanEmail]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(400).json({ success: false, message: 'Invalid reset request' });
+    }
+
+    const user = result.rows[0];
+
+    if (!user.reset_token || user.reset_token !== String(code).trim()) {
+      return res.status(400).json({ success: false, message: 'Invalid or incorrect reset code' });
+    }
+
+    if (user.reset_expires_at && new Date(user.reset_expires_at) < new Date()) {
+      return res.status(400).json({ success: false, message: 'Reset code has expired. Please request a new one.' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    await pool.query(
+      'UPDATE users SET password_hash = $1, reset_token = NULL, reset_expires_at = NULL, updated_at = NOW() WHERE id = $2',
+      [hashedPassword, user.id]
+    );
+
+    return res.json({ success: true, message: 'Password reset successfully! You can now log in.' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to reset password' });
+  }
+});
+
 app.post('/api/v1/auth/refresh', authLimiter, async (req, res) => {
   try {
     const refresh = req.cookies.ksa_refresh;

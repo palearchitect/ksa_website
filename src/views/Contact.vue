@@ -403,6 +403,7 @@ import ErrorBoundary from '../components/global/ErrorBoundary.vue'
 import { useSEO } from '../hooks/useSEO'
 import { ref, onMounted, nextTick } from 'vue'
 import api from '@/services/api'
+import { captureEvent } from '@/plugins/posthog'
 
 useSEO({
   title: 'Contact Us - KSA Valuers',
@@ -471,6 +472,9 @@ const sendChatMessage = async (overrideText = null) => {
     text: text,
     sender: 'user',
     timestamp: new Date()
+  })
+  captureEvent('chat_message_sent', {
+    message_source: overrideText ? 'quick_prompt' : 'freeform'
   })
   
   if (!overrideText) {

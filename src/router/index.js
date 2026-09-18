@@ -114,7 +114,8 @@ const routes = [
   },
   {
     path: '/register',
-    redirect: '/admin/login'
+    name: 'Register',
+    component: () => import('../views/auth/Register.vue')
   },
   {
     path: '/forgot-password',

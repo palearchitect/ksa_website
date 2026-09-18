@@ -1,34 +1,37 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 px-4 sm:px-6 lg:px-8">
-    <div class="absolute inset-0 bg-black opacity-20"></div>
+  <div class="min-h-screen flex flex-col justify-center items-center bg-[radial-gradient(ellipse_100%_100%_at_50%_0%,#1c0c03_0%,#071324_60%,#030810_100%)] text-slate-100 px-4 py-6 selection:bg-orange-500 selection:text-white relative">
+    
+    <!-- Top Navigation -->
+    <div class="absolute top-6 right-6 z-10">
+      <router-link 
+        to="/" 
+        class="text-xs font-semibold text-orange-200/80 hover:text-white transition-all flex items-center gap-1.5 bg-slate-900/60 hover:bg-slate-800/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-orange-500/20 hover:border-orange-500/40 shadow-sm"
+      >
+        <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>Back to Website</span>
+      </router-link>
+    </div>
 
-    <div class="relative max-w-md w-full bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
+    <!-- Central Authentication Card -->
+    <div class="w-full max-w-[420px] mx-auto my-auto flex flex-col items-center">
       
-      <!-- Top banner styling matching KSA Premium -->
-      <div class="bg-blue-950 p-8 text-center text-white relative">
-        <div class="absolute top-4 left-4">
-          <router-link to="/" class="text-blue-200 hover:text-white flex items-center gap-1 text-sm font-semibold transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+      <div class="w-full bg-gradient-to-b from-amber-950/80 via-orange-950/85 to-slate-950/90 backdrop-blur-2xl rounded-2xl p-6 sm:p-8 border border-orange-500/30 shadow-2xl shadow-orange-950/60">
+        
+        <div class="text-center mb-6">
+          <div class="w-12 h-12 bg-orange-900/40 rounded-full flex items-center justify-center mx-auto mb-3 border border-orange-500/30">
+            <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19v-8.93a2 2 0 01.89-1.664l8-5.333a2 2 0 012.22 0l8 5.333A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-2.25-1.5a2 2 0 00-2.22 0l-2.25 1.5" />
             </svg>
-            Home
-          </router-link>
+          </div>
+          <h2 class="text-xl font-extrabold text-white tracking-tight">Verify Your Email</h2>
+          <p class="text-orange-200/70 text-xs mt-1">Enter the 6-digit verification code sent via Resend to:</p>
+          <p class="text-orange-400 font-semibold text-xs mt-1 truncate">{{ email }}</p>
         </div>
-        
-        <div class="w-16 h-16 bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-800 shadow-md">
-          <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19v-8.93a2 2 0 01.89-1.664l8-5.333a2 2 0 012.22 0l8 5.333A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-2.25-1.5a2 2 0 00-2.22 0l-2.25 1.5" />
-          </svg>
-        </div>
-        <h2 class="text-2xl font-bold tracking-tight">Verify Your Email</h2>
-        <p class="text-blue-200 text-sm mt-2">Enter the 6-digit verification code sent to:</p>
-        <p class="text-amber-400 font-semibold text-sm mt-1 truncate">{{ email }}</p>
-      </div>
 
-      <div class="p-8 space-y-6">
-        
         <!-- Alerts -->
-        <div v-if="alertMsg" :class="['p-4 rounded-xl border text-sm', alertIsError ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700']">
+        <div v-if="alertMsg" :class="['p-3 rounded-lg border text-xs mb-4', alertIsError ? 'bg-red-950/80 border-red-800 text-red-200' : 'bg-emerald-950/80 border-emerald-800 text-emerald-200']">
           {{ alertMsg }}
         </div>
 
@@ -43,7 +46,7 @@
               v-model="digits[idx]"
               type="text"
               maxlength="1"
-              class="w-12 h-14 text-center text-xl font-bold border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-gray-50 uppercase"
+              class="w-10 h-12 text-center text-lg font-bold border border-orange-900/60 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-slate-950 text-white uppercase"
               @input="handleInput($event, idx)"
               @keydown.delete="handleBackspace($event, idx)"
               @paste="handlePaste"
@@ -54,11 +57,11 @@
           <button
             type="submit"
             :disabled="auth.loading || isSubmitting"
-            class="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl flex items-center justify-center"
+            class="w-full py-2.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold rounded-lg text-xs shadow-lg shadow-orange-600/30 transition-all disabled:opacity-50 flex items-center justify-center"
           >
             <span v-if="!(auth.loading || isSubmitting)">Verify & Proceed</span>
             <span v-else class="flex items-center justify-center">
-              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
@@ -68,19 +71,19 @@
         </form>
 
         <!-- Resend OTP timer -->
-        <div class="text-center text-sm text-gray-500">
+        <div class="text-center text-xs text-orange-200/70 mt-6">
           Didn't receive the email?
-          <div class="mt-2">
+          <div class="mt-1.5">
             <button
               v-if="countdown === 0"
               @click="handleResend"
               :disabled="resending"
-              class="text-blue-600 hover:text-blue-800 font-bold transition disabled:opacity-50"
+              class="text-orange-400 hover:text-orange-300 font-bold transition disabled:opacity-50 underline underline-offset-4"
             >
               {{ resending ? 'Sending...' : 'Resend verification code' }}
             </button>
-            <span v-else class="text-gray-400 font-medium">
-              Resend code in <strong class="text-gray-600 font-mono">{{ countdown }}s</strong>
+            <span v-else class="text-slate-400 font-medium">
+              Resend code in <strong class="text-orange-400 font-mono">{{ countdown }}s</strong>
             </span>
           </div>
         </div>

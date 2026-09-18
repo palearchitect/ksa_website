@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { authAPI } from '@/services/api'
-import { identifyUser, resetUser } from '@/plugins/posthog'
+import { captureEvent, identifyUser, resetUser } from '@/plugins/posthog'
 
 export const useAuthStore = defineStore('auth', () => {
   // State
@@ -88,6 +88,9 @@ export const useAuthStore = defineStore('auth', () => {
           role: response.data.role
         })
       }
+      captureEvent('user_logged_in', {
+        user_role: response.data?.role
+      })
       return { success: true, user: response.data }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
@@ -95,6 +98,85 @@ export const useAuthStore = defineStore('auth', () => {
         success: false, 
         error: error.value
       }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Register
+  const register = async (name, email, password) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.register({ name, email, password })
+      return { success: true, ...response }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Verify OTP
+  const verifyOTP = async (email, code) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.verifyOTP({ email, code })
+      if (response?.user) {
+        user.value = response.user
+        isAuthenticated.value = true
+      }
+      return { success: true, ...response }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Resend OTP
+  const resendOTP = async (email) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.resendOTP({ email })
+      return { success: true, ...response }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Forgot Password
+  const forgotPassword = async (email) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.forgotPassword({ email })
+      return { success: true, ...response }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Reset Password
+  const resetPassword = async (email, code, newPassword) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await authAPI.resetPassword({ email, code, newPassword })
+      return { success: true, ...response }
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      return { success: false, error: error.value }
     } finally {
       loading.value = false
     }
@@ -131,6 +213,11 @@ export const useAuthStore = defineStore('auth', () => {
     syncClerkUser,
     loadSession,
     login,
+    register,
+    verifyOTP,
+    resendOTP,
+    forgotPassword,
+    resetPassword,
     logout,
     isAdmin,
     isManager,
