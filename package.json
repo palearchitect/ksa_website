@@ -24,6 +24,8 @@
   "author": "The Pale Architect",
   "license": "MIT",
   "dependencies": {
+    "@clerk/express": "^2.1.69",
+    "@clerk/vue": "^2.5.3",
     "@heroicons/vue": "^2.2.0",
     "@supabase/supabase-js": "^2.116.0",
     "@vueuse/core": "^14.2.1",
@@ -42,6 +44,7 @@
     "pinia": "^2.3.1",
     "posthog-js": "^1.428.0",
     "posthog-node": "^5.51.7",
+    "resend": "^6.28.1",
     "vue": "^3.4.0",
     "vue-meta": "3.0.0-alpha.10",
     "vue-router": "^4.6.4"
