@@ -40,3 +40,12 @@ app.use(clerkPlugin, {
 });
 
 app.mount('#app');
+
+// Development verification helper
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+  window.__testSentryError = () => {
+    Sentry.captureMessage('KSA Valuers Sentry Test Message');
+    console.log('🧪 Triggering Sentry test exception...');
+    throw new Error('KSA Valuers Sentry Verification Error');
+  }
+}

@@ -156,6 +156,20 @@ const routes = [
     name: 'TermsOfService',
     component: () => import('../views/TermsOfService.vue')
   },
+  {
+    path: '/sentry-test',
+    name: 'SentryTest',
+    component: {
+      render() { return null },
+      mounted() {
+        import('@sentry/vue').then(Sentry => {
+          Sentry.captureMessage('KSA Valuers Verification Test Event');
+          console.log('🧪 Triggering Sentry verification exception...');
+          window.myUndefinedFunction();
+        });
+      }
+    }
+  },
 
   // Catch-all 404 route
   {
