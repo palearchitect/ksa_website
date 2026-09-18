@@ -6,6 +6,7 @@ node_modules
 .DS_Store
 dist
 dist-ssr
+*.timestamp-*.mjs
 backend/test_pg_data
 backend/uploads/*
 !backend/uploads/.gitkeep
@@ -19,4 +20,3 @@ logs/
 **/.env.*
 !.env.example
 !backend/.env.example
-
