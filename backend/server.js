@@ -28,7 +28,7 @@ const { createEmailService } = require('./services/emailService');
 const { getTemplate } = require('./services/emailTemplates');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5173;
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 

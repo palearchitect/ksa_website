@@ -5,19 +5,18 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   server: {
-    port: 5173,
-    host: true,  // Keep this
+    port: 3000,
+    host: true,
     allowedHosts: [
-      'notal-ellyn-brineless.ngrok-free.dev',  // Add your specific ngrok domain
-      '.ngrok-free.dev',  // This allows ALL ngrok-free.dev subdomains
+      'notal-ellyn-brineless.ngrok-free.dev',
+      '.ngrok-free.dev',
       'localhost'
     ],
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:5173',
         changeOrigin: true,
-        secure: false,
-        rewrite: (path) => path.replace(/^\/api/, '/api')
+        secure: false
       }
     }
   },
