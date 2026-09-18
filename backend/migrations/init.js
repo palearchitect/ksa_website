@@ -9,6 +9,7 @@
 
 const path = require('path');
 const fs = require('fs');
+const { Pool } = require('pg');
 
 const envPaths = [
   path.join(__dirname, '..', '..', '.env'),
