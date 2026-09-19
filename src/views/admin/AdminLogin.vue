@@ -238,6 +238,9 @@ onMounted(() => {
   } else if (route.query.notice === 'account_exists' || route.query.error === 'user_exists') {
     activeTab.value = 'login'
     noticeMessage.value = 'An account already exists with this email. Please sign in instead.'
+  } else if (route.query.notice === 'email_verified') {
+    activeTab.value = 'login'
+    noticeMessage.value = 'Your email has been verified successfully! Please enter your credentials to sign in.'
   }
 })
 

@@ -207,18 +207,9 @@ async function handleVerify() {
   isSubmitting.value = false
 
   if (res.success) {
-    triggerAlert('Email verified successfully! Redirecting...', false)
+    triggerAlert('Email verified successfully! Please sign in with your credentials.', false)
     setTimeout(() => {
-      // Route based on role
-      const roleMap = {
-        admin: '/dashboard/admin',
-        webadmin: '/dashboard/admin',
-        manager: '/',
-        management: '/',
-        propertyowner: '/',
-        tenant: '/'
-      }
-      router.push(roleMap[res.user?.role] || '/')
+      router.push('/admin/login?tab=login&notice=email_verified')
     }, 1500)
   } else {
     triggerAlert(res.error || 'Failed to verify OTP. Please try again.', true)

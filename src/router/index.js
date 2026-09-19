@@ -84,11 +84,25 @@ const routes = [
       { path: 'projects/:id', name: 'AdminProjectEdit', component: () => import('../views/admin/AdminProjectForm.vue'), props: true }
     ]
   },
-  // Admin login MUST be declared before the /admin wildcard catch-all
+  // Admin login and Clerk Auth sub-routes (SSO Callbacks, Verify Email Address, Factor One, etc.)
+  {
+    path: '/admin/login/:pathMatch(.*)*',
+    name: 'AdminLoginSub',
+    component: () => import('../views/admin/AdminLogin.vue')
+  },
   {
     path: '/admin/login',
     name: 'AdminLogin',
     component: () => import('../views/admin/AdminLogin.vue')
+  },
+  {
+    path: '/sso-callback',
+    name: 'SSOCallback',
+    component: () => import('../views/admin/AdminLogin.vue')
+  },
+  {
+    path: '/dashboard/admin/login/:pathMatch(.*)*',
+    redirect: to => `/admin/login/${to.params.pathMatch || ''}`
   },
   {
     path: '/dashboard/webadmin',
