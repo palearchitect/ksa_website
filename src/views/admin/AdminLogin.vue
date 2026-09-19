@@ -23,12 +23,20 @@
       
       <!-- Clerk Authentication Component -->
       <div v-if="hasClerkKey" class="w-full flex justify-center clerk-orange-wrapper">
+        <AuthenticateWithRedirectCallback 
+          v-if="isSsoCallback" 
+          signUpForceRedirectUrl="/dashboard/admin"
+          signInForceRedirectUrl="/dashboard/admin"
+        />
         <SignIn 
-          v-if="activeTab === 'login'" 
+          v-else-if="activeTab === 'login'" 
           routing="path" 
           path="/admin/login" 
           signUpUrl="/admin/login?tab=signup"
-          redirectUrl="/dashboard/admin"
+          afterSignInUrl="/dashboard/admin"
+          afterSignUpUrl="/dashboard/admin"
+          forceRedirectUrl="/dashboard/admin"
+          fallbackRedirectUrl="/dashboard/admin"
           :appearance="clerkAppearance"
         />
         <SignUp 
@@ -36,7 +44,10 @@
           routing="path" 
           path="/admin/login" 
           signInUrl="/admin/login"
-          redirectUrl="/dashboard/admin"
+          afterSignInUrl="/dashboard/admin"
+          afterSignUpUrl="/dashboard/admin"
+          forceRedirectUrl="/dashboard/admin"
+          fallbackRedirectUrl="/dashboard/admin"
           :appearance="clerkAppearance"
         />
       </div>
@@ -209,7 +220,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { SignIn, SignUp } from '@clerk/vue'
+import { SignIn, SignUp, AuthenticateWithRedirectCallback } from '@clerk/vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useSEO } from '@/hooks/useSEO'
 
@@ -221,6 +232,10 @@ useSEO({
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+
+const isSsoCallback = computed(() => {
+  return route.path.includes('sso-callback') || route.query.sso === 'true' || !!route.query.code
+})
 
 const activeTab = ref(route.query.tab === 'signup' ? 'signup' : 'login')
 const loading = ref(false)

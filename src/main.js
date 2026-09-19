@@ -42,7 +42,13 @@ app.config.errorHandler = (error, instance, info) => {
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_placeholder_key';
 app.use(clerkPlugin, {
-  publishableKey: clerkPublishableKey
+  publishableKey: clerkPublishableKey,
+  signInUrl: '/admin/login',
+  signUpUrl: '/admin/login?tab=signup',
+  afterSignInUrl: '/dashboard/admin',
+  afterSignUpUrl: '/dashboard/admin',
+  signInForceRedirectUrl: '/dashboard/admin',
+  signUpForceRedirectUrl: '/dashboard/admin'
 });
 
 app.mount('#app');
