@@ -1,15 +1,15 @@
 <template>
-  <div class="min-h-screen flex flex-col justify-center items-center bg-[radial-gradient(ellipse_100%_100%_at_50%_0%,#0f294a_0%,#071324_60%,#030810_100%)] text-slate-100 px-4 py-6 selection:bg-orange-500 selection:text-white relative overflow-hidden">
+  <div class="min-h-screen flex flex-col justify-center items-center bg-slate-950 bg-[radial-gradient(ellipse_at_top_left,rgba(234,88,12,0.35)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(37,99,235,0.4)_0%,transparent_50%),linear-gradient(to_right,#000000_0%,#030712_15%,#071324_50%,#030712_85%,#000000_100%)] text-slate-100 px-4 py-6 selection:bg-orange-500 selection:text-white relative overflow-hidden">
     
-    <!-- Ambient Glow Effects -->
-    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-orange-600/15 rounded-full blur-3xl pointer-events-none"></div>
+    <!-- Ambient Glow Orbs (Orange Top-Left, Blue Bottom-Right) -->
+    <div class="absolute top-0 left-0 w-96 h-96 bg-orange-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-0 right-0 w-96 h-96 bg-blue-600/25 rounded-full blur-3xl pointer-events-none"></div>
 
     <!-- Top Navigation (Back to Website) -->
     <div class="absolute top-6 right-6 z-10">
       <router-link 
         to="/" 
-        class="text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center gap-1.5 bg-slate-900/60 hover:bg-slate-800/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 hover:border-orange-500/40 shadow-sm"
+        class="text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center gap-1.5 bg-slate-900/70 hover:bg-slate-800/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 hover:border-orange-500/40 shadow-sm"
       >
         <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -21,7 +21,7 @@
     <!-- Central Authentication Card -->
     <div class="w-full max-w-[380px] mx-auto my-auto flex flex-col items-center z-10">
       
-      <!-- Clerk Authentication Component (Transparent Blue to Orange Glass Card) -->
+      <!-- Clerk Authentication Component -->
       <div v-if="hasClerkKey" class="w-full flex justify-center clerk-orange-wrapper">
         <SignIn 
           v-if="activeTab === 'login'" 
@@ -41,10 +41,10 @@
         />
       </div>
 
-      <!-- Fallback Custom Transparent Blue-Orange Glass Tile -->
-      <div v-else class="w-full bg-gradient-to-br from-blue-950/70 via-slate-950/80 to-orange-950/70 backdrop-blur-2xl rounded-2xl p-6 border border-white/15 shadow-[0_20px_50px_rgba(7,19,36,0.8),0_0_40px_rgba(37,99,235,0.2),0_0_30px_rgba(249,115,22,0.2)]">
+      <!-- Fallback Custom Transparent Orange-to-Blue Glass Tile -->
+      <div v-else class="w-full bg-gradient-to-br from-orange-950/70 via-slate-950/85 to-blue-950/75 backdrop-blur-2xl rounded-2xl p-6 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_rgba(249,115,22,0.2),0_0_40px_rgba(37,99,235,0.2)]">
         <div class="text-center mb-6">
-          <h2 class="text-xl font-extrabold text-white tracking-tight bg-gradient-to-r from-blue-300 via-white to-orange-300 bg-clip-text text-transparent">
+          <h2 class="text-xl font-extrabold text-white tracking-tight bg-gradient-to-r from-orange-300 via-white to-blue-300 bg-clip-text text-transparent">
             {{ activeTab === 'signup' ? 'Create Account' : 'Portal Sign In' }}
           </h2>
           <p class="text-slate-300/80 text-xs mt-1 font-medium">
@@ -76,23 +76,39 @@
           <div>
             <div class="flex justify-between items-center mb-1">
               <label for="login-password" class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Password</label>
-              <router-link to="/forgot-password" class="text-[11px] text-orange-400 hover:text-orange-300 font-medium transition">
+              <router-link to="/forgot-password" class="text-[11px] text-blue-400 hover:text-blue-300 font-medium transition">
                 Forgot password?
               </router-link>
             </div>
-            <input 
-              id="login-password" 
-              v-model="loginForm.password" 
-              type="password" 
-              required 
-              placeholder="••••••••••••" 
-              class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-500"
-            >
+            <div class="relative">
+              <input 
+                id="login-password" 
+                v-model="loginForm.password" 
+                :type="showLoginPassword ? 'text' : 'password'" 
+                required 
+                placeholder="••••••••••••" 
+                class="w-full px-3.5 py-2.5 pr-10 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-500"
+              >
+              <button 
+                type="button" 
+                @click="showLoginPassword = !showLoginPassword" 
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors focus:outline-none p-1"
+                :aria-label="showLoginPassword ? 'Hide password' : 'Show password'"
+              >
+                <svg v-if="showLoginPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.007 10.007 0 014.122-.963c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l18 18" />
+                </svg>
+              </button>
+            </div>
           </div>
           <button 
             type="submit" 
             :disabled="loading" 
-            class="w-full py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-orange-500 hover:from-blue-500 hover:to-orange-400 text-white font-bold rounded-lg text-xs shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50"
+            class="w-full py-2.5 bg-slate-800/90 hover:bg-[linear-gradient(to_right,#f97316,#3b82f6)] border border-slate-700 hover:border-white/40 text-white font-bold rounded-lg text-xs shadow-md hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] transition-all duration-300 disabled:opacity-50"
           >
             <span v-if="!loading">Sign In</span>
             <span v-else>Signing in...</span>
@@ -125,19 +141,35 @@
           </div>
           <div>
             <label for="signup-password" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Password</label>
-            <input 
-              id="signup-password" 
-              v-model="registerForm.password" 
-              type="password" 
-              required 
-              placeholder="Min 8 chars (letters + numbers)" 
-              class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-500"
-            >
+            <div class="relative">
+              <input 
+                id="signup-password" 
+                v-model="registerForm.password" 
+                :type="showRegisterPassword ? 'text' : 'password'" 
+                required 
+                placeholder="Min 8 chars (letters + numbers)" 
+                class="w-full px-3.5 py-2.5 pr-10 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-500"
+              >
+              <button 
+                type="button" 
+                @click="showRegisterPassword = !showRegisterPassword" 
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors focus:outline-none p-1"
+                :aria-label="showRegisterPassword ? 'Hide password' : 'Show password'"
+              >
+                <svg v-if="showRegisterPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.007 10.007 0 014.122-.963c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l18 18" />
+                </svg>
+              </button>
+            </div>
           </div>
           <button 
             type="submit" 
             :disabled="loading" 
-            class="w-full py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-orange-500 hover:from-blue-500 hover:to-orange-400 text-white font-bold rounded-lg text-xs shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50"
+            class="w-full py-2.5 bg-slate-800/90 hover:bg-[linear-gradient(to_right,#f97316,#3b82f6)] border border-slate-700 hover:border-white/40 text-white font-bold rounded-lg text-xs shadow-md hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] transition-all duration-300 disabled:opacity-50"
           >
             <span v-if="!loading">Create Account & Send OTP</span>
             <span v-else>Registering...</span>
@@ -192,6 +224,8 @@ const errorMessage = ref('')
 const noticeMessage = ref('')
 const loginForm = ref({ email: '', password: '' })
 const registerForm = ref({ name: '', email: '', password: '' })
+const showLoginPassword = ref(false)
+const showRegisterPassword = ref(false)
 
 onMounted(() => {
   if (route.query.notice === 'account_not_found' || route.query.error === 'user_not_found') {
@@ -219,32 +253,39 @@ const hasClerkKey = computed(() => {
   return key && key.startsWith('pk_')
 })
 
-// Transparent Blue-to-Orange Clerk appearance styling
+// Transparent Orange-to-Blue Clerk appearance styling
 const clerkAppearance = {
   elements: {
     rootBox: 'w-full flex justify-center',
     cardBox: 'w-full max-w-[380px]',
-    card: 'shadow-2xl rounded-2xl border border-white/15 bg-gradient-to-br from-blue-950/70 via-slate-950/80 to-orange-950/70 backdrop-blur-2xl text-white w-full max-w-[380px] p-5',
+    card: 'shadow-2xl rounded-2xl border border-white/15 bg-gradient-to-br from-orange-950/70 via-slate-950/85 to-blue-950/75 backdrop-blur-2xl text-white w-full max-w-[380px] p-5',
     headerTitle: 'text-white font-extrabold text-xl text-center tracking-tight',
-    headerSubtitle: 'text-slate-300/80 text-xs text-center mt-1 font-normal',
+    headerSubtitle: 'text-slate-200 text-xs text-center mt-1 font-normal',
     socialButtonsBlockButton: 'border border-white/10 bg-slate-900/60 hover:bg-slate-800/80 text-white rounded-lg font-medium text-xs py-2 transition',
     socialButtonsBlockButtonText: 'text-slate-100 font-medium text-xs',
     dividerRow: 'my-4',
-    dividerText: 'text-slate-400/80 text-[10px] font-semibold uppercase tracking-widest',
-    formFieldLabel: 'text-slate-300 text-[11px] font-semibold mb-1 uppercase tracking-wider',
-    formFieldInput: 'bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs py-2 px-3 transition outline-none placeholder:text-slate-500',
-    formButtonPrimary: 'bg-gradient-to-r from-blue-600 via-indigo-600 to-orange-500 hover:from-blue-500 hover:to-orange-400 text-white font-bold text-xs py-2.5 rounded-lg shadow-md transition-all border-0',
+    dividerText: 'text-slate-200 text-[10px] font-semibold uppercase tracking-widest',
+    formFieldLabel: 'text-slate-200 text-[11px] font-semibold mb-1 uppercase tracking-wider',
+    formFieldHintText: 'text-slate-200 font-medium text-[11px]',
+    formFieldSuccessText: 'text-emerald-300 font-medium text-[11px]',
+    formFieldErrorText: 'text-red-300 font-medium text-[11px]',
+    formFieldInputShowPasswordButton: 'text-slate-100 hover:text-white',
+    formFieldInputShowPasswordIcon: 'text-slate-100 hover:text-white w-4 h-4',
+    formFieldForgotPasswordLink: 'text-blue-400 hover:text-blue-300 font-medium text-[11px]',
+    formFieldInput: 'bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs py-2 px-3 transition outline-none placeholder:text-slate-400',
+    formButtonPrimary: 'bg-slate-800/90 hover:bg-gradient-to-r hover:from-orange-500 hover:to-blue-500 text-white font-bold text-xs py-2.5 rounded-lg shadow-md transition-all duration-300 border border-slate-700 hover:border-white/40',
     footer: 'hidden',
     footerAction: 'hidden',
     footerPages: 'hidden',
     devModeBadge: 'hidden'
   },
   variables: {
-    colorPrimary: '#f97316',
-    colorText: '#f8fafc',
+    colorPrimary: '#60a5fa',
+    colorText: '#ffffff',
+    colorTextSecondary: '#e2e8f0',
     colorBackground: '#0b1329',
     colorInputBackground: '#020617',
-    colorInputText: '#f8fafc',
+    colorInputText: '#ffffff',
     borderRadius: '0.5rem'
   }
 }
@@ -295,15 +336,15 @@ const handleCustomRegister = async () => {
 </script>
 
 <style scoped>
-/* Transparent Blue-to-Orange Gradient Glass Tile CSS overrides */
+/* Transparent Orange-to-Blue Gradient Glass Tile CSS overrides */
 .clerk-orange-wrapper :deep(.cl-cardBox),
 .clerk-orange-wrapper :deep(.cl-card) {
-  background: linear-gradient(135deg, rgba(15, 41, 74, 0.75) 0%, rgba(15, 23, 42, 0.85) 50%, rgba(124, 45, 18, 0.7) 100%) !important;
+  background: linear-gradient(135deg, rgba(124, 45, 18, 0.75) 0%, rgba(15, 23, 42, 0.85) 50%, rgba(15, 41, 74, 0.75) 100%) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
   color: #f8fafc !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 20px 50px rgba(7, 19, 36, 0.8), 0 0 40px rgba(37, 99, 235, 0.2), 0 0 30px rgba(249, 115, 22, 0.2) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 40px rgba(249, 115, 22, 0.2), 0 0 40px rgba(37, 99, 235, 0.2) !important;
   border-radius: 1rem !important;
   max-width: 380px !important;
 }
@@ -312,12 +353,33 @@ const handleCustomRegister = async () => {
   color: #ffffff !important;
 }
 
-.clerk-orange-wrapper :deep(.cl-headerSubtitle) {
-  color: #cbd5e1 !important;
+.clerk-orange-wrapper :deep(.cl-headerSubtitle),
+.clerk-orange-wrapper :deep(.cl-formFieldHintText),
+.clerk-orange-wrapper :deep(.cl-identityPreviewText),
+.clerk-orange-wrapper :deep(.cl-formFieldLabel),
+.clerk-orange-wrapper :deep(.cl-dividerText) {
+  color: #e2e8f0 !important;
 }
 
-.clerk-orange-wrapper :deep(.cl-formFieldLabel) {
-  color: #cbd5e1 !important;
+/* Force password reveal icon and text to be bright white */
+.clerk-orange-wrapper :deep(.cl-formFieldInputShowPasswordButton),
+.clerk-orange-wrapper :deep(.cl-formFieldInputShowPasswordIcon),
+.clerk-orange-wrapper :deep(button[class*="ShowPassword"]),
+.clerk-orange-wrapper :deep(button[class*="showPassword"]),
+.clerk-orange-wrapper :deep(svg[class*="ShowPassword"]),
+.clerk-orange-wrapper :deep(svg[class*="showPassword"]) {
+  color: #ffffff !important;
+  fill: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* Forgot password link set to blue */
+.clerk-orange-wrapper :deep(.cl-formFieldForgotPasswordLink) {
+  color: #60a5fa !important;
+}
+
+.clerk-orange-wrapper :deep(.cl-formFieldForgotPasswordLink:hover) {
+  color: #93c5fd !important;
 }
 
 .clerk-orange-wrapper :deep(.cl-formFieldInput) {
@@ -326,9 +388,18 @@ const handleCustomRegister = async () => {
   border-color: rgba(148, 163, 184, 0.3) !important;
 }
 
+/* Neutral default button that transitions to bright orange-to-blue gradient on hover */
 .clerk-orange-wrapper :deep(.cl-formButtonPrimary) {
-  background: linear-gradient(to right, #2563eb, #4f46e5, #ea580c) !important;
+  background: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(148, 163, 184, 0.3) !important;
   color: #ffffff !important;
+  transition: all 0.3s ease !important;
+}
+
+.clerk-orange-wrapper :deep(.cl-formButtonPrimary:hover) {
+  background: linear-gradient(to right, #f97316, #3b82f6) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  box-shadow: 0 0 25px rgba(249, 115, 22, 0.4) !important;
 }
 
 /* Hide split footer */
@@ -339,6 +410,7 @@ const handleCustomRegister = async () => {
   display: none !important;
 }
 </style>
+
 
 
 

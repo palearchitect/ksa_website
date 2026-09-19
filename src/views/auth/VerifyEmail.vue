@@ -1,11 +1,15 @@
 <template>
-  <div class="min-h-screen flex flex-col justify-center items-center bg-[radial-gradient(ellipse_100%_100%_at_50%_0%,#1c0c03_0%,#071324_60%,#030810_100%)] text-slate-100 px-4 py-6 selection:bg-orange-500 selection:text-white relative">
+  <div class="min-h-screen flex flex-col justify-center items-center bg-slate-950 bg-[radial-gradient(ellipse_at_top_left,rgba(234,88,12,0.35)_0%,transparent_50%),radial-gradient(ellipse_at_bottom_right,rgba(37,99,235,0.4)_0%,transparent_50%),linear-gradient(to_right,#000000_0%,#030712_15%,#071324_50%,#030712_85%,#000000_100%)] text-slate-100 px-4 py-6 selection:bg-orange-500 selection:text-white relative overflow-hidden">
     
+    <!-- Ambient Glow Orbs -->
+    <div class="absolute top-0 left-0 w-96 h-96 bg-orange-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-0 right-0 w-96 h-96 bg-blue-600/25 rounded-full blur-3xl pointer-events-none"></div>
+
     <!-- Top Navigation -->
     <div class="absolute top-6 right-6 z-10">
       <router-link 
         to="/" 
-        class="text-xs font-semibold text-orange-200/80 hover:text-white transition-all flex items-center gap-1.5 bg-slate-900/60 hover:bg-slate-800/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-orange-500/20 hover:border-orange-500/40 shadow-sm"
+        class="text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center gap-1.5 bg-slate-900/70 hover:bg-slate-800/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 hover:border-orange-500/40 shadow-sm"
       >
         <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -15,9 +19,9 @@
     </div>
 
     <!-- Central Authentication Card -->
-    <div class="w-full max-w-[420px] mx-auto my-auto flex flex-col items-center">
+    <div class="w-full max-w-[420px] mx-auto my-auto flex flex-col items-center z-10">
       
-      <div class="w-full bg-gradient-to-b from-amber-950/80 via-orange-950/85 to-slate-950/90 backdrop-blur-2xl rounded-2xl p-6 sm:p-8 border border-orange-500/30 shadow-2xl shadow-orange-950/60">
+      <div class="w-full bg-gradient-to-br from-orange-950/70 via-slate-950/85 to-blue-950/75 backdrop-blur-2xl rounded-2xl p-6 sm:p-8 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_rgba(249,115,22,0.2),0_0_40px_rgba(37,99,235,0.2)]">
         
         <div class="text-center mb-6">
           <div class="w-12 h-12 bg-orange-900/40 rounded-full flex items-center justify-center mx-auto mb-3 border border-orange-500/30">
@@ -25,8 +29,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19v-8.93a2 2 0 01.89-1.664l8-5.333a2 2 0 012.22 0l8 5.333A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-2.25-1.5a2 2 0 00-2.22 0l-2.25 1.5" />
             </svg>
           </div>
-          <h2 class="text-xl font-extrabold text-white tracking-tight">Verify Your Email</h2>
-          <p class="text-orange-200/70 text-xs mt-1">Enter the 6-digit verification code sent via Resend to:</p>
+          <h2 class="text-xl font-extrabold text-white tracking-tight bg-gradient-to-r from-orange-300 via-white to-blue-300 bg-clip-text text-transparent">Verify Your Email</h2>
+          <p class="text-slate-300/80 text-xs mt-1 font-medium">Enter the 6-digit verification code sent via Resend to:</p>
           <p class="text-orange-400 font-semibold text-xs mt-1 truncate">{{ email }}</p>
         </div>
 
@@ -46,7 +50,7 @@
               v-model="digits[idx]"
               type="text"
               maxlength="1"
-              class="w-10 h-12 text-center text-lg font-bold border border-orange-900/60 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all bg-slate-950 text-white uppercase"
+              class="w-10 h-12 text-center text-lg font-bold border border-slate-700/60 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-400 transition-all bg-slate-950/80 text-white uppercase"
               @input="handleInput($event, idx)"
               @keydown.delete="handleBackspace($event, idx)"
               @paste="handlePaste"
@@ -57,7 +61,7 @@
           <button
             type="submit"
             :disabled="auth.loading || isSubmitting"
-            class="w-full py-2.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold rounded-lg text-xs shadow-lg shadow-orange-600/30 transition-all disabled:opacity-50 flex items-center justify-center"
+            class="w-full py-2.5 bg-slate-800/90 hover:bg-[linear-gradient(to_right,#f97316,#3b82f6)] border border-slate-700 hover:border-white/40 text-white font-bold rounded-lg text-xs shadow-md hover:shadow-[0_0_25px_rgba(249,115,22,0.4)] transition-all duration-300 disabled:opacity-50 flex items-center justify-center"
           >
             <span v-if="!(auth.loading || isSubmitting)">Verify & Proceed</span>
             <span v-else class="flex items-center justify-center">
@@ -71,7 +75,7 @@
         </form>
 
         <!-- Resend OTP timer -->
-        <div class="text-center text-xs text-orange-200/70 mt-6">
+        <div class="text-center text-xs text-slate-300/80 mt-6">
           Didn't receive the email?
           <div class="mt-1.5">
             <button
