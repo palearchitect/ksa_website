@@ -41,10 +41,10 @@
         />
       </div>
 
-      <!-- Fallback Custom Transparent Orange-to-Blue Glass Tile -->
-      <div v-else class="w-full bg-gradient-to-br from-orange-950/70 via-slate-950/85 to-blue-950/75 backdrop-blur-2xl rounded-2xl p-6 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_rgba(249,115,22,0.2),0_0_40px_rgba(37,99,235,0.2)]">
+      <!-- Fallback Custom Transparent Blue-to-Orange Glass Tile -->
+      <div v-else class="w-full bg-gradient-to-br from-blue-950/75 via-slate-950/85 to-orange-950/70 backdrop-blur-2xl rounded-2xl p-6 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_rgba(37,99,235,0.2),0_0_40px_rgba(249,115,22,0.2)]">
         <div class="text-center mb-6">
-          <h2 class="text-xl font-extrabold text-white tracking-tight bg-gradient-to-r from-orange-300 via-white to-blue-300 bg-clip-text text-transparent">
+          <h2 class="text-xl font-extrabold text-white tracking-tight bg-gradient-to-r from-blue-300 via-white to-orange-300 bg-clip-text text-transparent">
             {{ activeTab === 'signup' ? 'Create Account' : 'Portal Sign In' }}
           </h2>
           <p class="text-slate-300/80 text-xs mt-1 font-medium">
@@ -95,12 +95,14 @@
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors focus:outline-none p-1"
                 :aria-label="showLoginPassword ? 'Hide password' : 'Show password'"
               >
-                <svg v-if="showLoginPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <!-- Sleek fine-lined Eye icon when visible -->
+                <svg v-if="showLoginPassword" class="w-4 h-4 text-slate-400 hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.007 10.007 0 014.122-.963c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l18 18" />
+                <!-- Sleek fine-lined EyeOff icon when hidden -->
+                <svg v-else class="w-4 h-4 text-slate-400 hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
                 </svg>
               </button>
             </div>
@@ -156,12 +158,14 @@
                 class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors focus:outline-none p-1"
                 :aria-label="showRegisterPassword ? 'Hide password' : 'Show password'"
               >
-                <svg v-if="showRegisterPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <!-- Sleek fine-lined Eye icon when visible -->
+                <svg v-if="showRegisterPassword" class="w-4 h-4 text-slate-400 hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <svg v-else class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858-5.908a10.007 10.007 0 014.122-.963c4.478 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21M3 3l18 18" />
+                <!-- Sleek fine-lined EyeOff icon when hidden -->
+                <svg v-else class="w-4 h-4 text-slate-400 hover:text-white transition-colors" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
                 </svg>
               </button>
             </div>
@@ -336,15 +340,15 @@ const handleCustomRegister = async () => {
 </script>
 
 <style scoped>
-/* Transparent Orange-to-Blue Gradient Glass Tile CSS overrides */
+/* Transparent Blue-to-Orange Gradient Glass Tile CSS overrides */
 .clerk-orange-wrapper :deep(.cl-cardBox),
 .clerk-orange-wrapper :deep(.cl-card) {
-  background: linear-gradient(135deg, rgba(124, 45, 18, 0.75) 0%, rgba(15, 23, 42, 0.85) 50%, rgba(15, 41, 74, 0.75) 100%) !important;
+  background: linear-gradient(135deg, rgba(15, 41, 74, 0.75) 0%, rgba(15, 23, 42, 0.85) 50%, rgba(124, 45, 18, 0.75) 100%) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
   color: #f8fafc !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 40px rgba(249, 115, 22, 0.2), 0 0 40px rgba(37, 99, 235, 0.2) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 40px rgba(37, 99, 235, 0.2), 0 0 40px rgba(249, 115, 22, 0.2) !important;
   border-radius: 1rem !important;
   max-width: 380px !important;
 }
@@ -361,15 +365,22 @@ const handleCustomRegister = async () => {
   color: #e2e8f0 !important;
 }
 
-/* Force password reveal icon and text to be bright white */
+/* Crisp 1.5px stroke outline for Clerk's password show/hide eye icon */
 .clerk-orange-wrapper :deep(.cl-formFieldInputShowPasswordButton),
-.clerk-orange-wrapper :deep(.cl-formFieldInputShowPasswordIcon),
 .clerk-orange-wrapper :deep(button[class*="ShowPassword"]),
-.clerk-orange-wrapper :deep(button[class*="showPassword"]),
+.clerk-orange-wrapper :deep(button[class*="showPassword"]) {
+  color: #cbd5e1 !important;
+  opacity: 1 !important;
+  background: transparent !important;
+}
+
+.clerk-orange-wrapper :deep(.cl-formFieldInputShowPasswordIcon),
 .clerk-orange-wrapper :deep(svg[class*="ShowPassword"]),
 .clerk-orange-wrapper :deep(svg[class*="showPassword"]) {
-  color: #ffffff !important;
-  fill: #ffffff !important;
+  color: #cbd5e1 !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 1.5px !important;
   opacity: 1 !important;
 }
 

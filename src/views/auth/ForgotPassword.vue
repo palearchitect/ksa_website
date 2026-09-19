@@ -21,14 +21,14 @@
     <!-- Central Authentication Card -->
     <div class="w-full max-w-[380px] mx-auto my-auto flex flex-col items-center z-10">
       
-      <div class="w-full bg-gradient-to-br from-orange-950/70 via-slate-950/85 to-blue-950/75 backdrop-blur-2xl rounded-2xl p-6 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_rgba(249,115,22,0.2),0_0_40px_rgba(37,99,235,0.2)]">
+      <div class="w-full bg-gradient-to-br from-blue-950/75 via-slate-950/85 to-orange-950/70 backdrop-blur-2xl rounded-2xl p-6 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_rgba(37,99,235,0.2),0_0_40px_rgba(249,115,22,0.2)]">
         <div class="text-center mb-6">
-          <div class="w-12 h-12 bg-orange-900/40 rounded-full flex items-center justify-center mx-auto mb-3 border border-orange-500/30">
-            <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-12 h-12 bg-blue-900/40 rounded-full flex items-center justify-center mx-auto mb-3 border border-blue-500/30">
+            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
             </svg>
           </div>
-          <h2 class="text-xl font-extrabold text-white tracking-tight bg-gradient-to-r from-orange-300 via-white to-blue-300 bg-clip-text text-transparent">Reset Password</h2>
+          <h2 class="text-xl font-extrabold text-white tracking-tight bg-gradient-to-r from-blue-300 via-white to-orange-300 bg-clip-text text-transparent">Reset Password</h2>
           <p class="text-slate-300/80 text-xs mt-1 font-medium">Enter your email to receive a password reset code</p>
         </div>
 
