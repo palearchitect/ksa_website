@@ -1,11 +1,15 @@
 <template>
-  <div class="min-h-screen flex flex-col justify-center items-center bg-[radial-gradient(ellipse_100%_100%_at_50%_0%,#1c0c03_0%,#071324_60%,#030810_100%)] text-slate-100 px-4 py-6 selection:bg-orange-500 selection:text-white relative">
+  <div class="min-h-screen flex flex-col justify-center items-center bg-[radial-gradient(ellipse_100%_100%_at_50%_0%,#0f294a_0%,#071324_60%,#030810_100%)] text-slate-100 px-4 py-6 selection:bg-orange-500 selection:text-white relative overflow-hidden">
     
+    <!-- Ambient Glow Effects -->
+    <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-80 h-80 bg-orange-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
     <!-- Top Navigation (Back to Website) -->
     <div class="absolute top-6 right-6 z-10">
       <router-link 
         to="/" 
-        class="text-xs font-semibold text-orange-200/80 hover:text-white transition-all flex items-center gap-1.5 bg-slate-900/60 hover:bg-slate-800/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-orange-500/20 hover:border-orange-500/40 shadow-sm"
+        class="text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center gap-1.5 bg-slate-900/60 hover:bg-slate-800/80 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 hover:border-orange-500/40 shadow-sm"
       >
         <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -15,9 +19,9 @@
     </div>
 
     <!-- Central Authentication Card -->
-    <div class="w-full max-w-[380px] mx-auto my-auto flex flex-col items-center">
+    <div class="w-full max-w-[380px] mx-auto my-auto flex flex-col items-center z-10">
       
-      <!-- Clerk Authentication Component (Frosted Orange Glass Card) -->
+      <!-- Clerk Authentication Component (Transparent Blue to Orange Glass Card) -->
       <div v-if="hasClerkKey" class="w-full flex justify-center clerk-orange-wrapper">
         <SignIn 
           v-if="activeTab === 'login'" 
@@ -37,18 +41,18 @@
         />
       </div>
 
-      <!-- Fallback Custom Frosted Orange Form -->
-      <div v-else class="w-full bg-gradient-to-b from-amber-950/80 via-orange-950/85 to-slate-950/90 backdrop-blur-2xl rounded-2xl p-6 border border-orange-500/30 shadow-2xl shadow-orange-950/60">
+      <!-- Fallback Custom Transparent Blue-Orange Glass Tile -->
+      <div v-else class="w-full bg-gradient-to-br from-blue-950/70 via-slate-950/80 to-orange-950/70 backdrop-blur-2xl rounded-2xl p-6 border border-white/15 shadow-[0_20px_50px_rgba(7,19,36,0.8),0_0_40px_rgba(37,99,235,0.2),0_0_30px_rgba(249,115,22,0.2)]">
         <div class="text-center mb-6">
-          <h2 class="text-xl font-extrabold text-white tracking-tight">
+          <h2 class="text-xl font-extrabold text-white tracking-tight bg-gradient-to-r from-blue-300 via-white to-orange-300 bg-clip-text text-transparent">
             {{ activeTab === 'signup' ? 'Create Account' : 'Portal Sign In' }}
           </h2>
-          <p class="text-orange-200/70 text-xs mt-1">
+          <p class="text-slate-300/80 text-xs mt-1 font-medium">
             {{ activeTab === 'signup' ? 'Join KSA Valuers management portal' : 'Enter your credentials to continue' }}
           </p>
         </div>
 
-        <div v-if="noticeMessage" class="mb-4 p-3 bg-amber-950/80 border border-amber-600/80 rounded-lg text-xs text-amber-200 leading-relaxed font-medium">
+        <div v-if="noticeMessage" class="mb-4 p-3 bg-blue-950/80 border border-blue-500/40 rounded-lg text-xs text-blue-200 leading-relaxed font-medium">
           {{ noticeMessage }}
         </div>
 
@@ -59,19 +63,19 @@
         <!-- LOGIN FORM -->
         <form v-if="activeTab === 'login'" @submit.prevent="handleCustomLogin" class="space-y-4">
           <div>
-            <label for="login-email" class="block text-[11px] font-semibold text-orange-200/90 mb-1 uppercase tracking-wider">Email</label>
+            <label for="login-email" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Email</label>
             <input 
               id="login-email" 
               v-model="loginForm.email" 
               type="email" 
               required 
               placeholder="admin@ksavaluers.com" 
-              class="w-full px-3.5 py-2.5 bg-slate-950/90 border border-orange-900/60 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-600"
+              class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-500"
             >
           </div>
           <div>
             <div class="flex justify-between items-center mb-1">
-              <label for="login-password" class="block text-[11px] font-semibold text-orange-200/90 uppercase tracking-wider">Password</label>
+              <label for="login-password" class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Password</label>
               <router-link to="/forgot-password" class="text-[11px] text-orange-400 hover:text-orange-300 font-medium transition">
                 Forgot password?
               </router-link>
@@ -82,13 +86,13 @@
               type="password" 
               required 
               placeholder="••••••••••••" 
-              class="w-full px-3.5 py-2.5 bg-slate-950/90 border border-orange-900/60 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-600"
+              class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-500"
             >
           </div>
           <button 
             type="submit" 
             :disabled="loading" 
-            class="w-full py-2.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold rounded-lg text-xs shadow-lg shadow-orange-600/30 transition-all disabled:opacity-50"
+            class="w-full py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-orange-500 hover:from-blue-500 hover:to-orange-400 text-white font-bold rounded-lg text-xs shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50"
           >
             <span v-if="!loading">Sign In</span>
             <span v-else>Signing in...</span>
@@ -98,42 +102,42 @@
         <!-- SIGNUP FORM -->
         <form v-else @submit.prevent="handleCustomRegister" class="space-y-4">
           <div>
-            <label for="signup-name" class="block text-[11px] font-semibold text-orange-200/90 mb-1 uppercase tracking-wider">Full Name</label>
+            <label for="signup-name" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Full Name</label>
             <input 
               id="signup-name" 
               v-model="registerForm.name" 
               type="text" 
               required 
               placeholder="John Doe" 
-              class="w-full px-3.5 py-2.5 bg-slate-950/90 border border-orange-900/60 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-600"
+              class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-500"
             >
           </div>
           <div>
-            <label for="signup-email" class="block text-[11px] font-semibold text-orange-200/90 mb-1 uppercase tracking-wider">Email Address</label>
+            <label for="signup-email" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Email Address</label>
             <input 
               id="signup-email" 
               v-model="registerForm.email" 
               type="email" 
               required 
               placeholder="user@example.com" 
-              class="w-full px-3.5 py-2.5 bg-slate-950/90 border border-orange-900/60 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-600"
+              class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-500"
             >
           </div>
           <div>
-            <label for="signup-password" class="block text-[11px] font-semibold text-orange-200/90 mb-1 uppercase tracking-wider">Password</label>
+            <label for="signup-password" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Password</label>
             <input 
               id="signup-password" 
               v-model="registerForm.password" 
               type="password" 
               required 
               placeholder="Min 8 chars (letters + numbers)" 
-              class="w-full px-3.5 py-2.5 bg-slate-950/90 border border-orange-900/60 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-600"
+              class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-500"
             >
           </div>
           <button 
             type="submit" 
             :disabled="loading" 
-            class="w-full py-2.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold rounded-lg text-xs shadow-lg shadow-orange-600/30 transition-all disabled:opacity-50"
+            class="w-full py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-orange-500 hover:from-blue-500 hover:to-orange-400 text-white font-bold rounded-lg text-xs shadow-lg shadow-blue-600/20 transition-all disabled:opacity-50"
           >
             <span v-if="!loading">Create Account & Send OTP</span>
             <span v-else>Registering...</span>
@@ -146,7 +150,7 @@
         <button 
           v-if="activeTab === 'login'" 
           @click="switchTab('signup')" 
-          class="text-xs text-orange-300/90 hover:text-white font-medium transition inline-flex items-center gap-1.5"
+          class="text-xs text-slate-300 hover:text-white font-medium transition inline-flex items-center gap-1.5"
         >
           <span>Don't have an account?</span>
           <span class="font-bold underline underline-offset-4 text-orange-400 hover:text-orange-300">Sign Up</span>
@@ -154,7 +158,7 @@
         <button 
           v-else 
           @click="switchTab('login')" 
-          class="text-xs text-orange-300/90 hover:text-white font-medium transition inline-flex items-center gap-1.5"
+          class="text-xs text-slate-300 hover:text-white font-medium transition inline-flex items-center gap-1.5"
         >
           <span>Already have an account?</span>
           <span class="font-bold underline underline-offset-4 text-orange-400 hover:text-orange-300">Sign In</span>
@@ -215,30 +219,30 @@ const hasClerkKey = computed(() => {
   return key && key.startsWith('pk_')
 })
 
-// Frosted Orange Clerk appearance styling
+// Transparent Blue-to-Orange Clerk appearance styling
 const clerkAppearance = {
   elements: {
     rootBox: 'w-full flex justify-center',
     cardBox: 'w-full max-w-[380px]',
-    card: 'shadow-2xl shadow-orange-950/60 rounded-2xl border border-orange-500/30 bg-orange-950/70 backdrop-blur-2xl text-white w-full max-w-[380px] p-5',
+    card: 'shadow-2xl rounded-2xl border border-white/15 bg-gradient-to-br from-blue-950/70 via-slate-950/80 to-orange-950/70 backdrop-blur-2xl text-white w-full max-w-[380px] p-5',
     headerTitle: 'text-white font-extrabold text-xl text-center tracking-tight',
-    headerSubtitle: 'text-orange-200/70 text-xs text-center mt-1 font-normal',
-    socialButtonsBlockButton: 'border border-orange-500/30 bg-orange-900/40 hover:bg-orange-900/60 text-white rounded-lg font-medium text-xs py-2 transition',
-    socialButtonsBlockButtonText: 'text-orange-100 font-medium text-xs',
+    headerSubtitle: 'text-slate-300/80 text-xs text-center mt-1 font-normal',
+    socialButtonsBlockButton: 'border border-white/10 bg-slate-900/60 hover:bg-slate-800/80 text-white rounded-lg font-medium text-xs py-2 transition',
+    socialButtonsBlockButtonText: 'text-slate-100 font-medium text-xs',
     dividerRow: 'my-4',
-    dividerText: 'text-orange-300/60 text-[10px] font-semibold uppercase tracking-widest',
-    formFieldLabel: 'text-orange-200/90 text-[11px] font-semibold mb-1 uppercase tracking-wider',
-    formFieldInput: 'bg-slate-950/90 border border-orange-900/60 focus:border-orange-500 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs py-2 px-3 transition outline-none placeholder:text-slate-500',
-    formButtonPrimary: 'bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-bold text-xs py-2.5 rounded-lg shadow-md transition-all border-0',
+    dividerText: 'text-slate-400/80 text-[10px] font-semibold uppercase tracking-widest',
+    formFieldLabel: 'text-slate-300 text-[11px] font-semibold mb-1 uppercase tracking-wider',
+    formFieldInput: 'bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs py-2 px-3 transition outline-none placeholder:text-slate-500',
+    formButtonPrimary: 'bg-gradient-to-r from-blue-600 via-indigo-600 to-orange-500 hover:from-blue-500 hover:to-orange-400 text-white font-bold text-xs py-2.5 rounded-lg shadow-md transition-all border-0',
     footer: 'hidden',
     footerAction: 'hidden',
     footerPages: 'hidden',
     devModeBadge: 'hidden'
   },
   variables: {
-    colorPrimary: '#ea580c',
+    colorPrimary: '#f97316',
     colorText: '#f8fafc',
-    colorBackground: '#431407',
+    colorBackground: '#0b1329',
     colorInputBackground: '#020617',
     colorInputText: '#f8fafc',
     borderRadius: '0.5rem'
@@ -291,15 +295,15 @@ const handleCustomRegister = async () => {
 </script>
 
 <style scoped>
-/* Scoped overrides to enforce Frosted Orange styling on Clerk internal elements */
+/* Transparent Blue-to-Orange Gradient Glass Tile CSS overrides */
 .clerk-orange-wrapper :deep(.cl-cardBox),
 .clerk-orange-wrapper :deep(.cl-card) {
-  background: rgba(67, 20, 7, 0.8) !important;
+  background: linear-gradient(135deg, rgba(15, 41, 74, 0.75) 0%, rgba(15, 23, 42, 0.85) 50%, rgba(124, 45, 18, 0.7) 100%) !important;
   backdrop-filter: blur(24px) !important;
   -webkit-backdrop-filter: blur(24px) !important;
   color: #f8fafc !important;
-  border: 1px solid rgba(249, 115, 22, 0.35) !important;
-  box-shadow: 0 25px 50px -12px rgba(234, 88, 12, 0.3), 0 10px 25px -5px rgba(0, 0, 0, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 20px 50px rgba(7, 19, 36, 0.8), 0 0 40px rgba(37, 99, 235, 0.2), 0 0 30px rgba(249, 115, 22, 0.2) !important;
   border-radius: 1rem !important;
   max-width: 380px !important;
 }
@@ -309,21 +313,21 @@ const handleCustomRegister = async () => {
 }
 
 .clerk-orange-wrapper :deep(.cl-headerSubtitle) {
-  color: #fed7aa !important;
+  color: #cbd5e1 !important;
 }
 
 .clerk-orange-wrapper :deep(.cl-formFieldLabel) {
-  color: #ffedd5 !important;
+  color: #cbd5e1 !important;
 }
 
 .clerk-orange-wrapper :deep(.cl-formFieldInput) {
-  background-color: #020617 !important;
+  background-color: rgba(2, 6, 23, 0.7) !important;
   color: #f8fafc !important;
-  border-color: rgba(194, 65, 12, 0.6) !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
 }
 
 .clerk-orange-wrapper :deep(.cl-formButtonPrimary) {
-  background: linear-gradient(to right, #ea580c, #d97706) !important;
+  background: linear-gradient(to right, #2563eb, #4f46e5, #ea580c) !important;
   color: #ffffff !important;
 }
 
@@ -335,5 +339,6 @@ const handleCustomRegister = async () => {
   display: none !important;
 }
 </style>
+
 
 
