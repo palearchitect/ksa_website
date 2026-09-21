@@ -10,8 +10,8 @@
           <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
           Direct Communications
         </div>
-        <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6">
-          Connect With <span class="text-gradient-brand">Our Valuers</span>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-serif font-extrabold tracking-tight text-white mb-6">
+          Connect With <span class="font-serif italic font-normal text-gradient-brand">Our Valuers</span>
         </h1>
         <p class="text-base md:text-lg text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
           Get in touch with Nigeria's premier estate surveyors and property valuers for expert consultation, asset valuation, and investment advisory.

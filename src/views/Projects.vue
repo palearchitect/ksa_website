@@ -10,8 +10,8 @@
             <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
             Capital Projects & Advisory
           </div>
-          <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-4">
-            Development <span class="text-gradient-brand">Projects</span>
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-serif font-extrabold tracking-tight text-white mb-4">
+            Development <span class="font-serif italic font-normal text-gradient-brand">Projects</span>
           </h1>
           <p class="text-sm md:text-lg text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
             Institutional property developments, statutory project monitoring, and infrastructure advisory across Nigeria.

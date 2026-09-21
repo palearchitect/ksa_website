@@ -19,7 +19,7 @@
             </div>
 
             <!-- Main Headline -->
-            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 md:mb-6 leading-tight tracking-tight select-none">
+            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-serif font-extrabold mb-4 md:mb-6 leading-tight tracking-tight select-none">
               {{ slide.title }}
             </h1>
 

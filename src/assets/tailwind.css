@@ -14,6 +14,22 @@
     --color-brand-orange-light: #fffaf5;
   }
 
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, .font-heading {
+    font-family: 'Playfair Display', 'Instrument Serif', Georgia, serif;
+    letter-spacing: -0.015em;
+  }
+
+  .font-calligraphic, .calligraphic-accent {
+    font-family: 'Caveat', cursive;
+  }
+
   /* Sleek premium scrollbar for the browser window */
   ::-webkit-scrollbar {
     width: 10px;

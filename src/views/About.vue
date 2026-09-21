@@ -12,9 +12,9 @@
               <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
               Chartered Valuation Practice • Est. 2019
             </div>
-            <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-serif font-extrabold tracking-tight text-white mb-6 leading-tight">
               Redefining Real Estate with <br />
-              <span class="text-gradient-brand">Integrity & Excellence</span>
+              <span class="font-serif italic font-normal text-gradient-brand">Integrity & Excellence</span>
             </h1>
             <p class="text-base sm:text-lg text-slate-300 mb-10 max-w-2xl font-normal leading-relaxed">
               With institutional rigor and certified estate surveying practice, we provide audit-grade valuations, development monitoring, and automated property management across Nigeria.

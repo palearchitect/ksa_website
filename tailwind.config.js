@@ -42,6 +42,14 @@ module.exports = {
       },
       letterSpacing: {
         'widest-swiss': '0.18em',
+      },
+      fontFamily: {
+        sans: ['"Plus Jakarta Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        serif: ['"Playfair Display"', '"Instrument Serif"', 'Georgia', 'serif'],
+        display: ['"Playfair Display"', 'serif'],
+        calligraphic: ['"Caveat"', 'cursive'],
+        script: ['"Caveat"', '"Instrument Serif"', 'cursive'],
+        editorial: ['"Instrument Serif"', '"Playfair Display"', 'serif']
       }
     },
   },

@@ -11,8 +11,8 @@
           <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
           Prime Real Estate Catalog
         </span>
-        <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-4 text-white">
-          Curated <span class="text-gradient-brand-light">Real Estate Holdings</span>
+        <h1 class="text-4xl sm:text-5xl md:text-6xl font-serif font-extrabold tracking-tight mb-4 text-white">
+          Curated <span class="font-serif italic font-normal text-gradient-brand-light">Real Estate Holdings</span>
         </h1>
         <p class="text-base sm:text-lg text-slate-300 mb-4 max-w-2xl mx-auto font-normal leading-relaxed">
           Find your ideal residential acquisition or prime commercial investment from our verified portfolio across Nigeria.

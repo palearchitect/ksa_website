@@ -10,8 +10,8 @@
             <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
             Practice Leadership & Associates
           </div>
-          <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-4">
-            Our Chartered <span class="text-gradient-brand">Professionals</span>
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-serif font-extrabold tracking-tight text-white mb-4">
+            Our Chartered <span class="font-serif italic font-normal text-gradient-brand">Professionals</span>
           </h1>
           <p class="text-sm md:text-lg text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed mb-8">
             A dedicated team of certified surveyors, registered valuers, and real estate advisors delivering audit-grade property appraisals and asset management across Nigeria.

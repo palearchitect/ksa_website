@@ -25,8 +25,8 @@
             <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
             Practice Leadership
           </div>
-          <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-3">
-            Principal <span class="text-gradient-brand">Partner</span>
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-serif font-extrabold tracking-tight text-white mb-3">
+            Principal <span class="font-serif italic font-normal text-gradient-brand">Partner</span>
           </h1>
           <p class="text-sm md:text-lg text-slate-300 max-w-2xl font-normal leading-relaxed">
             Directing institutional valuation standards, strategic advisory, and asset governance across Nigeria with over 13 years of regulatory excellence.
@@ -138,23 +138,23 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
                     Head of Practice & Lead Valuer
                   </span>
-                  <h1 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white mb-2">
+                  <h1 class="text-3xl sm:text-4xl md:text-5xl font-serif font-black tracking-tight text-white mb-2">
                     ESV. Kayode Segun
                   </h1>
-                  <h2 class="text-base sm:text-lg font-bold text-gradient-brand tracking-wide">
+                  <h2 class="text-base sm:text-lg font-serif italic font-bold text-gradient-brand tracking-wide">
                     Principal Partner & Head of Practice
                   </h2>
                 </div>
 
-                <!-- Mandate Quote in High-Legibility Typography -->
+                <!-- Mandate Quote in High-Legibility Calligraphic & Serif Typography -->
                 <div class="mb-8 p-6 rounded-2xl bg-gradient-to-r from-blue-950/60 via-[#0a1835]/80 to-slate-900/80 border border-blue-500/20 shadow-inner">
-                  <div class="text-orange-400 text-4xl font-serif leading-none mb-2">“</div>
-                  <blockquote class="text-base sm:text-lg font-light italic leading-relaxed text-slate-100 mb-4">
+                  <div class="text-orange-400 text-5xl font-serif leading-none mb-1">“</div>
+                  <blockquote class="text-lg sm:text-xl font-serif italic font-normal leading-relaxed text-slate-100 mb-4">
                     Our core mandate is delivering rigorous, defensible valuation intelligence that empowers institutions and investors to deploy capital with unyielding confidence.
                   </blockquote>
                   <div class="flex items-center gap-3">
                     <div class="h-0.5 w-6 bg-orange-500"></div>
-                    <p class="text-[11px] uppercase tracking-widest font-bold text-slate-300">
+                    <p class="text-lg font-calligraphic text-orange-400 tracking-wide">
                       ESV. Kayode Segun • Practice Mandate
                     </p>
                   </div>
