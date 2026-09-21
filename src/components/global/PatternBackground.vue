@@ -1,9 +1,9 @@
 <template>
-  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none" aria-hidden="true">
-    <svg class="w-full h-full text-slate-400/10 dark:text-slate-300/[0.04]" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+  <div class="fixed inset-0 pointer-events-none z-[1] overflow-hidden select-none" aria-hidden="true">
+    <svg class="w-full h-full text-slate-500/25" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <pattern id="ksa-wallpaper-pattern" width="400" height="400" patternUnits="userSpaceOnUse">
-          <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <g fill="none" stroke="#64748b" stroke-opacity="0.22" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
             
             <!-- ── GABLE HOUSES ─────────────────────────────── -->
             <!-- House 1 (x: 30, y: 40, rot: -15) -->
@@ -120,10 +120,10 @@
             <path d="M210 160h6M213 157v6" />
             <path d="M300 170h6M303 167v6" />
             <path d="M110 350h6M113 347v6" />
-            <circle cx="180" cy="70" r="3" fill="currentColor" stroke="none" opacity="0.6" />
-            <circle cx="70" cy="230" r="2" fill="currentColor" stroke-none opacity="0.6" />
+            <circle cx="180" cy="70" r="3" fill="#64748b" fill-opacity="0.3" stroke="none" />
+            <circle cx="70" cy="230" r="2" fill="#64748b" fill-opacity="0.3" stroke="none" />
             <circle cx="250" cy="270" r="3.5" />
-            <circle cx="370" cy="210" r="2" fill="currentColor" stroke-none opacity="0.6" />
+            <circle cx="370" cy="210" r="2" fill="#64748b" fill-opacity="0.3" stroke="none" />
             <circle cx="170" cy="370" r="2.5" />
             <path d="M140 170l3-3 3 3 3-3" />
             <path d="M270 50l3-3 3 3 3-3" />
@@ -157,3 +157,5 @@
 <script setup>
 // Self-contained seamless SVG pattern background component
 </script>
+
+
