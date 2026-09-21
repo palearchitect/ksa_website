@@ -1,181 +1,185 @@
 <template>
-  <div class="admin-team-form min-h-screen bg-gray-50 py-8">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Header -->
-      <div class="mb-8">
-        <button
-          @click="goBack"
-          class="flex items-center text-gray-600 hover:text-gray-900 mb-4 font-medium transition"
-        >
-          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Back to Directory
-        </button>
-        <h1 class="text-3xl font-bold text-gray-900">
-          {{ isEditMode ? 'Edit Team Member Profile' : 'Add New Team Member' }}
+  <div class="space-y-8 max-w-3xl mx-auto">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <button @click="goBack" class="inline-flex items-center text-sm font-medium text-slate-400 hover:text-white transition-colors group">
+        <svg class="w-5 h-5 mr-2 text-slate-500 group-hover:-translate-x-1 group-hover:text-white transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Staff Directory
+      </button>
+    </div>
+
+    <!-- Container Header -->
+    <div class="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-slate-800/80 shadow-2xl flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-3">
+          <span>{{ isEditMode ? 'Edit Team Member Profile' : 'Add New Team Member' }}</span>
+          <span class="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            {{ isEditMode ? 'Profile Edit' : 'New Staff' }}
+          </span>
         </h1>
-        <p class="text-gray-600 mt-1">Provide the professional details, certifications, and background of the team member.</p>
+        <p class="mt-1 text-sm text-slate-400">Provide professional details, certifications, contact records, and biography.</p>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form @submit.prevent="handleSubmit" class="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 shadow-2xl p-6 md:p-8 space-y-6">
+      
+      <!-- Name & Email -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
+            Full Name <span class="text-orange-400">*</span>
+          </label>
+          <input
+            v-model="form.name"
+            type="text"
+            required
+            placeholder="e.g. ESV Olaoluwa Isaac"
+            class="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+          >
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
+            Email Address <span class="text-orange-400">*</span>
+          </label>
+          <input
+            v-model="form.email"
+            type="email"
+            required
+            placeholder="e.g. name@ksavaluers.com"
+            class="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition font-mono"
+          >
+        </div>
       </div>
 
-      <!-- Form -->
-      <form @submit.prevent="handleSubmit" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-6">
-        
-        <!-- Name & Email -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Full Name <span class="text-red-500">*</span>
-            </label>
-            <input
-              v-model="form.name"
-              type="text"
-              required
-              placeholder="e.g. ESV Olaoluwa Isaac"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-            >
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Email Address <span class="text-red-500">*</span>
-            </label>
-            <input
-              v-model="form.email"
-              type="email"
-              required
-              placeholder="e.g. name@ksavaluers.com"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-            >
-          </div>
-        </div>
-
-        <!-- Role & Tag -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Role / Job Title <span class="text-red-500">*</span>
-            </label>
-            <input
-              v-model="form.role"
-              type="text"
-              required
-              placeholder="e.g. Head of Estate Management & Valuation"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-            >
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Professional Tag <span class="text-red-500">*</span>
-            </label>
-            <input
-              v-model="form.tag"
-              type="text"
-              required
-              placeholder="e.g. Estate Surveyor, Certified Valuer"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-            >
-          </div>
-        </div>
-
-        <!-- Biography / Description -->
+      <!-- Role & Tag -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Biography / Professional Profile <span class="text-red-500">*</span>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
+            Role / Job Title <span class="text-orange-400">*</span>
           </label>
-          <textarea
-            v-model="form.description"
-            required
-            rows="5"
-            placeholder="Describe the member's professional focus, experience, and certifications..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-          ></textarea>
-        </div>
-
-        <!-- Image URL & Device Upload -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">Image Source</label>
-          <div class="flex items-center gap-4 mb-3">
-            <label class="flex items-center text-sm text-gray-700 cursor-pointer">
-              <input type="radio" v-model="imageSource" value="upload" class="mr-2 text-blue-600 focus:ring-blue-500">
-              Upload from Device
-            </label>
-            <label class="flex items-center text-sm text-gray-700 cursor-pointer">
-              <input type="radio" v-model="imageSource" value="url" class="mr-2 text-blue-600 focus:ring-blue-500">
-              Paste Image URL / Filename
-            </label>
-          </div>
-
-          <!-- Upload input -->
-          <div v-if="imageSource === 'upload'" class="space-y-2 mb-2">
-            <div class="flex items-center justify-center w-full">
-              <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition relative">
-                <div v-if="uploadingFile" class="flex flex-col items-center justify-center pt-5 pb-6">
-                  <svg class="animate-spin h-8 w-8 text-blue-600 mb-2" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <p class="text-sm text-gray-500 font-medium">Uploading file...</p>
-                </div>
-                <div v-else class="flex flex-col items-center justify-center pt-5 pb-6">
-                  <svg class="w-8 h-8 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <p class="text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
-                  <p class="text-xs text-gray-400">PNG, JPG or JPEG (max 8MB)</p>
-                </div>
-                <input type="file" class="hidden" accept="image/*" @change="handleFileUpload" :disabled="uploadingFile" />
-              </label>
-            </div>
-          </div>
-
-          <!-- URL input -->
           <input
-            v-else
-            v-model="form.image"
+            v-model="form.role"
             type="text"
-            placeholder="e.g. DSC00129-240x300.jpeg or https://..."
-            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            required
+            placeholder="e.g. Head of Estate Management & Valuation"
+            class="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
           >
-          <p class="text-xs text-gray-500 mt-1.5">Provide a filename from assets/images (e.g. DSC00129-240x300.jpeg) or a custom web URL.</p>
-          
-          <!-- Image Preview -->
-          <div v-if="form.image" class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 inline-block">
-            <p class="text-xs font-semibold text-gray-500 mb-2">Profile Image Preview:</p>
-            <img 
-              :src="getImageUrl(form.image)" 
-              alt="Preview" 
-              @error="handlePreviewError"
-              class="w-32 h-32 object-cover rounded-xl border border-gray-300"
-            >
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
+            Professional Tag <span class="text-orange-400">*</span>
+          </label>
+          <input
+            v-model="form.tag"
+            type="text"
+            required
+            placeholder="e.g. Estate Surveyor, Certified Valuer"
+            class="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+          >
+        </div>
+      </div>
+
+      <!-- Biography / Description -->
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
+          Biography / Professional Profile <span class="text-orange-400">*</span>
+        </label>
+        <textarea
+          v-model="form.description"
+          required
+          rows="5"
+          placeholder="Describe the member's professional focus, experience, and certifications..."
+          class="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition leading-relaxed"
+        ></textarea>
+      </div>
+
+      <!-- Image URL & Device Upload -->
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Profile Image Source</label>
+        <div class="flex items-center gap-4 mb-3">
+          <label class="flex items-center text-xs text-slate-300 cursor-pointer">
+            <input type="radio" v-model="imageSource" value="upload" class="mr-2 text-blue-500 focus:ring-blue-500 bg-slate-950 border-slate-800">
+            Upload from Device
+          </label>
+          <label class="flex items-center text-xs text-slate-300 cursor-pointer">
+            <input type="radio" v-model="imageSource" value="url" class="mr-2 text-blue-500 focus:ring-blue-500 bg-slate-950 border-slate-800">
+            Paste Image URL / Filename
+          </label>
+        </div>
+
+        <!-- Upload input -->
+        <div v-if="imageSource === 'upload'" class="space-y-2 mb-2">
+          <div class="flex items-center justify-center w-full">
+            <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-slate-800 hover:border-slate-700 rounded-xl cursor-pointer bg-slate-950/80 hover:bg-slate-950 transition relative group">
+              <div v-if="uploadingFile" class="flex flex-col items-center justify-center">
+                <div class="w-8 h-8 rounded-full border-2 border-orange-500/20 border-t-orange-500 animate-spin mb-2"></div>
+                <p class="text-xs text-slate-400 font-mono">Uploading avatar image...</p>
+              </div>
+              <div v-else class="flex flex-col items-center justify-center pt-5 pb-6">
+                <svg class="w-8 h-8 mb-2 text-slate-500 group-hover:text-orange-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <p class="text-xs text-slate-300"><span class="font-semibold text-orange-400">Click to upload</span> or drag photo file</p>
+                <p class="text-xxs text-slate-500 font-mono mt-1">PNG, JPG or WEBP (max 8MB)</p>
+              </div>
+              <input type="file" class="hidden" accept="image/*" @change="handleFileUpload" :disabled="uploadingFile" />
+            </label>
           </div>
         </div>
 
-        <!-- Error Message -->
-        <div v-if="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {{ errorMessage }}
+        <!-- URL input -->
+        <input
+          v-else
+          v-model="form.image"
+          type="text"
+          placeholder="e.g. DSC00129-240x300.jpeg or https://..."
+          class="w-full px-4 py-3 bg-slate-950/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition font-mono"
+        >
+        <p class="text-xs text-slate-500 mt-1.5 font-mono">Provide a filename from assets/images (e.g. DSC00129-240x300.jpeg) or a custom web URL.</p>
+        
+        <!-- Image Preview -->
+        <div v-if="form.image" class="mt-4 p-4 bg-slate-950/80 rounded-2xl border border-slate-800 inline-block">
+          <p class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Profile Avatar Preview:</p>
+          <img 
+            :src="getImageUrl(form.image)" 
+            alt="Preview" 
+            @error="handlePreviewError"
+            class="w-28 h-28 object-cover rounded-xl border border-slate-700 shadow-md"
+          >
         </div>
+      </div>
 
-        <!-- Submit Buttons -->
-        <div class="flex gap-4 pt-6 border-t border-gray-100">
-          <button
-            type="submit"
-            :disabled="submitting"
-            class="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm hover:shadow transition disabled:opacity-50"
-          >
-            {{ submitting ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Create Profile') }}
-          </button>
-          <button
-            type="button"
-            @click="goBack"
-            class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </div>
+      <!-- Error Message -->
+      <div v-if="errorMessage" class="bg-rose-500/10 border border-rose-500/20 text-rose-300 px-4 py-3 rounded-xl text-xs flex items-center gap-2">
+        <svg class="w-4 h-4 text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <!-- Submit Buttons -->
+      <div class="flex gap-4 pt-6 border-t border-slate-800/80">
+        <button
+          type="submit"
+          :disabled="submitting"
+          class="flex-1 px-6 py-3 bg-gradient-to-r from-orange-500 via-amber-500 to-blue-600 hover:from-orange-400 hover:to-blue-500 text-white font-semibold rounded-xl transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50 text-sm"
+        >
+          {{ submitting ? 'Saving Profile...' : (isEditMode ? 'Save Changes' : 'Create Profile') }}
+        </button>
+        <button
+          type="button"
+          @click="goBack"
+          class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl transition text-sm border border-slate-700"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
   </div>
 </template>
 

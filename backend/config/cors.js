@@ -6,9 +6,12 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       'http://127.0.0.1:3001',
       'http://localhost:5173',
       'http://127.0.0.1:5173',
+      'http://dashboard.localhost:3000',
+      'http://dashboard.localhost:5173',
       'https://ksavaluers.com',
       'https://www.ksavaluers.com',
-      'https://api.ksavaluers.com'
+      'https://api.ksavaluers.com',
+      'https://dashboard.ksavaluers.com'
     ];
 
 const corsOptions = {

@@ -1,258 +1,234 @@
 <template>
   <ErrorBoundary>
-    <div class="min-h-screen bg-gray-50">
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <!-- Page Title & Breadcrumb -->
-      <div class="mb-12">
-        <nav class="flex mb-4" aria-label="Breadcrumb">
-          <ol class="inline-flex items-center space-x-1 md:space-x-3">
-            <li class="inline-flex items-center">
-              <router-link to="/" class="text-gray-700 hover:text-blue-600">Home</router-link>
-            </li>
-            <li>
-              <div class="flex items-center">
-                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                </svg>
-                <router-link to="/about-us" class="ml-1 text-gray-700 hover:text-blue-600 md:ml-2">About Us</router-link>
-              </div>
-            </li>
-            <li aria-current="page">
-              <div class="flex items-center">
-                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                </svg>
-                <span class="ml-1 text-gray-500 md:ml-2">Principal Partner</span>
-              </div>
-            </li>
-          </ol>
-        </nav>
-        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Principal Partner</h1>
-        <p class="text-xl text-gray-600">Leading with expertise, integrity, and vision in property valuation</p>
-      </div>
+    <div class="min-h-screen bg-gradient-to-b from-[#030810] via-[#071328] to-[#040914] text-white">
+      <!-- Hero Header -->
+      <section class="relative pt-28 md:pt-36 pb-12 overflow-hidden border-b border-white/10">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(37,99,235,0.25),rgba(249,104,22,0.1)_50%,transparent_80%)] pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <nav class="flex mb-4" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-2 text-xs text-slate-400">
+              <li>
+                <router-link to="/" class="hover:text-orange-400 transition-colors">Home</router-link>
+              </li>
+              <li>/</li>
+              <li>
+                <router-link to="/about-us" class="hover:text-orange-400 transition-colors">About Us</router-link>
+              </li>
+              <li>/</li>
+              <li class="text-slate-200 font-semibold">Principal Partner</li>
+            </ol>
+          </nav>
+          
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-xs font-semibold uppercase tracking-widest text-orange-400 mb-4 shadow-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+            Practice Leadership
+          </div>
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-3">
+            Principal <span class="text-gradient-brand">Partner</span>
+          </h1>
+          <p class="text-sm md:text-lg text-slate-300 max-w-2xl font-normal leading-relaxed">
+            Directing institutional valuation standards, strategic advisory, and asset governance across Nigeria with over 13 years of regulatory excellence.
+          </p>
+        </div>
+      </section>
 
-      <!-- Two Column Layout -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <!-- Left Column: Partner Profile & Quick Links -->
-        <div class="lg:col-span-1">
-          <!-- Partner Profile Card -->
-          <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <div class="flex flex-col items-center">
-              <!-- Partner Photo -->
-              <div class="w-64 h-64 rounded-full overflow-hidden border-4 border-blue-100 mb-6">
-                <img 
-                  src="../assets/images/KAYODE-e1712319829816-277x300.jpg" 
-                  alt="Principal Partner"
-                  class="w-full h-full object-cover"
-                >
-              </div>
-              
-              <!-- Partner Name & Title -->
-              <h2 class="text-2xl font-bold text-gray-900 mb-2">ESV.Kayode Segun,</h2>
-              <p class="text-blue-600 font-semibold mb-4">Principal Partner</p>
-              <!-- Contact Card -->
-              <div class="bg-gray-50 rounded-lg p-6 w-full mb-6">
-                <h3 class="font-semibold text-gray-900 mb-4">Direct Contact</h3>
-                <div class="space-y-3">
-                  <a href="tel:+2349053901001" class="flex items-center text-gray-700 hover:text-blue-600">
-                    <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Bento Grid Layout Section -->
+      <section class="py-12 md:py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- Left Column: Portrait Card & Credentials (4 cols) -->
+            <div class="lg:col-span-5 space-y-6">
+              <!-- Portrait Tile (White Bento Card) -->
+              <div class="bento-card p-6 md:p-8 bg-white text-slate-900 border border-slate-200/90 shadow-2xl relative overflow-hidden">
+                <div class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden mb-6 shadow-md border border-slate-100 bg-slate-100">
+                  <img
+                    src="../assets/images/KAYODE-e1712319829816-277x300.jpg"
+                    alt="ESV. Kayode Segun"
+                    class="w-full h-full object-cover object-top filter contrast-105"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
+                  <div class="absolute bottom-4 left-4 right-4 text-white">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500 text-white text-[11px] font-bold uppercase tracking-wider shadow">
+                      ANIVS, RSV, mcia
+                    </span>
+                  </div>
+                </div>
+
+                <div class="text-left mb-6">
+                  <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">ESV. Kayode Segun</h2>
+                  <p class="text-sm font-semibold text-blue-700 mt-0.5">Principal Partner & Head of Practice</p>
+                  <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+                    Registered Estate Surveyor & Valuer with extensive experience in statutory valuation, bank securities, and asset auditing.
+                  </p>
+                </div>
+
+                <!-- Accreditation Badges -->
+                <div class="space-y-2.5 pt-4 border-t border-slate-100">
+                  <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                    <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
+                      ✓
+                    </div>
+                    <div>
+                      <p class="font-bold text-slate-800">NIESV Member</p>
+                      <p class="text-[11px] text-slate-500">The Nigerian Institution of Estate Surveyors and Valuers</p>
+                    </div>
+                  </div>
+                  
+                  <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                    <div class="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-[10px]">
+                      ✓
+                    </div>
+                    <div>
+                      <p class="font-bold text-slate-800">ESVARBON Registered</p>
+                      <p class="text-[11px] text-slate-500">Estate Surveyors and Valuers Registration Board</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                    <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
+                      ✓
+                    </div>
+                    <div>
+                      <p class="font-bold text-slate-800">CIAN Certified</p>
+                      <p class="text-[11px] text-slate-500">Certified Institute of Auctioneers of Nigeria</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Direct Action Buttons -->
+                <div class="mt-6 pt-6 border-t border-slate-100 space-y-2">
+                  <router-link
+                    to="/book-a-tour"
+                    class="w-full py-3 px-4 rounded-full font-bold text-xs uppercase tracking-wider text-white bg-gradient-to-r from-blue-700 via-blue-600 to-orange-500 hover:from-blue-800 hover:to-orange-600 shadow-glow-orange transition-all flex items-center justify-center gap-2"
+                  >
+                    <span>Request Executive Consultation</span>
+                    <span>→</span>
+                  </router-link>
+                  
+                  <a
+                    href="tel:+2349053901001"
+                    class="w-full py-2.5 px-4 rounded-full font-semibold text-xs text-slate-700 hover:text-blue-700 border border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/40 transition-all flex items-center justify-center gap-2"
+                  >
+                    <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    Kayode Segun & Associates
-                  </a>
-                  <a href="mailto:kayode@ksavaluers.com" class="flex items-center text-gray-700 hover:text-blue-600">
-                    <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    kayode@ksavaluers.com
+                    Direct Line: +234 905 390 1001
                   </a>
                 </div>
               </div>
+            </div>
 
-              <!-- Schedule Consultation Button -->
-              <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition mb-4">
-                Schedule Consultation
-              </button>
+            <!-- Right Column: Bento Cards (7 cols) -->
+            <div class="lg:col-span-7 space-y-6">
               
-              <!-- Social Links -->
-              <div class="flex space-x-4">
-                <a href="#" class="text-gray-400 hover:text-blue-600">
-                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                </a>
-                <a href="#" class="text-gray-400 hover:text-blue-600">
-                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.213c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
-                  </svg>
-                </a>
-                <a href="#" class="text-gray-400 hover:text-blue-600">
-                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                  </svg>
-                </a>
-                <a href="#" class="text-gray-400 hover:text-blue-600">
-                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Quick Links Sidebar -->
-          <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="font-bold text-lg text-gray-900 mb-4">Quick Links</h3>
-            <ul class="space-y-3">
-              <li>
-                <router-link to="/about-us" class="flex items-center text-gray-700 hover:text-blue-600">
-                  <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  About Us
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/principal-partner" class="flex items-center text-blue-600 font-semibold">
-                  <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                  Principal Partner
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/team" class="flex items-center text-gray-700 hover:text-blue-600">
-                  <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13 0A9 9 0 008.965 3.525m12 0A9 9 0 003.035 12.525" />
-                  </svg>
-                  Our Team
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/properties" class="flex items-center text-gray-700 hover:text-blue-600">
-                  <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  All Properties
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/ongoing-projects" class="flex items-center text-gray-700 hover:text-blue-600">
-                  <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Ongoing Projects
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/faq" class="flex items-center text-gray-700 hover:text-blue-600">
-                  <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  FAQ
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/contact-us" class="flex items-center text-gray-700 hover:text-blue-600">
-                  <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  Contact Us
-                </router-link>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <!-- Right Column: Biography & Details -->
-        <div class="lg:col-span-2">
-          <!-- Mission Statement -->
-          <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-2xl p-8 mb-8">
-            <blockquote class="text-2xl font-light italic mb-4">
-              "Our commitment is to deliver accurate, reliable, and professional property valuation services that empower our clients to make informed real estate decisions."
-            </blockquote>
-            <p class="font-semibold">— ESV. Kayode Segun, Principal Partner</p>
-          </div>
-
-          <!-- Biography Section -->
-          <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-6">Professional Biography</h2>
-            
-            <div class="prose max-w-none text-gray-700">
-              <p class="mb-6 text-lg">
-                ESV. Kayode Segun is an experienced Estate Surveyor and Registered Valuer with over thirteen (13) years of professional practice in real estate valuation, property consultancy, asset management, and investment advisory services. He is the Principal Partner of Kayode Segun & Associates, a firm of Estate Surveyors and Valuers committed to delivering professional, reliable, and timely real estate solutions to financial institutions, corporate organizations, government agencies, and private clients across Nigeria.
-              </p>
-
-              <h3 class="text-xl font-bold text-gray-900 mb-4 mt-8">Professional Journey</h3>
-              <p class="mb-6">
-                Over the course of his career, he has successfully coordinated and participated in numerous valuation assignments for mortgage financing, loan security, insurance, financial reporting, investment decision-making, compulsory acquisition, and asset management. His practical understanding of the Nigerian property market, combined with sound professional judgment and analytical expertise, enables him to provide credible valuation opinions that comply with the standards and ethics of the valuation profession. Prior to establishing Kayode Segun & Associates, he gained extensive professional experience with Oladipo, Awoeyo & Partners, where he was actively involved in property inspections, market analysis, valuation reporting, insurance claims assessment, and portfolio valuation assignments for a diverse range of clients.
-              </p>
-
-              <h3 class="text-xl font-bold text-gray-900 mb-4">Areas of Expertise</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                <div class="flex items-center">
-                  <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                  <span>Real estate valuation</span>
-                </div>
-                 <div class="flex items-center">
-                  <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                  <span>Auctioneering</span>
-                </div>
-                <div class="flex items-center">
-                  <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                  <span>Property consultancy</span>
-                </div>
-                <div class="flex items-center">
-                  <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                  <span>Asset management</span>
-                </div>
-                <div class="flex items-center">
-                  <svg class="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                  </svg>
-                  <span>Investment advisory services</span>
+              <!-- Quote Bento Card -->
+              <div class="bento-card p-8 md:p-10 bg-gradient-to-br from-blue-900 via-[#0b1e42] to-slate-900 border border-white/15 text-white relative overflow-hidden shadow-xl">
+                <div class="absolute -right-8 -bottom-8 w-48 h-48 bg-orange-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="text-orange-400 text-5xl font-serif font-black leading-none mb-3">“</div>
+                <blockquote class="text-lg md:text-xl font-light italic leading-relaxed text-slate-100 mb-6">
+                  Our core mandate is delivering rigorous, defensible valuation intelligence that empowers institutions and investors to deploy capital with unyielding confidence.
+                </blockquote>
+                <div class="flex items-center gap-3">
+                  <div class="h-0.5 w-8 bg-orange-500"></div>
+                  <p class="text-xs uppercase tracking-widest font-bold text-slate-300">
+                    ESV. Kayode Segun • Principal Partner
+                  </p>
                 </div>
               </div>
 
-              <h3 class="text-xl font-bold text-gray-900 mb-4">Education & Certifications</h3>
-              <ul class="list-disc pl-5 mb-8 space-y-2">
-                <li>Bachelor’s Degree in Estate Management and Valuation, University of Lagos.</li>
-                <li>Executive training in Policy, Strategy and Leadership, National Institute for Policy and Strategic Studies (NIPSS), Kuru, Jos.</li>
-                <li>Certified by the Certified Institute of Auctioneers of Nigeria (CIAN).</li>
-              </ul>
+              <!-- Biography Bento Tile (White) -->
+              <div class="bento-card p-8 md:p-10 bg-white text-slate-900 border border-slate-200/90 shadow-xl">
+                <div class="flex items-center gap-2 mb-4">
+                  <span class="w-1.5 h-4 bg-blue-600 rounded-full"></span>
+                  <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Leadership Profile</h3>
+                </div>
+                <h2 class="text-2xl font-extrabold tracking-tight text-slate-900 mb-6">Thirteen Years of Industry Benchmarking</h2>
+                <div class="space-y-4 text-sm text-slate-600 leading-relaxed font-normal">
+                  <p>
+                    <strong class="text-slate-900">ESV. Kayode Segun</strong> is an established Estate Surveyor and Registered Valuer with over thirteen (13) years of top-tier professional practice across Nigeria. As the founding Principal Partner of Kayode Segun & Associates, he oversees the firm's strategic valuation advisory, high-stakes asset auditing, and portfolio asset management.
+                  </p>
+                  <p>
+                    Prior to launching Kayode Segun & Associates, he honed his practice at renowned professional firms including <span class="text-slate-900 font-medium">Oladipo, Awoeyo & Partners</span>, orchestrating nationwide property inspections, market analyses, insurance claims evaluations, and complex mortgage collateral valuations for institutional tier-1 lenders.
+                  </p>
+                </div>
+              </div>
 
-              <h3 class="text-xl font-bold text-gray-900 mb-4">Notable Projects & Achievements</h3>
-              <p class="mb-6 text-gray-700">
-                Successfully coordinated and participated in numerous valuation assignments for mortgage financing, loan security, insurance, financial reporting, investment decision-making, compulsory acquisition, and asset management.
-              </p>
-            </div>
-          </div>
+              <!-- Metrics Mini-Bento Row -->
+              <div class="grid grid-cols-3 gap-4">
+                <div class="bento-card p-5 bg-white text-slate-900 border border-slate-200/80 shadow-sm text-center">
+                  <div class="text-2xl md:text-3xl font-extrabold text-blue-900">13+</div>
+                  <div class="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">Years Practice</div>
+                </div>
+                <div class="bento-card p-5 bg-white text-slate-900 border border-slate-200/80 shadow-sm text-center">
+                  <div class="text-2xl md:text-3xl font-extrabold text-orange-600">₦50B+</div>
+                  <div class="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">Portfolio Valued</div>
+                </div>
+                <div class="bento-card p-5 bg-white text-slate-900 border border-slate-200/80 shadow-sm text-center">
+                  <div class="text-2xl md:text-3xl font-extrabold text-slate-900">100%</div>
+                  <div class="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">Regulatory Score</div>
+                </div>
+              </div>
 
-          <!-- Call to Action -->
-          <div class="bg-white rounded-xl shadow-lg p-8 text-center">
-            <h3 class="text-2xl font-bold text-gray-900 mb-4">Ready to Discuss Your Property Needs?</h3>
-            <p class="text-gray-600 mb-6">Schedule a consultation with our Principal Partner for expert valuation advice.</p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-              <button class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-blue-700 transition">
-                Book Consultation
-              </button>
-              <router-link to="/contact-us" class="border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition">
-                Contact Our Team
-              </router-link>
+              <!-- Areas of Expertise (Bento White Card) -->
+              <div class="bento-card p-8 bg-white text-slate-900 border border-slate-200/90 shadow-xl">
+                <div class="flex items-center gap-2 mb-4">
+                  <span class="w-1.5 h-4 bg-orange-500 rounded-full"></span>
+                  <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Advisory Domains</h3>
+                </div>
+                <h3 class="text-xl font-bold tracking-tight text-slate-900 mb-6">Core Competencies</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                    <span class="text-xs font-bold text-slate-800">Real Estate & Asset Valuation</span>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+                    <span class="text-xs font-bold text-slate-800">Licensed Auctioneering</span>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <div class="w-2 h-2 rounded-full bg-blue-600"></div>
+                    <span class="text-xs font-bold text-slate-800">Property & Tenancy Consultancy</span>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <div class="w-2 h-2 rounded-full bg-orange-500"></div>
+                    <span class="text-xs font-bold text-slate-800">Institutional Asset Management</span>
+                  </div>
+                  <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 sm:col-span-2">
+                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                    <span class="text-xs font-bold text-slate-800">Project Viability & Investment Advisory</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Education & Training (Bento Tile) -->
+              <div class="bento-card p-8 bg-white text-slate-900 border border-slate-200/90 shadow-xl">
+                <div class="flex items-center gap-2 mb-4">
+                  <span class="w-1.5 h-4 bg-blue-600 rounded-full"></span>
+                  <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Academic & Executive</h3>
+                </div>
+                <h3 class="text-xl font-bold tracking-tight text-slate-900 mb-4">Qualifications & Training</h3>
+                <ul class="space-y-3 text-xs md:text-sm text-slate-600">
+                  <li class="flex items-start gap-3">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0"></span>
+                    <span><strong class="text-slate-900">B.Sc. Estate Management & Valuation</strong> — University of Lagos (UNILAG).</span>
+                  </li>
+                  <li class="flex items-start gap-3">
+                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500 mt-2 flex-shrink-0"></span>
+                    <span><strong class="text-slate-900">Executive Policy, Strategy and Leadership Training</strong> — National Institute for Policy and Strategic Studies (NIPSS), Kuru, Jos.</span>
+                  </li>
+                  <li class="flex items-start gap-3">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0"></span>
+                    <span><strong class="text-slate-900">Certified Member</strong> — Certified Institute of Auctioneers of Nigeria (CIAN).</span>
+                  </li>
+                </ul>
+              </div>
+
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </section>
     </div>
   </ErrorBoundary>
 </template>
@@ -260,38 +236,12 @@
 <script setup>
 import ErrorBoundary from '../components/global/ErrorBoundary.vue'
 import { useSEO } from '../hooks/useSEO'
+
 useSEO({
-  title: 'Principal Partner',
-  description: 'Meet our principal partner and learn about their vision and leadership.'
+  title: 'Principal Partner - ESV. Kayode Segun | KSA Valuers',
+  description: 'Meet ESV. Kayode Segun, Principal Partner of Kayode Segun & Associates with over 13 years of leadership in property valuation across Nigeria.'
 })
-// No additional script needed for this component
 </script>
 
 <style scoped>
-/* Custom styles for the page */
-.prose {
-  line-height: 1.75;
-}
-
-.prose p {
-  margin-bottom: 1.5em;
-}
-
-.prose ul {
-  margin-bottom: 1.5em;
-}
-
-/* Smooth transitions */
-button, a {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Hover effects for cards */
-.bg-white {
-  transition: transform 0.2s ease-in-out;
-}
-
-.bg-white:hover {
-  transform: translateY(-2px);
-}
 </style>

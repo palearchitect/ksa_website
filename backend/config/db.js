@@ -5,7 +5,7 @@ const dbUrl = process.env.DATABASE_URL;
 
 const pool = new Pool({
   connectionString: dbUrl,
-  ssl: isProduction && dbUrl && !dbUrl.includes('localhost') 
+  ssl: dbUrl && !dbUrl.includes('localhost') && !dbUrl.includes('127.0.0.1')
     ? { rejectUnauthorized: false } 
     : false,
   max: 20,

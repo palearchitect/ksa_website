@@ -11,14 +11,42 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, watchEffect, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useUser } from '@clerk/vue'
+import { useAuthStore } from '@/stores/authStore'
+import { supabase } from '@/lib/supabaseClient'
 import AppHeader from './components/global/AppHeader.vue'
 import AppFooter from './components/global/AppFooter.vue'
 import ErrorBoundary from './components/global/ErrorBoundary.vue'
 
 const route = useRoute()
 const hideLayout = computed(() => route.path.startsWith('/admin') || route.path.startsWith('/dashboard'))
+
+const authStore = useAuthStore()
+const instruments = ref([])
+
+onMounted(async () => {
+  try {
+    const { data, error } = await supabase.from('instruments').select('*')
+    if (data && !error) {
+      instruments.value = data
+    }
+  } catch (err) {
+    // Graceful fallback if Supabase client credentials are not configured
+  }
+})
+
+try {
+  const { user: clerkUser, isLoaded, isSignedIn } = useUser()
+  watchEffect(() => {
+    if (isLoaded.value && isSignedIn.value && clerkUser.value) {
+      authStore.syncClerkUser(clerkUser.value)
+    }
+  })
+} catch (e) {
+  // Graceful fallback if Clerk plugin is disabled
+}
 </script>
 
 <style>

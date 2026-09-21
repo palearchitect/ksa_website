@@ -8,16 +8,27 @@
 const path = require('path');
 const fs = require('fs');
 
+const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
+
+
 const envPaths = [
+  path.join(__dirname, '..', '..', '.env.local'),
   path.join(__dirname, '..', '..', '.env'),
+  path.join(__dirname, '..', '.env.local'),
   path.join(__dirname, '..', '.env'),
+  path.join(process.cwd(), '.env.local'),
   path.join(process.cwd(), '.env')
 ];
-envPaths.forEach(p => { if (fs.existsSync(p)) require('dotenv').config({ path: p }); });
+envPaths.forEach(p => { if (fs.existsSync(p)) require('dotenv').config({ path: p, override: true }); });
 require('dotenv').config();
 
+const dbUrl = process.env.DATABASE_URL;
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: dbUrl,
+  ssl: dbUrl && !dbUrl.includes('localhost') && !dbUrl.includes('127.0.0.1')
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
 async function seedDatabase() {

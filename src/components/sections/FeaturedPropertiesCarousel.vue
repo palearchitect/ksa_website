@@ -1,18 +1,27 @@
 <template>
-  <section class="py-16 md:py-24 bg-gradient-to-b from-gray-50 to-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <section class="py-20 md:py-28 bg-gradient-to-b from-[#030810] via-[#071328] to-[#0a1835] text-white relative overflow-hidden border-t border-b border-white/10">
+    <!-- Ambient Lighting -->
+    <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-blue-600/15 via-orange-500/10 to-blue-600/15 blur-3xl pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
       <!-- Section Header -->
-      <div class="text-center mb-12">
-        <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Featured Properties</h2>
-        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
-          Discover our hand-picked selection of premium properties across Nigeria. Find your perfect home or investment opportunity.
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-[11px] font-bold tracking-widest-swiss uppercase text-orange-400 bg-orange-500/10 border border-orange-500/30 mb-3">
+          <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+          Exclusive Listings
+        </span>
+        <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight">
+          Curated <span class="text-gradient-brand">Portfolio Holdings</span>
+        </h2>
+        <p class="mt-4 text-base md:text-lg text-slate-300 leading-relaxed font-normal">
+          Hand-picked selection of verified prime residential and commercial opportunities across Nigeria, fully vetted by our valuation team.
         </p>
       </div>
 
       <!-- Carousel Container -->
       <div v-if="properties.length > 0" class="relative">
         <!-- Carousel Track -->
-        <div class="overflow-hidden">
+        <div class="overflow-hidden py-4">
           <div
             class="flex transition-transform duration-500 ease-out"
             :style="{ transform: `translateX(-${currentIndex * 100}%)` }"
@@ -38,11 +47,11 @@
           <!-- Previous Button -->
           <button
             @click="previousProperty"
-            class="pointer-events-auto ml-4 p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-shadow z-10 text-gray-800 hover:bg-gray-100"
+            class="pointer-events-auto ml-2 md:-ml-5 w-11 h-11 rounded-full flex items-center justify-center bg-slate-900/80 backdrop-blur-xl border border-white/20 shadow-xl hover:border-orange-400 text-white hover:text-orange-400 transition-all duration-200 z-20 focus:outline-none"
             :disabled="currentIndex === 0"
-            :class="{ 'opacity-50 cursor-not-allowed': currentIndex === 0 }"
+            :class="{ 'opacity-30 cursor-not-allowed': currentIndex === 0 }"
           >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
@@ -50,27 +59,27 @@
           <!-- Next Button -->
           <button
             @click="nextProperty"
-            class="pointer-events-auto mr-4 p-2 rounded-full bg-white shadow-lg hover:shadow-xl transition-shadow z-10 text-gray-800 hover:bg-gray-100"
+            class="pointer-events-auto mr-2 md:-mr-5 w-11 h-11 rounded-full flex items-center justify-center bg-slate-900/80 backdrop-blur-xl border border-white/20 shadow-xl hover:border-orange-400 text-white hover:text-orange-400 transition-all duration-200 z-20 focus:outline-none"
             :disabled="currentIndex === properties.length - 1"
-            :class="{ 'opacity-50 cursor-not-allowed': currentIndex === properties.length - 1 }"
+            :class="{ 'opacity-30 cursor-not-allowed': currentIndex === properties.length - 1 }"
           >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
           </button>
         </div>
 
         <!-- Carousel Indicators -->
-        <div class="flex justify-center gap-2 mt-8">
+        <div class="flex items-center justify-center space-x-2 mt-8">
           <button
             v-for="(property, idx) in properties"
             :key="property.id"
             @click="currentIndex = idx"
-            class="w-3 h-3 rounded-full transition-all duration-300"
+            class="h-1.5 rounded-full transition-all duration-300 focus:outline-none"
             :class="
               idx === currentIndex
-                ? 'bg-blue-600 w-8'
-                : 'bg-gray-300 hover:bg-gray-400'
+                ? 'w-8 bg-gradient-to-r from-orange-500 to-blue-500'
+                : 'w-2 bg-white/30 hover:bg-white/60'
             "
             :aria-label="`Go to property ${idx + 1}`"
           />
@@ -89,12 +98,12 @@
       </div>
 
       <!-- CTA Section -->
-      <div class="mt-16 text-center">
+      <div class="mt-14 text-center">
         <router-link
           to="/properties"
-          class="inline-block px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+          class="pill-button-primary px-8 py-3 text-xs uppercase tracking-widest font-bold shadow-md hover:shadow-orange-500/30 transition-all duration-300"
         >
-          View All Properties →
+          Browse Complete Properties Catalog →
         </router-link>
       </div>
     </div>

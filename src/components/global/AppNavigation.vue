@@ -1,6 +1,22 @@
 <template>
   <!-- Desktop Navigation -->
   <nav v-if="!mobile" class="desktop-nav">
+    <!-- Brand Logo (No Pill Container) -->
+    <router-link
+      to="/"
+      class="nav-brand-logo flex items-center pl-2 pr-3 py-1 transition-opacity hover:opacity-85 flex-shrink-0"
+      title="KSA Valuers"
+      @click="handleNavigate"
+    >
+      <img
+        src="@/assets/images/logo.png"
+        class="h-7 lg:h-8 w-auto filter drop-shadow-sm brightness-110"
+        alt="KSA Valuers Logo"
+      />
+    </router-link>
+
+    <div class="h-4 w-[1px] bg-white/20 mr-1.5 hidden lg:block"></div>
+
     <router-link
       to="/"
       class="nav-link"
@@ -250,10 +266,10 @@ const userRole = computed(() => authStore.user?.role)
 const roleDashboardMap = {
   admin:         '/dashboard/admin',
   webadmin:      '/dashboard/admin',
-  manager:       '/',
-  management:    '/',
-  propertyowner: '/',
-  tenant:        '/',
+  manager:       '/dashboard/admin',
+  management:    '/dashboard/admin',
+  propertyowner: '/dashboard/admin',
+  tenant:        '/dashboard/admin',
 }
 
 const portalPath = computed(() => roleDashboardMap[userRole.value] || '/admin/login')
@@ -399,38 +415,47 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Desktop Navigation - FIXED Z-INDEX */
+/* Desktop Pill Navigation */
 .desktop-nav {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
+  padding: 4px 6px;
+  background: rgba(3, 8, 16, 0.45);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.4), 0 0 15px rgba(27, 77, 132, 0.15);
   position: relative;
-  z-index: 30;
+  z-index: 40;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
-  color: #4b5563;
-  font-weight: 500;
-  font-size: 14px;
-  border-radius: 6px;
-  transition: all 0.2s;
+  padding: 6px 14px;
+  color: #e2e8f0; /* Off-white text */
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  border-radius: 9999px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
   cursor: pointer;
   position: relative;
 }
 
 .nav-link:hover {
-  color: #1b4d84;
-  background-color: #f3f4f6;
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.12);
 }
 
 .nav-link-active {
-  color: #1b4d84;
-  background-color: #e8eff8;
-  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(27, 77, 132, 0.85) 0%, rgba(37, 99, 235, 0.85) 100%);
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .nav-link-with-arrow {
@@ -443,16 +468,18 @@ onUnmounted(() => {
 }
 
 .nav-icon {
-  width: 16px;
-  height: 16px;
-  margin-right: 8px;
+  width: 15px;
+  height: 15px;
+  margin-right: 6px;
+  opacity: 0.85;
 }
 
 .dropdown-arrow {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   margin-left: 4px;
-  transition: transform 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 0.7;
 }
 
 .dropdown-arrow-open {
@@ -461,71 +488,89 @@ onUnmounted(() => {
 
 .nav-dropdown-group {
   position: relative;
-  z-index: 35;
+  z-index: 45;
 }
 
 .dropdown-menu {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 10px);
   left: 0;
-  margin-top: 4px;
-  min-width: 200px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  padding: 6px 0;
-  z-index: 40;
-  animation: fadeIn 0.15s ease-out;
+  min-width: 210px;
+  background: rgba(3, 8, 16, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.15);
+  padding: 8px;
+  z-index: 50;
+  animation: dropdownIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .dropdown-link {
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  color: #4b5563;
-  font-size: 14px;
+  color: #cbd5e1; /* Off-white */
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 0.75rem;
   text-decoration: none;
   transition: all 0.2s ease;
 }
 
 .dropdown-link:hover {
-  color: #1b4d84;
-  background-color: #f8fafc;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(2px);
 }
 
 .dropdown-link-active {
-  color: #1b4d84;
-  background-color: #e8eff8;
+  color: #f97316;
+  background-color: rgba(249, 115, 22, 0.12);
   font-weight: 600;
 }
 
 .dropdown-icon {
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   margin-right: 8px;
+  color: #f96816;
 }
 
 .nav-cta {
   display: flex;
   align-items: center;
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #1b4d84, #0f294a);
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 6px 16px;
+  background: linear-gradient(135deg, #f96816 0%, #ea580c 50%, #1b4d84 120%);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   text-decoration: none;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  margin-left: 8px;
+  border-radius: 9999px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-left: 4px;
+  box-shadow: 0 4px 14px rgba(249, 104, 22, 0.35);
   position: relative;
-  z-index: 9999; /* Increased from 100 */
+  z-index: 45;
 }
 
 .nav-cta:hover {
-  background: linear-gradient(135deg, #0f294a, #0a1d35);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(27, 77, 132, 0.3);
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 50%, #123966 120%);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 6px 20px rgba(249, 104, 22, 0.45);
 }
 
 .nav-cta-active {
@@ -535,53 +580,62 @@ onUnmounted(() => {
 .nav-admin {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
-  color: #7c3aed;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  border-radius: 6px;
+  padding: 6px 14px;
+  color: #f1f5f9;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
   transition: all 0.2s ease;
-  margin-left: 8px;
-  position: relative;
-  z-index: 9999; /* Increased from 100 */
+  margin-left: 2px;
 }
 
 .nav-admin:hover {
-  background-color: #f5f3ff;
+  border-color: rgba(249, 104, 22, 0.5);
+  background: rgba(249, 104, 22, 0.15);
+  color: #fb923c;
 }
 
 .nav-admin-active {
-  background-color: #f5f3ff;
-  font-weight: 600;
+  background: linear-gradient(135deg, #0f172a 0%, #1b4d84 100%);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Mobile Navigation */
+/* Mobile Frosted Bento Drawer */
 .mobile-nav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 320px;
+  max-width: 85vw;
+  height: 100vh;
+  background: rgba(7, 19, 36, 0.95);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  background: white;
-  position: relative;
-  z-index: 50;
+  z-index: 100;
+  box-shadow: -15px 0 40px rgba(0, 0, 0, 0.6);
 }
 
 .mobile-nav-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
-  border-bottom: 1px solid #e5e7eb;
-  background: white;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .mobile-nav-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #f8fafc;
 }
 
 .mobile-nav-content {
@@ -589,10 +643,12 @@ onUnmounted(() => {
   overflow-y: auto;
   padding: 16px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .mobile-section {
-  margin-bottom: 4px;
   position: relative;
 }
 
@@ -600,36 +656,40 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  color: #4b5563;
-  font-size: 16px;
-  font-weight: 500;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 600;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 12px;
   transition: all 0.2s ease;
   position: relative;
 }
 
 .mobile-link:hover {
-  background-color: #f3f4f6;
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.07);
 }
 
 .mobile-link-active {
-  color: #1b4d84;
-  background-color: #e8eff8;
-  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(27, 77, 132, 0.6) 0%, rgba(249, 104, 22, 0.4) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-weight: 700;
 }
 
 .mobile-icon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   margin-right: 12px;
+  color: #f96816;
 }
 
 .mobile-dropdown {
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   position: relative;
-  background: white;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .mobile-dropdown-header {
@@ -639,9 +699,9 @@ onUnmounted(() => {
   padding: 12px 16px;
   background: none;
   border: none;
-  color: #4b5563;
-  font-size: 16px;
-  font-weight: 500;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
   transition: background-color 0.2s ease;
@@ -650,14 +710,15 @@ onUnmounted(() => {
 }
 
 .mobile-dropdown-header:hover {
-  background-color: #f3f4f6;
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .mobile-dropdown-arrow {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   margin-left: auto;
-  transition: transform 0.2s ease;
+  transition: transform 0.25s ease;
 }
 
 .mobile-dropdown-arrow-open {
@@ -665,8 +726,8 @@ onUnmounted(() => {
 }
 
 .mobile-dropdown-content {
-  padding: 8px 0 8px 48px;
-  background-color: #f9fafb;
+  padding: 6px 8px 8px 36px;
+  background-color: rgba(0, 0, 0, 0.25);
   position: relative;
   z-index: 1;
   animation: slideDown 0.2s ease-out;
@@ -675,78 +736,79 @@ onUnmounted(() => {
 .mobile-dropdown-item {
   display: flex;
   align-items: center;
-  padding: 10px 16px;
-  color: #6b7280;
-  font-size: 14px;
+  padding: 8px 12px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
   text-decoration: none;
-  border-radius: 6px;
+  border-radius: 8px;
   margin: 2px 0;
   transition: all 0.2s ease;
   position: relative;
 }
 
 .mobile-dropdown-item:hover {
-  color: #1b4d84;
-  background-color: white;
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .mobile-dropdown-item-active {
-  color: #1b4d84;
-  background-color: white;
+  color: #f97316;
   font-weight: 600;
 }
 
 .mobile-dropdown-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   margin-right: 8px;
 }
 
 .mobile-cta {
   display: flex;
   align-items: center;
+  justify-content: center;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #1b4d84, #0f294a);
+  background: linear-gradient(135deg, #f96816 0%, #ea580c 50%, #1b4d84 100%);
   color: white;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   text-decoration: none;
-  border-radius: 8px;
-  margin-top: 8px;
+  border-radius: 9999px;
+  margin-top: 12px;
+  box-shadow: 0 4px 16px rgba(249, 104, 22, 0.35);
   transition: all 0.2s ease;
   position: relative;
 }
 
 .mobile-cta:hover {
-  background: linear-gradient(135deg, #0f294a, #0a1d35);
-}
-
-.mobile-cta-active {
-  background: linear-gradient(135deg, #0f294a, #0a1d35);
+  opacity: 0.95;
+  transform: translateY(-1px);
 }
 
 .mobile-admin {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  color: #7c3aed;
-  font-size: 16px;
-  font-weight: 500;
+  justify-content: center;
+  padding: 10px 16px;
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 600;
   text-decoration: none;
-  border-radius: 8px;
-  margin-top: 8px;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 16px;
-  position: relative;
+  border-radius: 9999px;
+  margin-top: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
 }
 
 .mobile-admin:hover {
-  background-color: #f5f3ff;
+  border-color: rgba(249, 104, 22, 0.5);
+  color: #f97316;
 }
 
 .mobile-admin-active {
-  background-color: #f5f3ff;
-  font-weight: 600;
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
 }
 
 /* Animations */

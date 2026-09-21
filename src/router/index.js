@@ -67,7 +67,7 @@ const routes = [
   {
     path: '/dashboard/admin',
     component: () => import('../views/admin/AdminLayout.vue'),
-    meta: { requiresAuth: true, allowedRoles: ['admin', 'webadmin'] },
+    meta: { requiresAuth: true, allowedRoles: ['admin', 'webadmin', 'manager', 'management', 'propertyowner', 'tenant'] },
     children: [
       { path: '', name: 'AdminDashboard', component: () => import('../views/admin/AdminDashboard.vue') },
       { path: 'slides', name: 'AdminSlideList', component: () => import('../views/admin/AdminSlideList.vue') },
@@ -206,14 +206,20 @@ const router = createRouter({
   }
 })
 
+export const isDashboardSubdomain = () => {
+  if (typeof window === 'undefined') return false
+  const host = window.location.hostname.toLowerCase()
+  return host.startsWith('dashboard.') || host === 'dashboard.ksavaluers.com'
+}
+
 // Role → home dashboard mapping
 const roleDashboardMap = {
   admin:         '/dashboard/admin',
   webadmin:      '/dashboard/admin',
-  manager:       '/',
-  management:    '/',
-  propertyowner: '/',
-  tenant:        '/',
+  manager:       '/dashboard/admin',
+  management:    '/dashboard/admin',
+  propertyowner: '/dashboard/admin',
+  tenant:        '/dashboard/admin',
 }
 
 import { useAuthStore } from '../stores/authStore'
@@ -223,17 +229,33 @@ let _sessionLoaded = false
 
 // Route guard with auth store
 router.beforeEach(async (to, from, next) => {
+  const isSubdomain = isDashboardSubdomain()
   const authStore = useAuthStore()
 
-  // Only call loadSession once per app lifecycle
-  if (!_sessionLoaded) {
-    _sessionLoaded = true
-    if (to.meta.requiresAuth) {
+  // On dashboard subdomain, root '/' automatically targets the admin dashboard portal
+  if (to.path === '/' && isSubdomain) {
+    if (!authStore.isAuthenticated) {
       await authStore.loadSession()
-    } else {
-      // Trigger in background for public pages without blocking navigation
-      authStore.loadSession().catch(() => {})
     }
+    if (!authStore.isAuthenticated) {
+      next('/admin/login?redirect=%2Fdashboard%2Fadmin')
+      return
+    }
+    next('/dashboard/admin')
+    return
+  }
+
+  const loginPaths = ['/admin/login', '/login', '/sso-callback']
+  const isLoginPage = loginPaths.some(lp => to.path === lp || to.path.startsWith(lp + '/'))
+
+  // Ensure session is loaded if navigating to a protected route or login page
+  if (to.meta.requiresAuth || isLoginPage) {
+    if (!authStore.isAuthenticated) {
+      await authStore.loadSession()
+    }
+  } else if (!_sessionLoaded) {
+    _sessionLoaded = true
+    authStore.loadSession().catch(() => {})
   }
 
   const isAuth   = authStore.isAuthenticated
@@ -247,9 +269,13 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // Redirect already-authenticated users away from login pages to their portal
-  const loginPaths = ['/admin/login', '/login']
-  if (loginPaths.includes(to.path) && isAuth) {
-    next(roleDashboardMap[userRole] || '/admin')
+  if (isLoginPage && isAuth) {
+    const rawTarget = to.query.redirect ? decodeURIComponent(String(to.query.redirect)) : null
+    const target = rawTarget && !rawTarget.startsWith('/admin/login') && !rawTarget.startsWith('/login')
+      ? rawTarget
+      : (roleDashboardMap[userRole] || '/dashboard/admin')
+
+    next(target)
     return
   }
 
@@ -260,7 +286,7 @@ router.beforeEach(async (to, from, next) => {
   }
 
   // Role-based access: wrong role → own dashboard
-  if (to.meta.requiresAuth && to.meta.allowedRoles) {
+  if (to.meta.requiresAuth && to.meta.allowedRoles && userRole) {
     if (!to.meta.allowedRoles.includes(userRole)) {
       next(roleDashboardMap[userRole] || '/')
       return

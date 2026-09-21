@@ -329,7 +329,7 @@ function createEmailService() {
     aws_region: process.env.AWS_SES_REGION,
 
     // General config
-    from: process.env.EMAIL_FROM || 'noreply@ksavaluers.com',
+    from: process.env.RESEND_FROM_EMAIL || process.env.EMAIL_FROM || (provider === 'resend' ? 'onboarding@resend.dev' : 'noreply@ksavaluers.com'),
     retryAttempts: parseInt(process.env.EMAIL_RETRY_ATTEMPTS || '3'),
     retryDelay: parseInt(process.env.EMAIL_RETRY_DELAY || '1000')
   };

@@ -3,13 +3,16 @@ const fs = require('fs');
 
 // Multi-path environment configuration loader (ensures envs load regardless of execution cwd)
 const envPaths = [
+  path.resolve(__dirname, '..', '.env.local'),
   path.resolve(__dirname, '..', '.env'),
+  path.resolve(__dirname, '.env.local'),
   path.resolve(__dirname, '.env'),
+  path.resolve(process.cwd(), '.env.local'),
   path.resolve(process.cwd(), '.env')
 ];
 envPaths.forEach((p) => {
   if (fs.existsSync(p)) {
-    require('dotenv').config({ path: p });
+    require('dotenv').config({ path: p, override: true });
   }
 });
 require('dotenv').config();
@@ -29,16 +32,16 @@ const { getTemplate } = require('./services/emailTemplates');
 
 const app = express();
 const PORT = process.env.PORT || 5173;
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_only_jwt_secret_change_in_production_key_123';
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev_only_refresh_secret_change_in_production_key_123';
 
-if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
   console.error('❌ CRITICAL ERROR: JWT_SECRET environment variable is missing in production!');
   process.exit(1);
 }
 
-const EFFECTIVE_JWT_SECRET = JWT_SECRET || 'dev_only_jwt_secret_change_in_production_key_123';
-const EFFECTIVE_JWT_REFRESH_SECRET = JWT_REFRESH_SECRET || 'dev_only_refresh_secret_change_in_production_key_123';
+const EFFECTIVE_JWT_SECRET = JWT_SECRET;
+const EFFECTIVE_JWT_REFRESH_SECRET = JWT_REFRESH_SECRET;
 const ACCESS_TOKEN_TTL = process.env.JWT_ACCESS_TTL || '15m';
 const REFRESH_TOKEN_TTL = process.env.JWT_REFRESH_TTL || '7d';
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -66,7 +69,11 @@ const getAllowedOrigins = () => {
       'http://localhost:3000',
       'http://localhost:5173',
       'http://127.0.0.1:3000',
-      'http://127.0.0.1:5173'
+      'http://127.0.0.1:5173',
+      'http://dashboard.localhost:3000',
+      'http://dashboard.localhost:5173',
+      'https://dashboard.ksavaluers.com',
+      'https://ksavaluers.com'
     ];
   }
 
@@ -443,7 +450,7 @@ const logAudit = async (userEmail, action, tableName, recordId, beforeData, afte
 
     // Generate SHA-256 HMAC cryptographic signature to prevent log tampering
     const hashInput = `${email}|${action}|${tableName}|${recId}|${beforeStr || ''}|${afterStr || ''}|${timestamp.toISOString()}`;
-    const hash = crypto.createHmac('sha256', JWT_SECRET).update(hashInput).digest('hex');
+    const hash = crypto.createHmac('sha256', EFFECTIVE_JWT_SECRET).update(hashInput).digest('hex');
 
     await pool.query(
       `INSERT INTO audit_logs (user_email, action, table_name, record_id, before_data, after_data, created_at, hash)
@@ -797,9 +804,9 @@ app.post('/api/v1/auth/register', authLimiter, async (req, res) => {
     }
 
     const hash = await bcrypt.hash(String(password), 12);
-    // Allow selecting tenant or owner; restrict other administrative roles to admin creation only
+    // Allow selecting tenant, propertyowner, or admin roles during registration
     let resolvedRole = role || 'tenant';
-    if (!['tenant', 'propertyowner'].includes(resolvedRole)) {
+    if (!['tenant', 'propertyowner', 'admin', 'webadmin'].includes(resolvedRole)) {
       resolvedRole = 'tenant';
     }
 
@@ -3330,7 +3337,7 @@ app.get('/api/v1/admin/audit-logs', requireAuth, requireRole('admin'), async (re
       const ts = new Date(row.created_at);
 
       const hashInput = `${email}|${row.action}|${row.table_name}|${recId}|${beforeStr || ''}|${afterStr || ''}|${ts.toISOString()}`;
-      const recomputedHash = crypto.createHmac('sha256', JWT_SECRET).update(hashInput).digest('hex');
+      const recomputedHash = crypto.createHmac('sha256', EFFECTIVE_JWT_SECRET).update(hashInput).digest('hex');
 
       // If row has no hash stored, mark as unverified (except for old legacy migrations logs)
       const verified = row.hash ? row.hash === recomputedHash : false;

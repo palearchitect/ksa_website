@@ -1,210 +1,236 @@
 <template>
   <ErrorBoundary>
-    <div class="min-h-screen bg-gray-50">
-    <!-- Header -->
-    <div class="bg-white shadow-sm">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 class="text-4xl font-bold text-gray-900 mb-4">Property Insights & Updates</h1>
-        <p class="text-lg text-gray-600 max-w-3xl">
-          Stay informed with the latest property market trends, investment tips, and company updates from Nigeria's premier property valuers.
-        </p>
-      </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div class="lg:grid lg:grid-cols-3 lg:gap-8">
-        <!-- Blog Posts Column -->
-        <div class="lg:col-span-2">
-          <!-- Featured Post -->
-          <div v-if="featuredPost" class="mb-12">
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-              <img 
-                :src="featuredPost.image" 
-                :alt="featuredPost.title"
-                class="w-full h-64 object-cover"
-              />
-              <div class="p-8">
-                <div class="flex items-center gap-4 mb-4">
-                  <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                    Featured
-                  </span>
-                  <span class="text-gray-500 text-sm">{{ featuredPost.date }}</span>
-                  <span class="text-gray-500 text-sm">•</span>
-                  <span class="text-gray-500 text-sm">{{ featuredPost.readTime }}</span>
-                </div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-3">
-                  {{ featuredPost.title }}
-                </h2>
-                <p class="text-gray-600 mb-6">
-                  {{ featuredPost.excerpt }}
-                </p>
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center">
-                    <img 
-                      :src="featuredPost.author.avatar" 
-                      :alt="featuredPost.author.name"
-                      class="w-10 h-10 rounded-full mr-3"
-                    />
-                    <div>
-                      <p class="font-medium text-gray-900">{{ featuredPost.author.name }}</p>
-                      <p class="text-sm text-gray-500">{{ featuredPost.author.role }}</p>
-                    </div>
-                  </div>
-                  <button 
-                    @click="viewPost(featuredPost.id)"
-                    class="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                  >
-                    Read Article
-                  </button>
-                </div>
-              </div>
-            </div>
+    <div class="min-h-screen bg-gradient-to-b from-slate-100 via-slate-50 to-slate-100/90 text-slate-900">
+      <!-- Hero Header -->
+      <div class="relative bg-gradient-to-b from-[#030810] via-[#071328] to-[#0a1835] text-white pt-28 md:pt-36 pb-16 overflow-hidden border-b border-white/10">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(37,99,235,0.25),rgba(249,104,22,0.1)_50%,transparent_80%)] pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-xs font-semibold uppercase tracking-widest text-orange-400 mb-4 shadow-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+            Market Intelligence & Reports
           </div>
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-4">
+            Property Insights & <span class="text-gradient-brand">Market Trends</span>
+          </h1>
+          <p class="text-sm md:text-lg text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
+            Data-backed valuation analyses, investment intelligence, and regulatory updates from certified estate surveyors.
+          </p>
+        </div>
+      </div>
 
-          <!-- Recent Posts -->
-          <div class="mb-12">
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-2xl font-bold text-gray-900">Recent Articles</h2>
-              <div class="flex items-center space-x-4">
-                <select v-model="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                  <option value="">All Categories</option>
-                  <option value="market-trends">Market Trends</option>
-                  <option value="investment">Investment Tips</option>
-                  <option value="property-valuation">Property Valuation</option>
-                  <option value="legal">Legal Insights</option>
-                  <option value="company">Company Updates</option>
-                </select>
+      <!-- Main Content -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Category Filter Pills -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-4 mb-10 no-scrollbar">
+          <button
+            @click="categoryFilter = ''"
+            :class="[
+              'px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap',
+              categoryFilter === ''
+                ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md'
+                : 'bg-white text-slate-700 hover:bg-slate-200/70 border border-slate-200'
+            ]"
+          >
+            All Perspectives
+          </button>
+          <button
+            v-for="cat in categories"
+            :key="cat.id"
+            @click="categoryFilter = cat.id"
+            :class="[
+              'px-5 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-2',
+              categoryFilter === cat.id
+                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-glow-orange'
+                : 'bg-white text-slate-700 hover:bg-slate-200/70 border border-slate-200'
+            ]"
+          >
+            <span>{{ cat.name }}</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-black/10 font-bold">{{ cat.count }}</span>
+          </button>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-8 items-start">
+          <!-- Main Blog Section (8 cols) -->
+          <div class="lg:col-span-8 space-y-8">
+            <!-- Featured Post (Bento Masterpiece) -->
+            <div 
+              v-if="featuredPost" 
+              class="bento-card overflow-hidden bg-white border border-slate-200/80 rounded-3xl shadow-xl group cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+              @click="viewPost(featuredPost.id)"
+            >
+              <div class="grid md:grid-cols-12">
+                <div class="md:col-span-6 relative h-64 md:h-auto overflow-hidden bg-slate-100">
+                  <img 
+                    :src="featuredPost.image" 
+                    :alt="featuredPost.title"
+                    class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none"></div>
+                  <span class="absolute top-4 left-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-orange-500 text-white shadow-md">
+                    Featured Analysis
+                  </span>
+                </div>
+                <div class="md:col-span-6 p-6 md:p-8 flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center gap-3 text-xs text-slate-500 mb-3">
+                      <span>{{ featuredPost.date }}</span>
+                      <span>•</span>
+                      <span>{{ featuredPost.readTime }}</span>
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight mb-3 group-hover:text-blue-700 transition-colors">
+                      {{ featuredPost.title }}
+                    </h2>
+                    <p class="text-slate-600 text-xs md:text-sm leading-relaxed mb-6 line-clamp-3">
+                      {{ featuredPost.excerpt }}
+                    </p>
+                  </div>
+                  <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                    <div class="flex items-center gap-3">
+                      <img 
+                        :src="featuredPost.author.avatar" 
+                        :alt="featuredPost.author.name"
+                        class="w-9 h-9 rounded-full border border-slate-200"
+                      />
+                      <div>
+                        <p class="font-bold text-slate-900 text-xs">{{ featuredPost.author.name }}</p>
+                        <p class="text-[11px] text-slate-500">{{ featuredPost.author.role }}</p>
+                      </div>
+                    </div>
+                    <span class="inline-flex items-center text-xs font-bold text-blue-700 group-hover:text-orange-600 transition-colors">
+                      Read Report →
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-6">
-              <div 
-                v-for="post in filteredPosts" 
-                :key="post.id"
-                class="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden"
-              >
-                <img 
-                  :src="post.image" 
-                  :alt="post.title"
-                  class="w-full h-48 object-cover"
-                />
-                <div class="p-6">
-                  <div class="flex items-center gap-3 mb-3">
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" 
-                      :class="getCategoryClass(post.category)"
-                    >
+            <!-- Recent Articles Bento Grid -->
+            <div>
+              <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                  <span class="w-1.5 h-4 bg-blue-600 rounded-full"></span>
+                  Recent Briefs & Publications
+                </h2>
+              </div>
+
+              <div class="grid sm:grid-cols-2 gap-6">
+                <div 
+                  v-for="post in filteredPosts" 
+                  :key="post.id"
+                  @click="viewPost(post.id)"
+                  class="bento-card bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group cursor-pointer flex flex-col justify-between"
+                >
+                  <div class="relative h-48 overflow-hidden bg-slate-100">
+                    <img 
+                      :src="post.image" 
+                      :alt="post.title"
+                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <span class="absolute top-3 left-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/90 backdrop-blur-md text-slate-800 shadow">
                       {{ post.categoryLabel }}
                     </span>
-                    <span class="text-gray-500 text-sm">{{ post.date }}</span>
                   </div>
-                  <h3 class="text-lg font-bold text-gray-900 mb-2">{{ post.title }}</h3>
-                  <p class="text-gray-600 text-sm mb-4">{{ post.excerpt }}</p>
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                      <img 
-                        :src="post.author.avatar" 
-                        :alt="post.author.name"
-                        class="w-8 h-8 rounded-full mr-2"
-                      />
-                      <span class="text-sm text-gray-700">{{ post.author.name }}</span>
+                  <div class="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div class="flex items-center gap-2 text-[11px] text-slate-400 mb-2">
+                        <span>{{ post.date }}</span>
+                        <span>•</span>
+                        <span>{{ post.readTime }}</span>
+                      </div>
+                      <h3 class="text-base font-bold text-slate-900 mb-2 group-hover:text-blue-700 transition line-clamp-2">
+                        {{ post.title }}
+                      </h3>
+                      <p class="text-slate-600 text-xs leading-relaxed line-clamp-2 mb-4">
+                        {{ post.excerpt }}
+                      </p>
                     </div>
-                    <button 
-                      @click="viewPost(post.id)"
-                      class="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                    >
-                      Read →
-                    </button>
+                    <div class="flex items-center justify-between pt-3 border-t border-slate-100 text-xs">
+                      <div class="flex items-center gap-2">
+                        <img :src="post.author.avatar" class="w-6 h-6 rounded-full" alt="" />
+                        <span class="font-medium text-slate-700 text-[11px]">{{ post.author.name }}</span>
+                      </div>
+                      <span class="font-bold text-orange-600 group-hover:translate-x-1 transition-transform">
+                        Read →
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Load More Button -->
+              <div v-if="visiblePosts < posts.length" class="text-center mt-8">
+                <button 
+                  @click="loadMorePosts"
+                  class="px-8 py-3 rounded-full border border-slate-300 hover:border-blue-600 bg-white hover:bg-blue-50/50 text-slate-800 hover:text-blue-700 font-bold text-xs uppercase tracking-wider transition-all shadow-sm"
+                >
+                  Load Additional Articles
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar (4 cols) -->
+          <div class="lg:col-span-4 space-y-6">
+            <!-- Newsletter Signup (Luxury Bento Dark Card) -->
+            <div class="bento-card p-6 md:p-8 bg-gradient-to-br from-[#030810] via-[#081734] to-[#040a17] text-white border border-white/15 rounded-3xl shadow-xl relative overflow-hidden">
+              <div class="absolute -right-6 -bottom-6 w-36 h-36 bg-orange-500/15 rounded-full blur-xl pointer-events-none"></div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-orange-400 text-[10px] font-bold uppercase tracking-wider mb-4 border border-white/15">
+                Valuer Dispatch
+              </div>
+              <h3 class="text-xl font-extrabold text-white mb-2 tracking-tight">Stay Market-Informed</h3>
+              <p class="text-slate-300 text-xs leading-relaxed mb-5">
+                Join 2,400+ developers, financial institutions, and private investors receiving our bi-weekly Nigerian real estate intelligence.
+              </p>
+              <div class="space-y-3">
+                <input 
+                  v-model="email"
+                  type="email" 
+                  placeholder="Enter corporate email..."
+                  class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                />
+                <button 
+                  @click="subscribeNewsletter"
+                  class="w-full py-3 px-4 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold text-xs uppercase tracking-wider shadow-glow-orange transition-all duration-200"
+                >
+                  Subscribe to Dispatch
+                </button>
+              </div>
+              <p class="text-[10px] text-slate-400 text-center mt-3">
+                Strictly zero spam. Unsubscribe anytime.
+              </p>
+            </div>
+
+            <!-- Recent Comments Bento Tile -->
+            <div class="bento-card p-6 bg-white border border-slate-200/80 rounded-3xl shadow-lg">
+              <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-900 mb-4 flex items-center gap-2">
+                <span class="w-1.5 h-3.5 bg-blue-600 rounded-full"></span>
+                Community Inquiries
+              </h3>
+              <div class="space-y-4">
+                <div 
+                  v-for="comment in recentComments" 
+                  :key="comment.id"
+                  class="border-b border-slate-100 pb-3 last:border-0 last:pb-0"
+                >
+                  <div class="flex items-start gap-3">
+                    <img 
+                      :src="comment.author.avatar" 
+                      :alt="comment.author.name"
+                      class="w-7 h-7 rounded-full border border-slate-200 mt-0.5"
+                    />
+                    <div>
+                      <p class="font-bold text-slate-900 text-xs">{{ comment.author.name }}</p>
+                      <p class="text-slate-600 text-xs mt-0.5 leading-snug">"{{ comment.content.substring(0, 65) }}..."</p>
+                      <p class="text-[10px] text-slate-400 mt-1">{{ comment.time }}</p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Load More Button -->
-            <div class="text-center mt-8">
-              <button 
-                @click="loadMorePosts"
-                v-if="visiblePosts < posts.length"
-                class="px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors duration-200"
-              >
-                Load More Articles
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Sidebar -->
-        <div class="lg:col-span-1">
-          <!-- Categories -->
-          <div class="bg-white rounded-xl shadow-md p-6 mb-8">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">Categories</h3>
-            <div class="space-y-3">
-              <button 
-                v-for="category in categories" 
-                :key="category.id"
-                @click="categoryFilter = category.id"
-                class="flex items-center justify-between w-full p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-                :class="{ 'bg-blue-50 text-blue-700': categoryFilter === category.id }"
-              >
-                <span class="font-medium">{{ category.name }}</span>
-                <span class="text-gray-500 text-sm">{{ category.count }}</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Recent Comments -->
-          <div class="bg-white rounded-xl shadow-md p-6 mb-8">
-            <h3 class="text-lg font-bold text-gray-900 mb-4">Recent Comments</h3>
-            <div class="space-y-4">
-              <div 
-                v-for="comment in recentComments" 
-                :key="comment.id"
-                class="border-b border-gray-100 pb-4 last:border-0"
-              >
-                <div class="flex items-start">
-                  <img 
-                    :src="comment.author.avatar" 
-                    :alt="comment.author.name"
-                    class="w-8 h-8 rounded-full mr-3"
-                  />
-                  <div>
-                    <p class="font-medium text-gray-900 text-sm">{{ comment.author.name }}</p>
-                    <p class="text-gray-600 text-xs mb-1">on "{{ comment.postTitle }}"</p>
-                    <p class="text-gray-700 text-sm">{{ comment.content.substring(0, 60) }}...</p>
-                    <p class="text-gray-500 text-xs mt-1">{{ comment.time }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Newsletter Signup -->
-          <div class="bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl shadow-md p-6">
-            <h3 class="text-lg font-bold text-white mb-3">Stay Updated</h3>
-            <p class="text-blue-100 text-sm mb-4">
-              Get the latest property insights and investment tips directly to your inbox.
-            </p>
-            <div class="space-y-3">
-              <input 
-                v-model="email"
-                type="email" 
-                placeholder="Your email address"
-                class="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent"
-              />
-              <button 
-                @click="subscribeNewsletter"
-                class="w-full px-4 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200"
-              >
-                Subscribe Now
-              </button>
-            </div>
-            <p class="text-blue-200 text-xs mt-4">
-              By subscribing, you agree to our Privacy Policy.
-            </p>
           </div>
         </div>
       </div>
-    </div>
 
     <!-- Post Detail Modal -->
     <div v-if="selectedPost" class="fixed inset-0 z-50 overflow-y-auto">

@@ -1,20 +1,22 @@
 <template>
   <ErrorBoundary>
-    <div class="min-h-screen bg-gray-50">
-    <!-- Hero Section -->
-    <div class="relative bg-gradient-to-r from-blue-900 to-blue-800">
-      <div class="absolute inset-0 bg-black/30"></div>
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        <div class="text-center">
-          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-            Frequently Asked Questions
+    <div class="min-h-screen bg-gradient-to-b from-slate-100 via-slate-50 to-slate-100/90 text-slate-900">
+      <!-- Hero Section -->
+      <div class="relative bg-gradient-to-b from-[#030810] via-[#071328] to-[#0a1835] text-white pt-28 md:pt-36 pb-20 overflow-hidden border-b border-white/10">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(37,99,235,0.25),rgba(249,104,22,0.1)_50%,transparent_80%)] pointer-events-none"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-xs font-semibold uppercase tracking-widest text-orange-400 mb-4 shadow-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+            Knowledge Base & Guidance
+          </div>
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-4">
+            Frequently Asked <span class="text-gradient-brand">Questions</span>
           </h1>
-          <p class="text-xl text-blue-100 max-w-3xl mx-auto">
-            Find answers to the most common questions about our services, processes, and professional approach to property valuation and management.
+          <p class="text-sm md:text-lg text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
+            Instant clarity on chartered property appraisals, statutory valuation requirements, and technology-driven asset management.
           </p>
         </div>
       </div>
-    </div>
 
     <!-- Search Bar -->
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8 relative z-10">

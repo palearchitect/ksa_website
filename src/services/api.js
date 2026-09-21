@@ -97,7 +97,8 @@ api.interceptors.response.use(
         return Promise.reject(error);
       }
       
-      const onAdminRoute = window.location.pathname.startsWith('/dashboard/admin') || window.location.pathname.startsWith('/admin');
+      const isDashboardHost = window.location.hostname.toLowerCase().startsWith('dashboard.');
+      const onAdminRoute = isDashboardHost || window.location.pathname.startsWith('/dashboard/admin') || window.location.pathname.startsWith('/admin');
       
       if (onAdminRoute && window.location.pathname !== '/admin/login') {
         // Don't retry login endpoint itself

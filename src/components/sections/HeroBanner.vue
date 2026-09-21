@@ -8,17 +8,23 @@
           v-show="activeIndex === index"
           :key="slide.id || index"
           class="absolute inset-0 bg-cover bg-center flex items-center justify-center transition-all duration-1000"
-          :style="{ backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('${slide.imageUrl}')` }"
+          :style="{ backgroundImage: `linear-gradient(to bottom, rgba(3, 8, 16, 0.75) 0%, rgba(7, 19, 36, 0.6) 50%, rgba(3, 8, 16, 0.9) 100%), radial-gradient(circle at 80% 20%, rgba(249, 104, 22, 0.18) 0%, transparent 45%), radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.22) 0%, transparent 50%), url('${slide.imageUrl}')` }"
         >
           <!-- Content Container -->
-          <div class="text-center text-white max-w-4xl px-4 sm:px-6 lg:px-8 mt-16 md:mt-24">
+          <div class="text-center text-white max-w-4xl px-4 sm:px-6 lg:px-8 mt-20 md:mt-24">
+            <!-- Micro Pill Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs uppercase font-bold tracking-widest text-orange-400 mb-6 shadow-sm">
+              <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+              Chartered Valuation & Asset Advisory
+            </div>
+
             <!-- Main Headline -->
-            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight select-none">
+            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-4 md:mb-6 leading-tight tracking-tight select-none">
               {{ slide.title }}
             </h1>
 
             <!-- Tagline -->
-            <p class="text-lg sm:text-xl md:text-2xl text-gray-200 mb-8 md:mb-10 leading-relaxed select-none">
+            <p class="text-base sm:text-lg md:text-xl text-slate-200 mb-8 md:mb-10 leading-relaxed font-normal max-w-2xl mx-auto select-none">
               {{ slide.tagline }}
             </p>
 
@@ -26,20 +32,20 @@
             <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
               <router-link
                 :to="slide.ctaLink || '/properties'"
-                class="inline-block px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+                class="pill-button-primary px-8 py-3.5 text-xs uppercase tracking-widest font-bold shadow-lg hover:shadow-orange-500/30 transition-all duration-300 w-full sm:w-auto"
               >
                 {{ slide.ctaText || 'Explore Properties' }}
               </router-link>
-              
-              <button
-                @click="isDrawerOpen = true"
-                class="inline-flex items-center px-8 py-4 bg-transparent border-2 border-white text-white font-bold text-lg rounded-lg hover:bg-white hover:text-gray-950 transition-all duration-300 gap-2"
+
+              <router-link
+                to="/book-a-tour"
+                class="inline-flex items-center justify-center px-8 py-3.5 rounded-full text-xs uppercase tracking-widest font-bold text-white border border-white/25 hover:border-white/60 bg-white/10 hover:bg-white/20 backdrop-blur-xl transition-all duration-300 gap-2 w-full sm:w-auto"
               >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                View Slides Drawer
-              </button>
+                Book Inspection
+              </router-link>
             </div>
           </div>
         </div>
@@ -47,109 +53,37 @@
     </div>
 
     <!-- Slide Navigation Arrows -->
-    <button @click="prevSlide" class="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 hover:bg-black/75 text-white transition z-20 focus:outline-none">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <button @click="prevSlide" class="absolute left-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center bg-slate-950/60 hover:bg-slate-900/90 text-white/90 hover:text-white border border-white/15 backdrop-blur-md transition-all duration-200 z-20 focus:outline-none">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
     </button>
-    <button @click="nextSlide" class="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 hover:bg-black/75 text-white transition z-20 focus:outline-none">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <button @click="nextSlide" class="absolute right-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center bg-slate-950/60 hover:bg-slate-900/90 text-white/90 hover:text-white border border-white/15 backdrop-blur-md transition-all duration-200 z-20 focus:outline-none">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
       </svg>
     </button>
 
-    <!-- Bottom Indicator Dots -->
-    <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
+    <!-- Bottom Indicator Pill Capsules -->
+    <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-2 z-20">
       <button
         v-for="(_, index) in slides"
         :key="index"
         @click="selectSlide(index)"
-        class="w-3.5 h-3.5 rounded-full transition-all duration-300 focus:outline-none"
-        :class="activeIndex === index ? 'bg-blue-500 scale-125' : 'bg-white/50 hover:bg-white'"
+        class="h-1.5 rounded-full transition-all duration-300 focus:outline-none"
+        :class="activeIndex === index ? 'w-8 bg-gradient-to-r from-orange-500 to-blue-500' : 'w-2 bg-white/40 hover:bg-white/70'"
       ></button>
     </div>
-
-    <!-- Slider Side Drawer Menu (slides in from right) -->
-    <Transition name="slide-left">
-      <div v-show="isDrawerOpen" class="fixed top-0 right-0 h-full w-80 md:w-96 bg-gray-900 text-white shadow-2xl z-[150] flex flex-col border-l border-gray-800">
-        <!-- Drawer Header -->
-        <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-          <h3 class="text-xl font-bold tracking-wide flex items-center gap-2">
-            <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            Slider Gallery
-          </h3>
-          <button @click="isDrawerOpen = false" class="p-2 rounded-full hover:bg-gray-800 transition text-gray-400 hover:text-white">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- Drawer Content -->
-        <div class="flex-1 overflow-y-auto p-6 space-y-4">
-          <div
-            v-for="(slide, index) in slides"
-            :key="slide.id || index"
-            @click="selectSlide(index)"
-            class="group cursor-pointer rounded-xl border overflow-hidden transition-all duration-300"
-            :class="activeIndex === index ? 'border-blue-500 ring-2 ring-blue-500/50 bg-gray-800/80' : 'border-gray-800 bg-gray-800/30 hover:border-gray-700 hover:bg-gray-800/50'"
-          >
-            <!-- Slide Image -->
-            <div class="h-28 bg-cover bg-center relative" :style="{ backgroundImage: `url('${slide.imageUrl}')` }">
-              <div class="absolute inset-0 bg-gradient-to-t from-gray-950/70 to-transparent"></div>
-              <span class="absolute bottom-2 right-2 px-2 py-0.5 bg-blue-600/90 text-xs font-bold rounded">
-                Slide {{ index + 1 }}
-              </span>
-            </div>
-            <!-- Slide Text -->
-            <div class="p-3">
-              <h4 class="font-semibold text-sm group-hover:text-blue-400 transition" :class="{ 'text-blue-500': activeIndex === index }">
-                {{ slide.title }}
-              </h4>
-              <p class="text-xs text-gray-400 line-clamp-2 mt-1">
-                {{ slide.tagline }}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Drawer Footer -->
-        <div class="p-6 border-t border-gray-800 bg-gray-950/40 text-center">
-          <p class="text-xs text-gray-500">Auto-playing every 6s unless selected</p>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- Drawer Dark Backdrop Overlay -->
-    <Transition name="fade">
-      <div
-        v-if="isDrawerOpen"
-        class="fixed inset-0 bg-black/60 backdrop-blur-xs z-[140]"
-        @click="isDrawerOpen = false"
-      ></div>
-    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import axios from 'axios'
 
 const slides = ref([])
 const activeIndex = ref(0)
-const isDrawerOpen = ref(false)
 const autoPlayInterval = ref(null)
-
-// Lock body scroll when drawer is open to prevent double scrollbars
-watch(isDrawerOpen, (isOpen) => {
-  if (isOpen) {
-    document.body.classList.add('menu-open')
-  } else {
-    document.body.classList.remove('menu-open')
-  }
-})
 
 const fetchSlides = async () => {
   try {

@@ -1,154 +1,180 @@
 <template>
-  <div class="admin-layout-wrapper">
+  <div class="admin-layout-wrapper min-h-screen bg-[#f8fafc] text-slate-800 font-sans selection:bg-orange-500 selection:text-white relative">
+    
     <!-- Impersonation Warning Bar -->
-    <div v-if="user?.impersonatorId" class="impersonation-warning-bar">
-      <div class="iw-content">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+    <div v-if="user?.impersonatorId" class="impersonation-warning-bar bg-gradient-to-r from-orange-500 via-amber-600 to-red-600 text-white px-6 py-2.5 flex items-center justify-between shadow-md relative z-50 text-xs font-semibold">
+      <div class="iw-content flex items-center gap-2">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 text-white">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
         <span>
-          <strong>Impersonation Mode Active:</strong> You are currently viewing the portal as <strong>{{ user.name }}</strong> ({{ user.role }}). 
-          Actions you take will be logged under your admin credentials ({{ user.impersonatorEmail }}).
+          <strong>Impersonation Mode Active:</strong> Viewing portal as <strong>{{ user.name }}</strong> ({{ user.role }}).
         </span>
       </div>
-      <button class="iw-btn" @click="handleStopImpersonation" :disabled="impersonationLoading">
+      <button class="iw-btn bg-white text-orange-600 px-3.5 py-1 rounded-full font-bold text-xs hover:bg-slate-100 transition shadow-sm" @click="handleStopImpersonation" :disabled="impersonationLoading">
         {{ impersonationLoading ? 'Restoring...' : 'Return to Admin Session' }}
       </button>
     </div>
 
-    <div class="admin-shell">
-      <!-- ── Sidebar ──────────────────────────────────────────────────────── -->
-      <aside class="admin-sidebar" :class="{ 'is-collapsed': collapsed }">
-        <!-- Brand -->
-        <div class="sidebar-brand">
-          <div class="brand-logo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1
-                   1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011
-                   1v4a1 1 0 001 1m-6 0h6" />
-            </svg>
-          </div>
-          <transition name="fade-label">
-            <div class="brand-text" v-if="!collapsed">
-              <span class="brand-name">KSA Valuers</span>
-              <span class="brand-sub">Admin Panel</span>
+    <!-- ── Top Header Navigation Bar (KSA Valuers Brand Preset) ─────────── -->
+    <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 shadow-[0_2px_15px_rgba(0,0,0,0.03)] transition-all">
+      <div class="max-w-[1600px] mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-4">
+        
+        <!-- Left: Brand Logo & Title -->
+        <div class="flex items-center gap-3">
+          <router-link to="/dashboard/admin" class="flex items-center gap-2.5 group">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-orange-600 transition-all flex items-center justify-center text-white shadow-md shadow-orange-500/25">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
             </div>
-          </transition>
+            <div class="flex flex-col">
+              <span class="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-1 group-hover:text-orange-500 transition-colors">
+                KSA Valuers
+              </span>
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest -mt-0.5">Estate Management</span>
+            </div>
+          </router-link>
         </div>
 
-        <!-- Nav -->
-        <nav class="sidebar-nav">
-          <div class="nav-group-label" v-if="!collapsed">Content</div>
+        <!-- Center: Floating Pill Navigation Tabs (KSA Orange & Navy) -->
+        <nav class="hidden md:flex items-center gap-1.5 bg-slate-100/90 p-1.5 rounded-full border border-slate-200/70 shadow-inner">
           <router-link
             v-for="item in navItems"
             :key="item.to"
             :to="item.to"
-            class="nav-link"
-            :class="{ active: isActive(item.match) }"
-            :title="collapsed ? item.label : ''"
-            @click="mobileOpen = false"
+            class="px-5 py-2 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
+            :class="isActive(item.match) ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'"
           >
-            <span class="nav-icon" v-html="item.icon" />
-            <span class="nav-label" v-if="!collapsed">{{ item.label }}</span>
-            <span
-              v-if="!collapsed && item.badge"
-              class="nav-badge"
-            >{{ item.badge }}</span>
+            <span>{{ item.label }}</span>
           </router-link>
-
-          <div class="nav-divider" />
-          <div class="nav-group-label" v-if="!collapsed">Account</div>
-
-          <router-link
-            to="/dashboard/profile"
-            class="nav-link"
-            :class="{ active: isActive('UserProfile') }"
-            :title="collapsed ? 'Profile' : ''"
-            @click="mobileOpen = false"
-          >
-            <span class="nav-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </span>
-            <span class="nav-label" v-if="!collapsed">Profile Settings</span>
-          </router-link>
-
-          <button class="nav-link nav-link-btn" @click="handleLogout">
-            <span class="nav-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0
-                     01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-            </span>
-            <span class="nav-label" v-if="!collapsed">Logout</span>
-          </button>
         </nav>
 
-        <!-- User strip at bottom -->
-        <div class="sidebar-user" v-if="!collapsed">
-          <div class="su-avatar">{{ initials }}</div>
-          <div class="su-info">
-            <span class="su-name">{{ user?.name || 'Admin' }}</span>
-            <span class="su-role">{{ user?.role || 'administrator' }}</span>
-          </div>
-        </div>
-        <div class="sidebar-user-collapsed" v-else>
-          <div class="su-avatar">{{ initials }}</div>
-        </div>
-      </aside>
+        <!-- Right: Actions & User Menu -->
+        <div class="flex items-center gap-2.5 sm:gap-3.5">
+          <!-- KSA Orange Action Button -->
+          <router-link
+            to="/dashboard/admin/properties/new"
+            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center transition-all shadow-md shadow-orange-500/25 hover:scale-105"
+            title="Add New Listing"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          </router-link>
 
-      <!-- ── Mobile overlay ──────────────────────────────────────────────── -->
-      <div
-        v-if="mobileOpen"
-        class="mobile-overlay"
-        @click="mobileOpen = false"
-      />
-
-      <!-- ── Main area ───────────────────────────────────────────────────── -->
-      <div class="admin-main">
-        <!-- Topbar -->
-        <header class="admin-topbar">
-          <!-- Collapse toggle (desktop) + Hamburger (mobile) -->
-          <button class="topbar-btn" @click="toggleSidebar" aria-label="Toggle sidebar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+          <!-- Search Button -->
+          <button
+            @click="showSearchModal = true"
+            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center transition shadow-sm"
+            title="Search"
+          >
+            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
           </button>
 
-          <!-- Breadcrumb -->
-          <div class="topbar-breadcrumb">
-            <router-link to="/dashboard/admin" class="breadcrumb-home">Admin</router-link>
-            <span class="breadcrumb-sep">/</span>
-            <span class="breadcrumb-current">{{ pageTitle }}</span>
-          </div>
-
-          <div class="topbar-right">
-            <!-- Visit site -->
-            <a href="/" target="_blank" class="topbar-site-link">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0
-                     002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          <!-- Notifications Bell -->
+          <div class="relative">
+            <button
+              class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center transition shadow-sm relative"
+              title="Notifications"
+            >
+              <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
               </svg>
-              <span>Visit Site</span>
-            </a>
-            <!-- User pill -->
-            <router-link to="/dashboard/profile" class="topbar-user-pill">
-              <div class="pill-avatar">{{ initials }}</div>
-              <span class="pill-name">{{ user?.name || 'Admin' }}</span>
-            </router-link>
+              <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-orange-600 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white">7</span>
+            </button>
           </div>
-        </header>
 
-        <!-- Page content -->
-        <main class="admin-content">
-          <router-view />
-        </main>
+          <!-- User Profile & Dropdown -->
+          <div class="relative group">
+            <div class="flex items-center gap-2.5 p-1 pl-1.5 pr-2.5 bg-white border border-slate-200/80 rounded-full shadow-sm hover:border-orange-400 transition cursor-pointer">
+              <img
+                :src="userAvatar"
+                class="w-8 h-8 rounded-full object-cover border-2 border-orange-500/30"
+                alt="User Avatar"
+              />
+              <div class="hidden lg:flex flex-col text-left">
+                <span class="text-xs font-bold text-slate-900 leading-tight">{{ user?.name || 'Anthony' }}</span>
+                <span class="text-[10px] font-semibold text-slate-400 capitalize leading-none">{{ user?.role || 'Agent Sales' }}</span>
+              </div>
+              <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </div>
+
+            <!-- Dropdown Menu -->
+            <div class="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-100 p-2 hidden group-hover:block z-50 animation-fade-in">
+              <router-link to="/dashboard/profile" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 rounded-xl transition">
+                <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                My Profile Settings
+              </router-link>
+              <a href="/" target="_blank" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                Visit Public Website
+              </a>
+              <div class="my-1 border-t border-slate-100"></div>
+              <button @click="handleLogout" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition text-left">
+                <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                Sign Out
+              </button>
+            </div>
+          </div>
+
+          <!-- Mobile Hamburger Toggle -->
+          <button @click="mobileNavOpen = !mobileNavOpen" class="md:hidden w-9 h-9 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Navigation Drawer -->
+      <div v-if="mobileNavOpen" class="md:hidden bg-white border-b border-slate-200 px-4 py-3 space-y-2">
+        <router-link
+          v-for="item in navItems"
+          :key="item.to"
+          :to="item.to"
+          class="block px-4 py-2.5 rounded-xl text-sm font-semibold transition"
+          :class="isActive(item.match) ? 'bg-orange-500 text-white' : 'text-slate-700 hover:bg-slate-100'"
+          @click="mobileNavOpen = false"
+        >
+          {{ item.label }}
+        </router-link>
+      </div>
+    </header>
+
+    <!-- ── Main Content Canvas ───────────────────────────────────────────── -->
+    <main class="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <router-view />
+    </main>
+
+    <!-- Quick Search Modal Overlay -->
+    <div v-if="showSearchModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-start justify-center pt-24 px-4">
+      <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 border border-slate-100 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+          <h3 class="text-sm font-bold text-slate-900">Quick Portal Search</h3>
+          <button @click="showSearchModal = false" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+        </div>
+        <div class="relative">
+          <input
+            type="text"
+            v-model="searchQuery"
+            placeholder="Search properties, leads, projects, FAQs..."
+            class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs outline-none focus:border-orange-500 focus:bg-white transition"
+          />
+          <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </div>
+        <div class="text-xs text-slate-400">
+          Press <kbd class="px-2 py-1 bg-slate-100 rounded text-[10px] font-mono">ESC</kbd> to close.
+        </div>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -158,81 +184,48 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { authAPI } from '@/services/api'
 
-const route     = useRoute()
-const router    = useRouter()
+const route = useRoute()
+const router = useRouter()
 const authStore = useAuthStore()
 
-const collapsed   = ref(false)
-const mobileOpen  = ref(false)
+const mobileNavOpen = ref(false)
+const showSearchModal = ref(false)
+const searchQuery = ref('')
 const impersonationLoading = ref(false)
 
-const user     = computed(() => authStore.user)
-const initials = computed(() => {
-  const name = user.value?.name || 'A'
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+const user = computed(() => authStore.user)
+const userAvatar = computed(() => {
+  return 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80'
 })
 
 onMounted(async () => {
-  // Initialize CSRF token automatically when admin panel is opened
   try {
     await authAPI.getCsrf()
   } catch (err) {
-    console.error('Failed to pre-fetch CSRF token:', err)
+    console.error('CSRF token fetch exception:', err)
   }
 })
 
-function toggleSidebar() {
-  if (window.innerWidth < 768) {
-    mobileOpen.value = !mobileOpen.value
-  } else {
-    collapsed.value = !collapsed.value
-  }
-}
-
-// Filtered navigation items based on User Role (RBAC)
 const navItems = computed(() => {
-  const role = user.value?.role
-  
-  if (role === 'admin' || role === 'webadmin') {
+  const role = user.value?.role || 'tenant'
+  if (['admin', 'webadmin', 'manager'].includes(role)) {
     return [
-      {
-        to: '/dashboard/admin', label: 'Dashboard', match: 'AdminDashboard',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>'
-      },
-      {
-        to: '/dashboard/admin/slides', label: 'Hero Slides', match: 'AdminSlide',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>'
-      },
-      {
-        to: '/dashboard/admin/properties', label: 'Properties', match: 'AdminProperty',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>'
-      },
-      {
-        to: '/dashboard/admin/projects', label: 'Ongoing Projects', match: 'AdminProject',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>'
-      },
-      {
-        to: '/dashboard/admin/team', label: 'Team', match: 'AdminTeam',
-        icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>'
-      }
+      { to: '/dashboard/admin', label: 'Dashboard', match: 'AdminDashboard' },
+      { to: '/dashboard/admin/properties', label: 'Property', match: 'AdminProperty' },
+      { to: '/dashboard/admin/projects', label: 'Projects', match: 'AdminProject' },
+      { to: '/dashboard/admin/team', label: 'Directory', match: 'AdminTeam' },
+      { to: '/dashboard/admin/slides', label: 'Hero Slides', match: 'AdminSlide' }
     ]
   }
-  return []
+  return [
+    { to: '/dashboard/admin', label: 'Dashboard', match: 'AdminDashboard' }
+  ]
 })
 
 const isActive = (matchPrefix) => {
   const name = String(route.name || '')
   return name === matchPrefix || name.startsWith(matchPrefix)
 }
-
-const pageTitle = computed(() => {
-  const name = String(route.name || '')
-  if (name.includes('Slide')) return 'Hero Slides'
-  if (name.includes('Team'))  return 'Team'
-  if (name.includes('Property')) return 'Properties'
-  if (name.includes('Project')) return 'Ongoing Projects'
-  return 'Admin Dashboard'
-})
 
 async function handleLogout() {
   await authStore.logout()
@@ -255,296 +248,12 @@ async function handleStopImpersonation() {
 </script>
 
 <style scoped>
-/* ── Impersonation Warning Bar ────────────────────────────────────────────── */
-.impersonation-warning-bar {
-  background: #ea580c;
-  color: #ffffff;
-  padding: 0.75rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  font-size: 0.88rem;
-  z-index: 9999;
-  position: relative;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-.iw-content {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.iw-content svg {
-  flex-shrink: 0;
-}
-.iw-btn {
-  background: #ffffff;
-  color: #ea580c;
-  border: none;
-  padding: 0.4rem 1rem;
-  border-radius: 6px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-.iw-btn:hover:not(:disabled) {
-  background: #f3f4f6;
-  transform: translateY(-1px);
-}
-.iw-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.animation-fade-in {
+  animation: fadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Reset & shell ─────────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
-
-.admin-shell {
-  display: flex;
-  min-height: 100vh;
-  background: #f4f6fb;
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-  font-size: 14px;
-  color: #111827;
-}
-
-/* ── Sidebar ───────────────────────────────────────────────────────────────── */
-.admin-sidebar {
-  width: 230px;
-  min-height: 100vh;
-  background: #111827;
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  transition: width 0.22s ease;
-  z-index: 200;
-  scrollbar-width: none;
-}
-.admin-sidebar::-webkit-scrollbar { display: none; }
-.admin-sidebar.is-collapsed { width: 62px; }
-
-/* Brand */
-.sidebar-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0 0.75rem;
-  height: 60px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
-  flex-shrink: 0;
-}
-.brand-logo {
-  width: 36px; height: 36px; flex-shrink: 0;
-  background: #1b4d84;
-  border-radius: 9px;
-  display: flex; align-items: center; justify-content: center;
-}
-.brand-logo svg { width: 18px; height: 18px; stroke: #fff; }
-.brand-text { overflow: hidden; white-space: nowrap; }
-.brand-name { display: block; color: #f9fafb; font-weight: 700; font-size: 0.88rem; line-height: 1.2; }
-.brand-sub  { display: block; color: #6b7280; font-size: 0.68rem; }
-
-/* Nav */
-.sidebar-nav {
-  flex: 1;
-  padding: 0.75rem 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-.nav-group-label {
-  color: #4b5563;
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 0.5rem 0.75rem 0.25rem;
-}
-.nav-link {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.55rem 0.75rem;
-  border-radius: 8px;
-  color: #9ca3af;
-  text-decoration: none;
-  font-size: 0.82rem;
-  font-weight: 500;
-  white-space: nowrap;
-  transition: background 0.15s, color 0.15s;
-  border: none;
-  background: none;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-}
-.nav-link:hover    { background: #1f2937; color: #d1d5db; }
-.nav-link.active   { background: #1b4d84; color: #fff; }
-.nav-link.nav-link-btn:hover { background: rgba(239,68,68,0.15); color: #f87171; }
-.nav-icon { width: 18px; height: 18px; flex-shrink: 0; display: flex; align-items: center; }
-.nav-icon :deep(svg) { width: 18px; height: 18px; }
-.nav-badge {
-  margin-left: auto;
-  background: #dc2626; color: #fff;
-  border-radius: 999px; padding: 1px 7px;
-  font-size: 0.65rem; font-weight: 700;
-}
-.nav-divider { height: 1px; background: rgba(255,255,255,0.07); margin: 0.5rem 0; }
-
-/* User strip */
-.sidebar-user {
-  padding: 0.75rem;
-  border-top: 1px solid rgba(255,255,255,0.07);
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  flex-shrink: 0;
-}
-.sidebar-user-collapsed {
-  padding: 0.75rem;
-  border-top: 1px solid rgba(255,255,255,0.07);
-  display: flex;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.su-avatar {
-  width: 32px; height: 32px;
-  border-radius: 50%;
-  background: #1b4d84;
-  color: #fff;
-  font-size: 0.72rem;
-  font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.su-info { overflow: hidden; }
-.su-name { display: block; color: #f9fafb; font-size: 0.8rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.su-role { display: block; color: #6b7280; font-size: 0.68rem; text-transform: capitalize; }
-
-/* ── Mobile overlay ────────────────────────────────────────────────────────── */
-.mobile-overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 199;
-}
-
-/* ── Main area ─────────────────────────────────────────────────────────────── */
-.admin-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  overflow: hidden;
-}
-
-/* Topbar */
-.admin-topbar {
-  height: 58px;
-  background: #fff;
-  border-bottom: 1px solid #e5e7eb;
-  display: flex;
-  align-items: center;
-  padding: 0 1.5rem;
-  gap: 0.75rem;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  flex-shrink: 0;
-}
-.topbar-btn {
-  background: none; border: none;
-  cursor: pointer; color: #6b7280;
-  padding: 6px; border-radius: 8px;
-  display: flex; align-items: center;
-  transition: background 0.15s, color 0.15s;
-  flex-shrink: 0;
-}
-.topbar-btn:hover { background: #f3f4f6; color: #111827; }
-
-.topbar-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-  font-size: 0.82rem;
-  overflow: hidden;
-}
-.breadcrumb-home { color: #6b7280; text-decoration: none; }
-.breadcrumb-home:hover { color: #111827; }
-.breadcrumb-sep { color: #d1d5db; }
-.breadcrumb-current { color: #111827; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
-}
-.topbar-site-link {
-  display: flex; align-items: center; gap: 0.35rem;
-  color: #6b7280; text-decoration: none;
-  font-size: 0.78rem; font-weight: 500;
-  padding: 0.35rem 0.75rem;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  transition: background 0.15s, color 0.15s;
-}
-.topbar-site-link:hover { background: #f9fafb; color: #111827; }
-.topbar-user-pill {
-  display: flex; align-items: center; gap: 0.5rem;
-  background: #f3f4f6; border-radius: 8px;
-  padding: 0.3rem 0.75rem 0.3rem 0.35rem;
-}
-.pill-avatar {
-  width: 26px; height: 26px; border-radius: 50%;
-  background: #1b4d84; color: #fff;
-  font-size: 0.65rem; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-}
-.pill-name { font-size: 0.8rem; font-weight: 600; color: #374151; }
-
-/* Content */
-.admin-content {
-  flex: 1;
-  padding: 2rem;
-  overflow-y: auto;
-  min-height: 0;
-}
-
-/* Fade transition */
-.fade-label-enter-active,
-.fade-label-leave-active { transition: opacity 0.15s; }
-.fade-label-enter-from,
-.fade-label-leave-to { opacity: 0; }
-
-/* ── Responsive ────────────────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .admin-sidebar {
-    position: fixed;
-    left: -230px;
-    height: 100vh;
-    transition: left 0.25s ease, width 0.22s ease;
-  }
-  /* When mobile menu is open, the sidebar slides in via a class on the parent;
-     we can't target parent from scoped child, so we use a global trick:
-     the mobile-overlay click hides it and the topbar button toggles mobileOpen */
-  .admin-shell:has(.mobile-overlay) .admin-sidebar { left: 0; }
-
-  .mobile-overlay { display: block; }
-  .admin-main { width: 100%; }
-  .admin-content { padding: 1rem; }
-  .topbar-site-link span { display: none; }
-}
-
-@media (max-width: 480px) {
-  .pill-name { display: none; }
-  .topbar-breadcrumb { font-size: 0.75rem; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

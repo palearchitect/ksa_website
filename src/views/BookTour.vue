@@ -1,143 +1,170 @@
 <template>
   <ErrorBoundary>
-    <div class="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-    <!-- Header -->
-    <div class="text-center mb-8">
-      <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Book a Property Tour</h1>
-      <p class="text-gray-600">Schedule a viewing of your desired property</p>
-    </div>
+    <div class="min-h-screen bg-slate-50 relative pt-28 md:pt-36 pb-20 px-4 sm:px-6">
+      <!-- Ambient Radial Mesh Lighting -->
+      <div class="absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_70%_60%_at_50%_-10%,rgba(37,99,235,0.18),rgba(249,104,22,0.08)_50%,transparent_80%)] pointer-events-none"></div>
 
-    <!-- Main Booking Card -->
-    <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 w-full max-w-2xl">
-      <!-- Step Indicator -->
-      <div class="flex justify-center mb-8">
-        <div class="flex items-center">
-          <div :class="['w-8 h-8 rounded-full flex items-center justify-center', currentStep === 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600']">
-            1
-          </div>
-          <div :class="['w-16 h-1', currentStep === 2 ? 'bg-blue-600' : 'bg-gray-300']"></div>
-          <div :class="['w-8 h-8 rounded-full flex items-center justify-center', currentStep === 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600']">
-            2
-          </div>
+      <!-- Header -->
+      <div class="relative max-w-2xl mx-auto text-center mb-10">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200/60 text-xs font-semibold uppercase tracking-widest text-blue-700 mb-4 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+          VIP Private Scheduling
         </div>
+        <h1 class="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-3">
+          Book an Exclusive <span class="text-gradient-brand">Property Tour</span>
+        </h1>
+        <p class="text-sm md:text-base text-slate-500 max-w-lg mx-auto font-normal leading-relaxed">
+          Select your preferred viewing slot for an in-person, guided walkthrough with our certified estate surveyor.
+        </p>
       </div>
 
-      <!-- Step 1: Select Date & Time -->
-      <div v-if="currentStep === 1">
-        <h2 class="text-xl font-semibold text-gray-900 mb-6">Select Date & Time</h2>
-        
-        <!-- Property Selection (if applicable) -->
-        <div v-if="properties.length > 0" class="mb-6">
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Select Property (Optional)
-          </label>
-          <select v-model="selectedPropertyId" 
-                  @change="loadPropertyDetails"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-            <option value="">-- Select a property --</option>
-            <option v-for="property in properties" :key="property.id" :value="property.id">
-              {{ property.title || `Property #${property.id}` }}
-            </option>
-          </select>
-          
-          <!-- Property Preview -->
-          <div v-if="selectedPropertyDetails" class="mt-4 p-4 border border-gray-200 rounded-lg">
-            <h4 class="font-medium text-gray-900 mb-2">Selected Property</h4>
-            <p class="text-sm text-gray-600">{{ selectedPropertyDetails.title }}</p>
-            <p v-if="selectedPropertyDetails.address" class="text-sm text-gray-500 mt-1">
-              {{ selectedPropertyDetails.address }}
-            </p>
-          </div>
-        </div>
-        
-        <!-- Calendar -->
-        <div class="mb-8">
-          <div class="flex items-center justify-between mb-4">
-            <button @click="previousMonth" :disabled="loadingSlots" class="p-2 hover:bg-gray-100 rounded disabled:opacity-50">
-              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h3 class="text-lg font-medium text-gray-900">{{ currentMonth }} {{ currentYear }}</h3>
-            <button @click="nextMonth" :disabled="loadingSlots" class="p-2 hover:bg-gray-100 rounded disabled:opacity-50">
-              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </div>
-
-          <!-- Calendar Grid -->
-          <div class="grid grid-cols-7 gap-2 mb-4">
-            <div v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="day" 
-                 class="text-center text-sm font-medium text-gray-500 py-2">
-              {{ day }}
+      <!-- Main Booking Bento Card -->
+      <div class="relative bento-card bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 md:p-10 w-full max-w-2xl mx-auto shadow-xl">
+        <!-- Step Indicator Capsule -->
+        <div class="flex justify-center mb-8">
+          <div class="inline-flex items-center gap-3 p-1.5 rounded-full bg-slate-100 border border-slate-200/80 shadow-inner">
+            <div :class="['flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all', currentStep === 1 ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md' : 'text-slate-500']">
+              <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px]">1</span>
+              <span>Select Date & Time</span>
             </div>
-            <div v-for="(day, index) in calendarDays" :key="index"
-                 @click="selectDate(day.date)"
-                 :class="[
-                   'h-10 rounded-lg flex items-center justify-center cursor-pointer transition relative',
-                   day.isCurrentMonth ? 'hover:bg-blue-50' : 'text-gray-400',
-                   isDateSelected(day.date) ? 'bg-blue-600 text-white' : '',
-                   day.isToday ? 'border-2 border-blue-500' : '',
-                   day.isPast ? 'cursor-not-allowed opacity-50' : '',
-                   day.hasLimitedSlots ? 'bg-yellow-50' : '',
-                   day.isFullyBooked ? 'bg-red-50 text-red-400' : ''
-                 ]"
-                 :disabled="day.isPast || day.isFullyBooked">
-              {{ day.day }}
-              <span v-if="day.slotsAvailable > 0 && day.slotsAvailable <= 2" 
-                    class="absolute -top-1 -right-1 w-2 h-2 bg-yellow-500 rounded-full"></span>
+            <div :class="['flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all', currentStep === 2 ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md' : 'text-slate-500']">
+              <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-[10px]">2</span>
+              <span>Client Information</span>
             </div>
-          </div>
-          
-          <!-- Loading state for slots -->
-          <div v-if="loadingSlots" class="text-center py-4">
-            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
           </div>
         </div>
 
-        <!-- Time Slots -->
-        <div v-if="!loadingSlots">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Available Time Slots</h3>
-          <div v-if="availableTimeSlots.length === 0" class="text-center py-8 bg-gray-50 rounded-lg">
-            <svg class="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p class="text-gray-500">No available slots for this date.</p>
-            <p class="text-sm text-gray-400 mt-1">Please select another date.</p>
+        <!-- Step 1: Select Date & Time -->
+        <div v-if="currentStep === 1">
+          <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-100">
+            <h2 class="text-lg font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <span class="w-1.5 h-4 bg-orange-500 rounded-full"></span>
+              Calendar & Time Schedule
+            </h2>
+            <span class="text-xs text-slate-400 font-medium">Standard Slot: 45 Mins</span>
           </div>
-          <div v-else class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <button v-for="slot in availableTimeSlots" :key="slot.time"
-                    @click="selectTime(slot.time)"
-                    :disabled="slot.isBooked"
+          
+          <!-- Property Selection (if applicable) -->
+          <div v-if="properties.length > 0" class="mb-6">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+              Select Specific Property (Optional)
+            </label>
+            <select v-model="selectedPropertyId" 
+                    @change="loadPropertyDetails"
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-slate-50/50 text-sm font-medium transition-all">
+              <option value="">-- Choose a property listing --</option>
+              <option v-for="property in properties" :key="property.id" :value="property.id">
+                {{ property.title || `Property #${property.id}` }}
+              </option>
+            </select>
+            
+            <!-- Property Preview -->
+            <div v-if="selectedPropertyDetails" class="mt-4 p-4 rounded-2xl bg-blue-50/60 border border-blue-100 flex items-start gap-3">
+              <div class="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-slate-900">{{ selectedPropertyDetails.title }}</h4>
+                <p v-if="selectedPropertyDetails.address" class="text-xs text-slate-600 mt-0.5">
+                  {{ selectedPropertyDetails.address }}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Calendar -->
+          <div class="mb-8 p-4 rounded-2xl bg-slate-50/70 border border-slate-200/70">
+            <div class="flex items-center justify-between mb-4">
+              <button @click="previousMonth" :disabled="loadingSlots" class="p-2 hover:bg-white rounded-xl disabled:opacity-50 transition border border-transparent hover:border-slate-200 shadow-sm">
+                <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h3 class="text-sm font-extrabold uppercase tracking-widest text-slate-900">{{ currentMonth }} {{ currentYear }}</h3>
+              <button @click="nextMonth" :disabled="loadingSlots" class="p-2 hover:bg-white rounded-xl disabled:opacity-50 transition border border-transparent hover:border-slate-200 shadow-sm">
+                <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- Calendar Grid -->
+            <div class="grid grid-cols-7 gap-1.5 mb-2">
+              <div v-for="day in ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']" :key="day" 
+                   class="text-center text-[11px] font-bold uppercase tracking-wider text-slate-400 py-1">
+                {{ day }}
+              </div>
+              <div v-for="(day, index) in calendarDays" :key="index"
+                   @click="selectDate(day.date)"
+                   :class="[
+                     'h-10 rounded-xl flex items-center justify-center cursor-pointer transition text-xs font-semibold relative',
+                     day.isCurrentMonth ? 'hover:bg-blue-100/60 text-slate-800' : 'text-slate-300',
+                     isDateSelected(day.date) ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white shadow-md font-bold' : '',
+                     day.isToday && !isDateSelected(day.date) ? 'border border-blue-500 text-blue-600' : '',
+                     day.isPast ? 'cursor-not-allowed opacity-40 hover:bg-transparent' : '',
+                     day.hasLimitedSlots && !isDateSelected(day.date) ? 'bg-orange-50 text-orange-700' : '',
+                     day.isFullyBooked ? 'bg-red-50 text-red-400 cursor-not-allowed' : ''
+                   ]"
+                   :disabled="day.isPast || day.isFullyBooked">
+                {{ day.day }}
+                <span v-if="day.slotsAvailable > 0 && day.slotsAvailable <= 2 && !isDateSelected(day.date)" 
+                      class="absolute top-1 right-1 w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
+              </div>
+            </div>
+            
+            <!-- Loading state for slots -->
+            <div v-if="loadingSlots" class="text-center py-4">
+              <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+            </div>
+          </div>
+
+          <!-- Time Slots -->
+          <div v-if="!loadingSlots">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">Available Inspection Hours</h3>
+            <div v-if="availableTimeSlots.length === 0" class="text-center py-8 bg-slate-50 rounded-2xl border border-slate-200">
+              <svg class="w-10 h-10 text-slate-300 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p class="text-xs font-semibold text-slate-600">No available slots for this date.</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">Please select another date on the calendar.</p>
+            </div>
+            <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              <button v-for="slot in availableTimeSlots" :key="slot.time"
+                      @click="selectTime(slot.time)"
+                      :disabled="slot.isBooked"
+                      :class="[
+                        'py-2.5 px-3 rounded-xl border text-xs font-semibold transition relative text-center',
+                        selectedTime === slot.time && !slot.isBooked
+                          ? 'bg-gradient-to-r from-blue-700 to-blue-600 text-white border-blue-600 shadow-md' 
+                          : slot.isBooked
+                          ? 'bg-slate-100 text-slate-300 border-slate-200 cursor-not-allowed'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-blue-500 hover:bg-blue-50/50'
+                      ]">
+                {{ slot.time }}
+                <span v-if="slot.isBooked" class="text-[9px] block text-red-500 uppercase font-bold">Booked</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Next Button -->
+          <div class="mt-8">
+            <button @click="nextStep"
+                    :disabled="!selectedDate || !selectedTime || loadingSlots"
                     :class="[
-                      'py-3 px-4 rounded-lg border transition relative',
-                      selectedTime === slot.time && !slot.isBooked
-                        ? 'bg-blue-600 text-white border-blue-600' 
-                        : slot.isBooked
-                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-blue-400'
+                      'w-full py-4 px-6 rounded-full font-bold text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2',
+                      selectedDate && selectedTime && !loadingSlots
+                        ? 'bg-gradient-to-r from-blue-700 via-blue-600 to-orange-500 hover:from-blue-800 hover:to-orange-600 text-white shadow-glow-orange hover:shadow-xl transform active:scale-[0.99]'
+                        : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                     ]">
-              {{ slot.time }}
-              <span v-if="slot.isBooked" class="text-xs absolute top-1 right-1 text-red-500">Booked</span>
+              <span>Continue to Client Details</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
             </button>
           </div>
         </div>
-
-        <!-- Next Button -->
-        <div class="mt-8">
-          <button @click="nextStep"
-                  :disabled="!selectedDate || !selectedTime || loadingSlots"
-                  :class="[
-                    'w-full py-3 px-4 rounded-lg font-medium transition',
-                    selectedDate && selectedTime && !loadingSlots
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  ]">
-            Continue to Details
-          </button>
-        </div>
-      </div>
 
       <!-- Step 2: Basic Details -->
       <div v-if="currentStep === 2">

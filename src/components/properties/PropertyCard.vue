@@ -1,33 +1,36 @@
 <template>
   <div
-    class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl hover:scale-[1.02] transition-all duration-200 cursor-pointer relative group"
+    class="bento-card overflow-hidden cursor-pointer relative group transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
     @click="goToDetail"
   >
     <!-- Image Gallery -->
-    <div class="relative w-full h-56 bg-gray-100">
+    <div class="relative w-full h-60 bg-slate-100 overflow-hidden">
       <img
         :src="currentImage"
         :alt="property.title"
-        class="w-full h-full object-cover object-center transition-all duration-300"
+        class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
       />
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent pointer-events-none"></div>
+
       <!-- Carousel Dots -->
-      <div v-if="property.images && property.images.length > 1" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+      <div v-if="property.images && property.images.length > 1" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
         <button
           v-for="(img, idx) in property.images"
           :key="idx"
-          class="w-2 h-2 rounded-full"
-          :class="idx === imageIdx ? 'bg-[#D4755B]' : 'bg-white border border-[#D4755B]'"
+          class="h-1.5 rounded-full transition-all duration-200"
+          :class="idx === imageIdx ? 'w-5 bg-orange-500' : 'w-1.5 bg-white/70 hover:bg-white'"
           @click.stop="imageIdx = idx"
         ></button>
       </div>
+
       <!-- Favorite Button -->
       <button
-        class="absolute top-3 right-3 bg-white rounded-full p-2 shadow hover:shadow-md z-10 flex items-center justify-center"
+        class="absolute top-3 right-3 bg-white/90 backdrop-blur-md rounded-full p-2 shadow hover:shadow-md z-10 flex items-center justify-center border border-white/40 hover:border-orange-500/40 transition"
         @click.stop="toggleFavorite"
       >
         <svg
-          class="w-5 h-5 transition-colors duration-200"
-          :class="isFavorite ? 'text-[#D4755B] fill-current' : 'text-gray-400'"
+          class="w-4 h-4 transition-colors duration-200"
+          :class="isFavorite ? 'text-orange-500 fill-current' : 'text-slate-400 hover:text-orange-500'"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -35,21 +38,23 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
         </svg>
       </button>
-      <!-- Type Badge -->
-      <span class="absolute top-3 left-3 bg-[#D4755B] text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+
+      <!-- Type Badge Pill -->
+      <span class="absolute top-3 left-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white text-[11px] font-bold tracking-wider uppercase px-3 py-1 rounded-full shadow-md">
         {{ property.type }}
       </span>
     </div>
+
     <!-- Details -->
     <div class="p-5">
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="text-lg font-bold text-gray-900 group-hover:text-[#D4755B] line-clamp-1">{{ property.title }}</h3>
-        <span class="text-xl font-bold text-[#D4755B]">
-          {{ formatPrice(property.price) }}<span v-if="property.status === 'For Rent'" class="text-xs font-normal">/month</span>
+      <div class="flex items-start justify-between gap-2 mb-2">
+        <h3 class="text-base md:text-lg font-bold text-slate-900 group-hover:text-blue-700 transition line-clamp-1">{{ property.title }}</h3>
+        <span class="text-lg md:text-xl font-extrabold text-blue-900 group-hover:text-orange-600 transition whitespace-nowrap">
+          {{ formatPrice(property.price) }}<span v-if="property.status === 'For Rent'" class="text-xs font-normal text-slate-500">/mo</span>
         </span>
       </div>
-      <div class="flex items-center text-gray-500 text-sm mb-2">
-        <svg class="w-4 h-4 mr-1 text-[#D4755B]" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px; flex-shrink: 0;">
+      <div class="flex items-center text-slate-500 text-xs md:text-sm mb-3">
+        <svg class="w-4 h-4 mr-1 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>

@@ -32,6 +32,16 @@ module.exports = {
           900: '#772a15',
           950: '#411207',
         }
+      },
+      boxShadow: {
+        'glass-pill': '0 8px 32px 0 rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.2)',
+        'glass-pill-dark': '0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.12)',
+        'glow-orange': '0 0 25px rgba(249, 104, 22, 0.35)',
+        'glow-blue': '0 0 25px rgba(27, 77, 132, 0.35)',
+        'bento-card': '0 10px 30px -10px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
+      },
+      letterSpacing: {
+        'widest-swiss': '0.18em',
       }
     },
   },

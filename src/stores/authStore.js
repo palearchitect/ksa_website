@@ -44,9 +44,38 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Load from session API on init (fallback/sync)
-  const loadSession = () => {
-    if (!sessionPromise) {
+  // Load from session API or Clerk SDK on init
+  const loadSession = async (force = false) => {
+    if (isAuthenticated.value && user.value && !force) {
+      return user.value
+    }
+
+    // 1. Check if Clerk is available in browser window and wait for readiness
+    if (typeof window !== 'undefined' && window.Clerk) {
+      if (!window.Clerk.loaded) {
+        await new Promise((resolve) => {
+          const interval = setInterval(() => {
+            if (window.Clerk?.loaded) {
+              clearInterval(interval)
+              resolve()
+            }
+          }, 25)
+          setTimeout(() => { clearInterval(interval); resolve() }, 1800)
+        })
+      }
+
+      if (window.Clerk?.user) {
+        let token = null
+        try {
+          token = await window.Clerk.session?.getToken()
+        } catch (e) {}
+        syncClerkUser(window.Clerk.user, token)
+        return user.value
+      }
+    }
+
+    // 2. Fallback to Express backend cookie authentication (/api/v1/auth/me)
+    if (!sessionPromise || force) {
       sessionPromise = authAPI.me()
         .then(response => {
           if (response?.data) {
@@ -67,6 +96,9 @@ export const useAuthStore = defineStore('auth', () => {
             isAuthenticated.value = false
           }
           return null
+        })
+        .finally(() => {
+          setTimeout(() => { sessionPromise = null }, 2000)
         })
     }
     return sessionPromise
@@ -135,11 +167,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // Register
-  const register = async (name, email, password) => {
+  const register = async (name, email, password, role = 'tenant') => {
     loading.value = true
     error.value = null
     try {
-      const response = await authAPI.register({ name, email, password })
+      const response = await authAPI.register({ name, email, password, role })
       return { success: true, ...response }
     } catch (err) {
       error.value = err.response?.data?.message || err.message

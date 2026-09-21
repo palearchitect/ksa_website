@@ -22,7 +22,7 @@
     <div class="w-full max-w-[380px] mx-auto my-auto flex flex-col items-center z-10">
       
       <!-- Clerk Authentication Component -->
-      <div v-if="hasClerkKey" class="w-full flex justify-center clerk-orange-wrapper">
+      <div v-if="hasClerkKey && !useDirectDatabaseLogin" class="w-full flex flex-col items-center clerk-orange-wrapper">
         <AuthenticateWithRedirectCallback 
           v-if="isSsoCallback" 
           signUpForceRedirectUrl="/dashboard/admin"
@@ -33,8 +33,6 @@
           routing="path" 
           path="/admin/login" 
           signUpUrl="/admin/login?tab=signup"
-          afterSignInUrl="/dashboard/admin"
-          afterSignUpUrl="/dashboard/admin"
           forceRedirectUrl="/dashboard/admin"
           fallbackRedirectUrl="/dashboard/admin"
           :appearance="clerkAppearance"
@@ -44,16 +42,31 @@
           routing="path" 
           path="/admin/login" 
           signInUrl="/admin/login"
-          afterSignInUrl="/dashboard/admin"
-          afterSignUpUrl="/dashboard/admin"
           forceRedirectUrl="/dashboard/admin"
           fallbackRedirectUrl="/dashboard/admin"
           :appearance="clerkAppearance"
         />
+
+        <button 
+          type="button" 
+          @click="useDirectDatabaseLogin = true" 
+          class="mt-3 text-[11px] text-slate-400 hover:text-orange-400 transition underline underline-offset-4"
+        >
+          Sign in with Database Credentials →
+        </button>
       </div>
 
       <!-- Fallback Custom Transparent Blue-to-Orange Glass Tile -->
       <div v-else class="w-full bg-gradient-to-br from-blue-950/75 via-slate-950/85 to-orange-950/70 backdrop-blur-2xl rounded-2xl p-6 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_rgba(37,99,235,0.2),0_0_40px_rgba(249,115,22,0.2)]">
+        <div v-if="hasClerkKey" class="mb-4 text-left">
+          <button 
+            type="button" 
+            @click="useDirectDatabaseLogin = false" 
+            class="text-[11px] text-blue-400 hover:text-blue-300 transition inline-flex items-center gap-1 font-medium"
+          >
+            ← Back to Clerk SSO Sign In
+          </button>
+        </div>
         <div class="text-center mb-6">
           <h2 class="text-xl font-extrabold text-white tracking-tight bg-gradient-to-r from-blue-300 via-white to-orange-300 bg-clip-text text-transparent">
             {{ activeTab === 'signup' ? 'Create Account' : 'Portal Sign In' }}
@@ -153,6 +166,18 @@
             >
           </div>
           <div>
+            <label for="signup-role" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Account Role</label>
+            <select 
+              id="signup-role" 
+              v-model="registerForm.role" 
+              class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition cursor-pointer"
+            >
+              <option value="tenant" class="bg-slate-900 text-white">Tenant / Resident</option>
+              <option value="propertyowner" class="bg-slate-900 text-white">Property Owner / Investor</option>
+              <option value="admin" class="bg-slate-900 text-white">Administrator / Staff</option>
+            </select>
+          </div>
+          <div>
             <label for="signup-password" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Password</label>
             <div class="relative">
               <input 
@@ -160,7 +185,7 @@
                 v-model="registerForm.password" 
                 :type="showRegisterPassword ? 'text' : 'password'" 
                 required 
-                placeholder="Min 8 chars (letters + numbers)" 
+                placeholder="Min 12 chars (Upper, lower, number, special)" 
                 class="w-full px-3.5 py-2.5 pr-10 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition placeholder:text-slate-500"
               >
               <button 
@@ -245,8 +270,24 @@ const loginForm = ref({ email: '', password: '' })
 const registerForm = ref({ name: '', email: '', password: '' })
 const showLoginPassword = ref(false)
 const showRegisterPassword = ref(false)
+const useDirectDatabaseLogin = ref(route.query.direct === 'true')
 
-onMounted(() => {
+
+const checkAndRedirect = () => {
+  if (authStore.isAuthenticated) {
+    const rawTarget = route.query.redirect ? decodeURIComponent(String(route.query.redirect)) : null
+    const target = rawTarget && !rawTarget.startsWith('/admin/login') && !rawTarget.startsWith('/login')
+      ? rawTarget
+      : '/dashboard/admin'
+    router.replace(target)
+  }
+}
+
+onMounted(async () => {
+  // If user is already authenticated, don't display login card
+  await authStore.loadSession()
+  checkAndRedirect()
+
   if (route.query.notice === 'account_not_found' || route.query.error === 'user_not_found') {
     activeTab.value = 'signup'
     noticeMessage.value = 'No account found with this email. Please sign up to create a new account.'
@@ -257,6 +298,10 @@ onMounted(() => {
     activeTab.value = 'login'
     noticeMessage.value = 'Your email has been verified successfully! Please enter your credentials to sign in.'
   }
+})
+
+watch(() => authStore.isAuthenticated, (isAuth) => {
+  if (isAuth) checkAndRedirect()
 })
 
 watch(() => route.query.tab, (newTab) => {
@@ -296,6 +341,17 @@ const clerkAppearance = {
     formFieldForgotPasswordLink: 'text-blue-400 hover:text-blue-300 font-medium text-[11px]',
     formFieldInput: 'bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs py-2 px-3 transition outline-none placeholder:text-slate-400',
     formButtonPrimary: 'bg-slate-800/90 hover:bg-gradient-to-r hover:from-orange-500 hover:to-blue-500 text-white font-bold text-xs py-2.5 rounded-lg shadow-md transition-all duration-300 border border-slate-700 hover:border-white/40',
+    organizationPreviewMainIdentifier: 'text-white font-bold',
+    organizationPreviewSecondaryIdentifier: 'text-slate-200 font-medium',
+    organizationPreviewTextContainer: 'text-white',
+    organizationSwitcherTriggerText: 'text-white font-medium',
+    organizationListCard: 'bg-slate-900/90 text-white border border-white/15',
+    organizationListHeaderTitle: 'text-white font-bold',
+    organizationListHeaderSubtitle: 'text-slate-200',
+    organizationListCreateOrganizationButton: 'hidden !important',
+    organizationSwitcherPopoverCard: 'bg-slate-950 text-white border border-white/15',
+    organizationSwitcherPopoverActionButton: 'text-white hover:bg-slate-800',
+    organizationSwitcherPopoverActionButtonText: 'text-white font-medium',
     footer: 'hidden',
     footerAction: 'hidden',
     footerPages: 'hidden',
@@ -339,7 +395,12 @@ const handleCustomRegister = async () => {
   errorMessage.value = ''
   noticeMessage.value = ''
   try {
-    const res = await authStore.register(registerForm.value.name, registerForm.value.email, registerForm.value.password)
+    const res = await authStore.register(
+      registerForm.value.name, 
+      registerForm.value.email, 
+      registerForm.value.password, 
+      registerForm.value.role || 'tenant'
+    )
     if (res.success) {
       router.push(`/verify-email?email=${encodeURIComponent(registerForm.value.email)}`)
     } else if (res.code === 'USER_ALREADY_EXISTS' || (res.error && (res.error.toLowerCase().includes('already') || res.error.toLowerCase().includes('exist')))) {
@@ -381,6 +442,41 @@ const handleCustomRegister = async () => {
 .clerk-orange-wrapper :deep(.cl-formFieldLabel),
 .clerk-orange-wrapper :deep(.cl-dividerText) {
   color: #e2e8f0 !important;
+}
+
+/* Ensure Organization text and titles are bright white and legible */
+.clerk-orange-wrapper :deep(.cl-organizationPreviewMainIdentifier),
+.clerk-orange-wrapper :deep(.cl-organizationPreviewTextContainer),
+.clerk-orange-wrapper :deep(.cl-organizationSwitcherTriggerText),
+.clerk-orange-wrapper :deep(.cl-organizationListHeaderTitle),
+.clerk-orange-wrapper :deep(.cl-organizationPreviewTitle),
+.clerk-orange-wrapper :deep(.cl-organizationListCardTitle),
+.clerk-orange-wrapper :deep(.cl-userPreviewMainIdentifier),
+.clerk-orange-wrapper :deep(.cl-userPreviewSecondaryIdentifier),
+.clerk-orange-wrapper :deep(.cl-navbarButton),
+.clerk-orange-wrapper :deep(.cl-breadcrumbsItem),
+.clerk-orange-wrapper :deep(.cl-menuButton),
+.clerk-orange-wrapper :deep(.cl-menuItem),
+.clerk-orange-wrapper :deep(p),
+.clerk-orange-wrapper :deep(span),
+.clerk-orange-wrapper :deep(h1),
+.clerk-orange-wrapper :deep(h2),
+.clerk-orange-wrapper :deep(h3) {
+  color: #ffffff !important;
+}
+
+.clerk-orange-wrapper :deep(.cl-organizationPreviewSecondaryIdentifier),
+.clerk-orange-wrapper :deep(.cl-organizationListHeaderSubtitle) {
+  color: #cbd5e1 !important;
+}
+
+/* Completely hide Create Organization button & creation UI */
+.clerk-orange-wrapper :deep(.cl-organizationListCreateOrganizationButton),
+.clerk-orange-wrapper :deep(button[class*="CreateOrganization"]),
+.clerk-orange-wrapper :deep(button[class*="createOrganization"]),
+.clerk-orange-wrapper :deep(.cl-organizationSwitcherPopoverActionButton__createOrganization),
+.clerk-orange-wrapper :deep(div[class*="createOrganization"]) {
+  display: none !important;
 }
 
 /* Crisp 1.5px stroke outline for Clerk's password show/hide eye icon */

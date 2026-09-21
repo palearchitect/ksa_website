@@ -1,63 +1,73 @@
 <template>
   <ErrorBoundary>
-    <div class="min-h-screen bg-gray-50">
+    <div class="min-h-screen bg-slate-50">
     <!-- Hero Section -->
-    <div class="relative bg-gradient-to-r from-blue-900 to-blue-800">
-      <div class="absolute inset-0 bg-black/30"></div>
-      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        <div class="text-center">
-          <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-            Contact Us
-          </h1>
-          <p class="text-xl text-blue-100 max-w-3xl mx-auto">
-            Get in touch with Nigeria's premier property valuers for expert consultation, property valuation, and comprehensive real estate solutions.
-          </p>
+    <div class="relative bg-gradient-to-b from-[#030810] via-[#071328] to-[#0a1835] text-white pt-28 md:pt-36 pb-16 overflow-hidden border-b border-white/10">
+      <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(37,99,235,0.28),rgba(249,104,22,0.1)_50%,transparent_80%)] pointer-events-none"></div>
+      <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-xs font-semibold uppercase tracking-widest text-orange-400 mb-6 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+          Direct Communications
         </div>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6">
+          Connect With <span class="text-gradient-brand">Our Valuers</span>
+        </h1>
+        <p class="text-base md:text-lg text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
+          Get in touch with Nigeria's premier estate surveyors and property valuers for expert consultation, asset valuation, and investment advisory.
+        </p>
       </div>
     </div>
 
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-      <div class="grid lg:grid-cols-2 gap-8 lg:gap-12">
-        <!-- Contact Form -->
-        <div>
-          <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6 md:mb-8">Send us a Message</h2>
+      <div class="grid lg:grid-cols-12 gap-8 lg:gap-10 items-start">
+        <!-- Contact Form (Bento Card, 7 Cols) -->
+        <div class="lg:col-span-7">
+          <div class="bento-card bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 md:p-10 shadow-xl">
+            <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+              <div>
+                <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Send Us a Direct Message</h2>
+                <p class="text-xs md:text-sm text-slate-500 mt-1 font-medium">Responses guaranteed within 24 business hours</p>
+              </div>
+              <span class="hidden sm:inline-flex px-3 py-1 text-xs font-bold rounded-full bg-blue-50 text-blue-700 border border-blue-200/60">
+                Official Inquiry
+              </span>
+            </div>
             
             <!-- Form submits directly to Formspree - no JavaScript interception -->
             <form action="https://formspree.io/f/mkodweqd" method="POST" class="space-y-6">
               <!-- Name -->
               <div>
-                <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
-                  Full Name <span class="text-red-500">*</span>
+                <label for="name" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                  Full Name <span class="text-orange-500">*</span>
                 </label>
                 <input
                   type="text"
                   name="name"
                   id="name"
                   required
-                  placeholder="John Doe"
-                  class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  placeholder="e.g. Arc. Adebayo Adeleke"
+                  class="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-slate-50/50 focus:bg-white"
                 />
               </div>
 
               <!-- Email & Phone -->
               <div class="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address <span class="text-red-500">*</span>
+                  <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                    Email Address <span class="text-orange-500">*</span>
                   </label>
                   <input
                     type="email"
                     name="email"
                     id="email"
                     required
-                    placeholder="john@example.com"
-                    class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    placeholder="name@company.com"
+                    class="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-slate-50/50 focus:bg-white"
                   />
                 </div>
                 <div>
-                  <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+                  <label for="phone" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
                     Phone Number
                   </label>
                   <input
@@ -65,184 +75,155 @@
                     name="phone"
                     id="phone"
                     placeholder="+234 800 000 0000"
-                    class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    class="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-slate-50/50 focus:bg-white"
                   />
                 </div>
               </div>
 
               <!-- Subject -->
               <div>
-                <label for="subject" class="block text-sm font-medium text-gray-700 mb-2">
-                  Subject <span class="text-red-500">*</span>
+                <label for="subject" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                  Subject / Inquiry Type <span class="text-orange-500">*</span>
                 </label>
                 <select
                   name="subject"
                   id="subject"
                   required
-                  class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  class="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-slate-50/50 focus:bg-white"
                 >
-                  <option value="" disabled selected>Select a subject</option>
-                  <option value="property-valuation">Property Valuation Inquiry</option>
-                  <option value="estate-management">Estate Management Services</option>
-                  <option value="sales-inquiry">Property Sales Inquiry</option>
-                  <option value="investment-consultation">Investment Consultation</option>
-                  <option value="legal-advice">Legal Advice & Documentation</option>
-                  <option value="career-opportunities">Career Opportunities</option>
-                  <option value="general-inquiry">General Inquiry</option>
-                  <option value="feedback">Feedback & Suggestions</option>
+                  <option value="" disabled selected>Select an inquiry category</option>
+                  <option value="property-valuation">Property Valuation & Appraisal</option>
+                  <option value="estate-management">Estate Management & Advisory</option>
+                  <option value="sales-inquiry">Property Acquisition / Listing</option>
+                  <option value="investment-consultation">Real Estate Investment Advisory</option>
+                  <option value="legal-advice">Statutory Title & Documentation</option>
+                  <option value="general-inquiry">General Institutional Inquiry</option>
                 </select>
               </div>
 
               <!-- Message -->
               <div>
-                <label for="message" class="block text-sm font-medium text-gray-700 mb-2">
-                  Message <span class="text-red-500">*</span>
+                <label for="message" class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">
+                  Message Description <span class="text-orange-500">*</span>
                 </label>
                 <textarea
                   name="message"
                   id="message"
-                  rows="6"
+                  rows="5"
                   required
-                  placeholder="Please provide details about your inquiry..."
-                  class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                  placeholder="Provide property details, location, purpose of valuation or specific inquiries..."
+                  class="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-slate-50/50 focus:bg-white resize-none"
                 ></textarea>
               </div>
 
               <!-- Honeypot field to prevent spam (hidden from users) -->
               <input type="text" name="_gotcha" style="display:none" />
-
-              <!-- Optional: Redirect to a thank you page on your site -->
               <input type="hidden" name="_next" value="https://ksavaluers.com/thank-you" />
-
-              <!-- Optional: Custom subject for email -->
               <input type="hidden" name="_subject" value="New contact form submission from KSA Valuers website!" />
 
               <!-- Submit Button -->
               <div>
                 <button
                   type="submit"
-                  class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all duration-200"
+                  class="w-full py-4 px-6 rounded-full font-bold text-white tracking-wide bg-gradient-to-r from-blue-700 via-blue-600 to-orange-500 hover:from-blue-800 hover:to-orange-600 shadow-glow-orange hover:shadow-xl transition-all duration-300 transform active:scale-[0.99] flex items-center justify-center gap-2"
                 >
-                  Send Message
+                  <span>Dispatch Message</span>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
                 </button>
-                <p class="text-xs text-gray-500 mt-3">
-                  By submitting this form, you agree to our Privacy Policy and consent to being contacted by KSA Valuers.
+                <p class="text-[11px] text-slate-400 text-center mt-3">
+                  Protected by standard institutional confidentiality policies. We never share your data.
                 </p>
               </div>
             </form>
           </div>
         </div>
 
-        <!-- Contact Information -->
-        <div class="space-y-8">
-          <!-- Office Address with Map -->
-          <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-            <div class="flex items-start">
-              <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mr-4 flex-shrink-0">
-                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Contact Information (Bento Side Column, 5 Cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          <!-- Office Address with Map Bento Card -->
+          <div class="bento-card bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 md:p-8 shadow-xl">
+            <div class="flex items-start gap-4">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-700 to-blue-900 text-white flex items-center justify-center flex-shrink-0 shadow-md shadow-blue-900/20">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
               </div>
               <div>
-                <h3 class="text-lg font-bold text-gray-900 mb-2">Office Address</h3>
-                <p class="text-gray-600">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-orange-600">Headquarters</span>
+                <h3 class="text-lg font-bold text-slate-900 mt-0.5">Lekki Principal Office</h3>
+                <p class="text-xs md:text-sm text-slate-600 mt-1 leading-relaxed">
                   Suite J260, Road 5, Ikota Shopping Complex,<br>
-                  Ajah, Lekki, Lagos, Nigeria
+                  Ajah, Lekki, Lagos State, Nigeria
                 </p>
               </div>
             </div>
             
             <!-- Interactive Map -->
-            <div id="contact-map" class="mt-6 rounded-lg overflow-hidden h-48 border border-gray-200" style="z-index: 10;"></div>
+            <div id="contact-map" class="mt-6 rounded-2xl overflow-hidden h-44 border border-slate-200 shadow-inner" style="z-index: 10;"></div>
           </div>
 
-          <!-- Contact Methods -->
-          <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-            <h3 class="text-lg font-bold text-gray-900 mb-6">Get in Touch</h3>
+          <!-- Contact Methods Bento Card -->
+          <div class="bento-card bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 md:p-8 shadow-xl">
+            <h3 class="text-base font-extrabold uppercase tracking-wider text-slate-900 mb-6 flex items-center gap-2">
+              <span class="w-1.5 h-4 bg-orange-500 rounded-full"></span>
+              Direct Inquiries & Helpdesk
+            </h3>
             
-            <div class="space-y-8">
+            <div class="space-y-6">
               <!-- Phone Numbers -->
               <div>
-                <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Phone Numbers</h4>
-                <div class="space-y-3">
-                  <a href="tel:+2349053901001" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors group">
-                    <svg class="w-5 h-5 text-gray-400 mr-3 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    +234 905 390 1001
+                <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">Telephone Lines</h4>
+                <div class="space-y-2">
+                  <a href="tel:+2349053901001" class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50/60 text-slate-800 hover:text-blue-700 transition-all group border border-slate-100">
+                    <span class="text-sm font-semibold tracking-tight">+234 905 390 1001</span>
+                    <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-blue-100/70 text-blue-700">Primary</span>
                   </a>
-                  <a href="tel:+2349053898636" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors group">
-                    <svg class="w-5 h-5 text-gray-400 mr-3 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    +234 905 389 8636
+                  <a href="tel:+2349053898636" class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50/60 text-slate-800 hover:text-blue-700 transition-all group border border-slate-100">
+                    <span class="text-sm font-semibold tracking-tight">+234 905 389 8636</span>
+                    <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-600">Line 2</span>
                   </a>
-                  <a href="tel:+2349053901802" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors group">
-                    <svg class="w-5 h-5 text-gray-400 mr-3 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    +234 905 390 1802
+                  <a href="tel:+2349053901802" class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 hover:bg-blue-50/60 text-slate-800 hover:text-blue-700 transition-all group border border-slate-100">
+                    <span class="text-sm font-semibold tracking-tight">+234 905 390 1802</span>
+                    <span class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-600">Advisory</span>
                   </a>
                 </div>
               </div>
 
               <!-- Email -->
               <div>
-                <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Email Address</h4>
-                <a href="mailto:contact@ksavaluers.com" class="flex items-center text-gray-700 hover:text-blue-600 transition-colors group">
-                  <svg class="w-5 h-5 text-gray-400 mr-3 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  contact@ksavaluers.com
+                <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5">Email Desks</h4>
+                <a href="mailto:contact@ksavaluers.com" class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 hover:bg-orange-50/60 text-slate-800 hover:text-orange-600 transition-all border border-slate-100">
+                  <div class="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <span class="text-sm font-semibold">contact@ksavaluers.com</span>
                 </a>
               </div>
 
               <!-- Business Hours -->
-              <div>
-                <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Business Hours</h4>
-                <div class="flex items-center text-gray-700">
-                  <svg class="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div>
-                    <p>Monday - Friday: 8:00 AM - 5:00 PM</p>
-                    <p class="text-sm text-gray-500 mt-1">Saturday: 9:00 AM - 2:00 PM</p>
-                  </div>
+              <div class="p-3.5 rounded-2xl bg-gradient-to-br from-slate-900 to-[#0c1938] text-white">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Consultation Schedule</h4>
                 </div>
-              </div>
-
-              <!-- Social Media -->
-              <div class="pt-6 border-t border-gray-100">
-                <h4 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Connect With Us</h4>
-                <div class="flex space-x-3">
-                  <!-- Facebook -->
-                  <a href="https://facebook.com/ksavaluers" target="_blank" rel="noopener noreferrer" class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-colors group">
-                    <svg class="w-6 h-6 text-blue-600 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                  </a>
-                  
-                  <!-- Instagram -->
-                  <a href="https://instagram.com/Ksavaluers" target="_blank" rel="noopener noreferrer" class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center hover:bg-pink-200 transition-colors group">
-                    <svg class="w-6 h-6 text-pink-600 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-                    </svg>
-                  </a>
-                  
-                  <!-- LinkedIn -->
-                  <a href="https://linkedin.com/company/ksavaluers" target="_blank" rel="noopener noreferrer" class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-colors group">
-                    <svg class="w-6 h-6 text-blue-700 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                    </svg>
-                  </a>
-                  
-                  <!-- Twitter/X -->
-                  <a href="https://twitter.com/ksavaluers" target="_blank" rel="noopener noreferrer" class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-colors group">
-                    <svg class="w-6 h-6 text-blue-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.213c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
-                    </svg>
-                  </a>
+                <div class="text-xs space-y-1 text-slate-300">
+                  <div class="flex justify-between">
+                    <span>Monday – Friday:</span>
+                    <span class="font-bold text-white">8:00 AM – 5:00 PM</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span>Saturday:</span>
+                    <span class="font-bold text-orange-300">9:00 AM – 2:00 PM</span>
+                  </div>
+                  <div class="flex justify-between text-slate-400">
+                    <span>Sunday:</span>
+                    <span>By Prior Appointment</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -250,41 +231,56 @@
         </div>
       </div>
 
-      <!-- FAQ/Quick Help Section -->
-      <div class="mt-12 lg:mt-16">
-        <div class="text-center mb-8 lg:mb-12">
-          <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
-          <p class="text-base md:text-lg text-gray-600 max-w-3xl mx-auto px-4">
-            Quick answers to common inquiries about our property valuation and management services.
+      <!-- FAQ Section (Swiss Bento Grid) -->
+      <div class="mt-16 lg:mt-24">
+        <div class="text-center mb-10">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-bold uppercase tracking-widest mb-3">
+            Knowledge Hub
+          </div>
+          <h2 class="text-2xl md:text-4xl font-extrabold text-slate-900 tracking-tight">Frequently Answered Queries</h2>
+          <p class="text-sm md:text-base text-slate-500 max-w-2xl mx-auto mt-2">
+            Essential information regarding valuation procedures, documentation prerequisites, and jurisdictional coverage.
           </p>
         </div>
         
-        <div class="grid md:grid-cols-2 gap-4 lg:gap-6">
-          <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-            <h3 class="text-lg font-bold text-gray-900 mb-3">How long does property valuation take?</h3>
-            <p class="text-gray-600">Standard property valuations are completed within 3-5 business days. Complex or large-scale properties may require additional time for thorough assessment.</p>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="bento-card bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all">
+            <h3 class="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+              How long does an institutional valuation take?
+            </h3>
+            <p class="text-xs md:text-sm text-slate-600 leading-relaxed">Standard residential and commercial valuation reports are dispatched within 3-5 business days following physical inspection. Complex asset audits or plant valuations are scheduled on milestone agreements.</p>
           </div>
-          <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-            <h3 class="text-lg font-bold text-gray-900 mb-3">What documents do I need for valuation?</h3>
-            <p class="text-gray-600">Typically required: Proof of ownership, property title documents, recent utility bills, and any existing property surveys or architectural drawings.</p>
+          <div class="bento-card bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all">
+            <h3 class="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+              What title documents are required for inspection?
+            </h3>
+            <p class="text-xs md:text-sm text-slate-600 leading-relaxed">Required instruments include Deed of Assignment, Certificate of Occupancy (C of O) or Governor's Consent, approved survey plans, and architectural drawings where applicable.</p>
           </div>
-          <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-            <h3 class="text-lg font-bold text-gray-900 mb-3">Do you serve clients outside Lagos?</h3>
-            <p class="text-gray-600">Yes, we provide property valuation services across Nigeria with offices and partners in major cities including Abuja, Port Harcourt, and Ibadan.</p>
+          <div class="bento-card bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all">
+            <h3 class="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+              Do you execute field valuations outside Lagos State?
+            </h3>
+            <p class="text-xs md:text-sm text-slate-600 leading-relaxed">Yes. We possess active field teams and valuation networks operating across Abuja (FCT), Port Harcourt, Ibadan, Abeokuta, and all major commercial centers across Nigeria.</p>
           </div>
-          <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow">
-            <h3 class="text-lg font-bold text-gray-900 mb-3">What are your service charges?</h3>
-            <p class="text-gray-600">Fees vary based on property type, location, and service scope. Contact us for a customized quote based on your specific requirements.</p>
+          <div class="bento-card bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all">
+            <h3 class="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+              How are professional valuation fees structured?
+            </h3>
+            <p class="text-xs md:text-sm text-slate-600 leading-relaxed">Our fee schedule adheres strictly to the official Scale of Professional Charges approved by ESVARBON and the Nigerian Institution of Estate Surveyors and Valuers (NIESV).</p>
           </div>
         </div>
         
-        <div class="text-center mt-6 lg:mt-8">
+        <div class="text-center mt-8">
           <router-link
             to="/faq"
-            class="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium group"
+            class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full border border-slate-300 text-slate-700 hover:text-blue-600 hover:border-blue-600 font-semibold text-xs uppercase tracking-wider transition-all bg-white hover:bg-slate-50 shadow-sm"
           >
-            View all FAQs
-            <svg class="w-5 h-5 ml-1 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            Explore Complete FAQ Index
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
             </svg>
           </router-link>
@@ -295,15 +291,15 @@
     <!-- Live Chat Widget Toggle -->
     <button
       @click="toggleChat"
-      class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full shadow-2xl hover:shadow-orange-500/20 transition-all duration-300 flex items-center justify-center z-[1000] hover:scale-110 active:scale-95 group focus:outline-none"
+      class="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full shadow-glow-orange hover:shadow-orange-500/40 transition-all duration-300 flex items-center justify-center z-[1000] hover:scale-105 active:scale-95 group focus:outline-none border-2 border-white/20"
       aria-label="Open chat"
     >
-      <span class="absolute right-16 bg-blue-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap border border-blue-800">
-        Chat with Expert AI
+      <span class="absolute right-16 bg-slate-900 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap border border-white/10">
+        AI Advisory Assistant
       </span>
-      <span class="absolute top-0 right-0 flex h-3 w-3" v-if="!showChat">
+      <span class="absolute top-0 right-0 flex h-3.5 w-3.5" v-if="!showChat">
         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-        <span class="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
+        <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-orange-500 border-2 border-white"></span>
       </span>
       <svg v-if="!showChat" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -314,25 +310,25 @@
     </button>
 
     <!-- Chat Window -->
-    <div v-if="showChat" class="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-2rem)] h-[480px] max-h-[75vh] bg-white rounded-2xl shadow-2xl z-[1010] flex flex-col overflow-hidden border border-gray-150 transition-all duration-300">
+    <div v-if="showChat" class="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-2rem)] h-[500px] max-h-[75vh] bg-white rounded-3xl shadow-2xl z-[1010] flex flex-col overflow-hidden border border-slate-200/80 transition-all duration-300">
       <!-- Header -->
-      <div class="p-4 bg-gradient-to-r from-blue-900 to-indigo-800 text-white flex-shrink-0">
+      <div class="p-4 bg-gradient-to-r from-[#030810] via-[#091938] to-[#1b4d84] text-white flex-shrink-0 border-b border-white/10">
         <div class="flex items-center justify-between">
           <div class="flex items-center">
-            <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 backdrop-blur-sm">
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-9 h-9 bg-white/10 rounded-2xl flex items-center justify-center mr-3 backdrop-blur-md border border-white/15">
+              <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
               </svg>
             </div>
             <div>
-              <h4 class="font-bold text-sm tracking-wide">KSA Virtual Assistant</h4>
-              <p class="text-[10px] text-green-300 font-semibold flex items-center gap-1">
-                <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-ping"></span>
-                AI Agent Online
+              <h4 class="font-extrabold text-sm tracking-tight text-white">KSA AI Valuer Desk</h4>
+              <p class="text-[10px] text-emerald-400 font-semibold flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping"></span>
+                Institutional Intelligence Online
               </p>
             </div>
           </div>
-          <button @click="toggleChat" class="text-white/80 hover:text-white transition-colors">
+          <button @click="toggleChat" class="text-white/70 hover:text-white transition-colors p-1.5 rounded-full hover:bg-white/10">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -341,9 +337,9 @@
       </div>
       
       <!-- Messages List -->
-      <div ref="chatContainer" class="flex-grow p-4 overflow-y-auto space-y-4 bg-gray-50/50">
+      <div ref="chatContainer" class="flex-grow p-4 overflow-y-auto space-y-4 bg-slate-50/70">
         <div v-for="(msg, index) in chatMessages" :key="index" :class="['flex', msg.sender === 'user' ? 'justify-end' : 'justify-start']">
-          <div :class="['max-w-[85%] rounded-2xl px-4 py-2.5 shadow-sm text-sm', msg.sender === 'user' ? 'bg-[#1b4d84] text-white rounded-br-none' : 'bg-white border border-gray-150 text-gray-800 rounded-bl-none']">
+          <div :class="['max-w-[85%] rounded-2xl px-4 py-2.5 shadow-sm text-sm', msg.sender === 'user' ? 'bg-[#1b4d84] text-white rounded-br-none' : 'bg-white border border-slate-200/80 text-slate-800 rounded-bl-none']">
             <p class="leading-relaxed">{{ msg.text }}</p>
             <p class="text-[10px] mt-1 text-right opacity-60">{{ formatTime(msg.timestamp) }}</p>
           </div>
@@ -351,7 +347,7 @@
         
         <!-- Bouncing Dots Typing Loader -->
         <div v-if="chatLoading" class="flex justify-start">
-          <div class="bg-white border border-gray-150 rounded-2xl rounded-bl-none px-4 py-3 flex items-center space-x-1 shadow-sm">
+          <div class="bg-white border border-slate-200/80 rounded-2xl rounded-bl-none px-4 py-3 flex items-center space-x-1 shadow-sm">
             <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
             <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
             <span class="w-1.5 h-1.5 bg-orange-500 rounded-full animate-bounce"></span>
@@ -360,34 +356,34 @@
       </div>
       
       <!-- Quick Prompts Chips -->
-      <div v-if="chatMessages.length === 1 && !chatLoading" class="px-4 py-2 bg-gray-50 flex flex-wrap gap-2 border-t border-gray-100 flex-shrink-0">
+      <div v-if="chatMessages.length === 1 && !chatLoading" class="px-4 py-2 bg-slate-50 flex flex-wrap gap-2 border-t border-slate-200/60 flex-shrink-0">
         <button
           v-for="prompt in quickPrompts"
           :key="prompt"
           @click="sendQuickPrompt(prompt)"
-          class="text-xs bg-white hover:bg-orange-50 hover:text-orange-600 border border-gray-200 hover:border-orange-200 text-gray-600 px-2.5 py-1.5 rounded-full transition-all duration-200 shadow-sm"
+          class="text-[11px] font-semibold bg-white hover:bg-orange-50 hover:text-orange-600 border border-slate-200 hover:border-orange-300 text-slate-700 px-3 py-1.5 rounded-full transition-all duration-200 shadow-sm"
         >
           {{ prompt }}
         </button>
       </div>
 
       <!-- Input Bar -->
-      <div class="p-3 border-t border-gray-100 bg-white flex-shrink-0">
+      <div class="p-3 border-t border-slate-200/80 bg-white flex-shrink-0">
         <div class="flex items-center gap-2">
           <input
             v-model="chatMessage"
             @keyup.enter="sendChatMessage"
             type="text"
-            placeholder="Ask a question..."
-            class="flex-grow px-4 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#1b4d84] focus:border-[#1b4d84] bg-gray-50"
+            placeholder="Inquire about property valuation, fees..."
+            class="flex-grow px-4 py-2.5 text-xs md:text-sm border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50 focus:bg-white transition-all"
             :disabled="chatLoading"
           />
           <button
             @click="sendChatMessage"
-            class="p-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-all duration-200 flex-shrink-0 shadow-sm disabled:opacity-50"
+            class="p-2.5 bg-gradient-to-r from-blue-700 to-orange-500 hover:from-blue-800 hover:to-orange-600 text-white rounded-full transition-all duration-200 flex-shrink-0 shadow-md disabled:opacity-50"
             :disabled="!chatMessage.trim() || chatLoading"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>

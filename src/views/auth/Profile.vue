@@ -1,33 +1,49 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-3xl mx-auto mb-4">
-      <button @click="router.back()" class="flex items-center text-gray-600 hover:text-gray-900 focus:outline-none font-semibold transition text-sm">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <div class="min-h-screen py-6 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
+    <!-- Back button -->
+    <div class="mb-4">
+      <button @click="router.back()" class="flex items-center text-slate-400 hover:text-white focus:outline-none font-semibold transition text-xs bg-slate-900/60 border border-white/10 hover:border-orange-500/40 px-3.5 py-2 rounded-xl backdrop-blur-md">
+        <svg class="w-4 h-4 mr-1.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        Back
+        Back to Dashboard
       </button>
     </div>
 
-    <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+    <div class="bg-gradient-to-br from-blue-950/75 via-slate-950/85 to-orange-950/70 backdrop-blur-2xl rounded-2xl shadow-2xl overflow-hidden border border-white/15">
       
       <!-- Header -->
-      <div class="bg-gradient-to-r from-blue-900 to-indigo-800 px-6 py-8 sm:px-10 text-white">
-        <h1 class="text-3xl font-bold">Account Settings</h1>
-        <p class="mt-2 text-blue-100">Manage your profile, login credentials, and account security preferences.</p>
+      <div class="bg-gradient-to-r from-orange-600/80 via-slate-950/90 to-blue-600/80 px-6 py-8 sm:px-10 text-white border-b border-white/15">
+        <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-300 via-white to-orange-300 bg-clip-text text-transparent">User Profile & Account Settings</h1>
+        <p class="mt-1 text-slate-300 text-xs font-medium">Manage your personal profile, Clerk credentials, security preferences, and active sessions.</p>
       </div>
 
       <!-- Tabs Navigation -->
-      <div class="border-b border-gray-200 bg-gray-50 flex">
+      <div class="border-b border-white/10 bg-slate-950/60 flex flex-wrap">
         <button
-          v-for="tab in tabs"
+          v-if="hasClerkKey"
+          @click="activeTab = 'clerk'"
+          :class="[
+            'py-3.5 px-6 font-semibold text-xs border-b-2 transition-all duration-200 flex items-center gap-2',
+            activeTab === 'clerk'
+              ? 'border-orange-400 text-white bg-slate-900/80 shadow-inner'
+              : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
+          ]"
+        >
+          <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Account & Security (Clerk)</span>
+        </button>
+        <button
+          v-for="tab in availableTabs"
           :key="tab.id"
           @click="activeTab = tab.id"
           :class="[
-            'flex-1 py-4 px-6 text-center font-semibold text-sm border-b-2 transition-all duration-200',
+            'py-3.5 px-6 font-semibold text-xs border-b-2 transition-all duration-200',
             activeTab === tab.id
-              ? 'border-blue-600 text-blue-600 bg-white'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              ? 'border-blue-400 text-white bg-slate-900/80 shadow-inner'
+              : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-900/40'
           ]"
         >
           {{ tab.name }}
@@ -35,57 +51,62 @@
       </div>
 
       <!-- Tab Content Area -->
-      <div class="p-6 sm:p-10">
+      <div class="p-6 sm:p-8">
         <!-- Error & Success Alerts -->
-        <div v-if="successMsg" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center text-green-700 text-sm">
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div v-if="successMsg" class="mb-6 p-4 bg-emerald-950/80 border border-emerald-800 rounded-xl flex items-center text-emerald-200 text-xs font-medium backdrop-blur-md">
+          <svg class="w-4 h-4 mr-2.5 flex-shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           {{ successMsg }}
         </div>
-        <div v-if="errorMsg || authStore.error" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center text-red-700 text-sm">
-          <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div v-if="errorMsg || authStore.error" class="mb-6 p-4 bg-red-950/80 border border-red-800 rounded-xl flex items-center text-red-200 text-xs font-medium backdrop-blur-md">
+          <svg class="w-4 h-4 mr-2.5 flex-shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
           {{ errorMsg || authStore.error }}
         </div>
 
+        <!-- ── TAB 0: Clerk Customization Pane ────────────────────────────── -->
+        <div v-if="activeTab === 'clerk' && hasClerkKey" class="w-full flex justify-center clerk-profile-wrapper">
+          <UserProfile :appearance="clerkAppearance" />
+        </div>
+
         <!-- ── TAB 1: General Settings ────────────────────────────────────── -->
         <div v-if="activeTab === 'general'" class="space-y-8">
           <form @submit.prevent="handleUpdateProfile" class="space-y-6">
-            <h3 class="text-xl font-bold text-gray-900 border-b pb-2">Profile Information</h3>
+            <h3 class="text-base font-bold text-white border-b border-white/10 pb-2">Profile Information</h3>
             
             <div class="grid sm:grid-cols-2 gap-6">
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <label class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Email Address</label>
                 <input
                   type="email"
                   :value="user?.email"
                   disabled
-                  class="w-full px-4 py-3 bg-gray-100 text-gray-500 rounded-lg border border-gray-200 cursor-not-allowed text-sm"
+                  class="w-full px-3.5 py-2.5 bg-slate-900/60 text-slate-400 rounded-lg border border-slate-700/60 cursor-not-allowed text-xs font-medium"
                 />
-                <span class="text-xs text-gray-400 mt-1 block">Your email address cannot be changed.</span>
+                <span class="text-[10px] text-slate-400 mt-1 block">Your email address cannot be changed.</span>
               </div>
               
               <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Account Role</label>
+                <label class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Account Role</label>
                 <input
                   type="text"
                   :value="user?.role?.toUpperCase()"
                   disabled
-                  class="w-full px-4 py-3 bg-gray-100 text-gray-500 rounded-lg border border-gray-200 cursor-not-allowed text-sm font-semibold"
+                  class="w-full px-3.5 py-2.5 bg-slate-900/60 text-orange-400 rounded-lg border border-slate-700/60 cursor-not-allowed text-xs font-bold"
                 />
               </div>
 
               <div class="sm:col-span-2">
-                <label for="profileName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <label for="profileName" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Full Name</label>
                 <input
                   type="text"
                   id="profileName"
                   v-model="profileName"
                   required
                   placeholder="Enter your name"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition"
                 />
               </div>
             </div>
@@ -94,7 +115,7 @@
               <button
                 type="submit"
                 :disabled="loading"
-                class="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold rounded-lg text-sm shadow-md transition-all duration-200"
+                class="px-6 py-2.5 bg-slate-800/90 hover:bg-gradient-to-r hover:from-orange-500 hover:to-blue-500 border border-slate-700 hover:border-white/40 text-white font-bold rounded-lg text-xs shadow-md transition-all duration-300 disabled:opacity-50"
               >
                 {{ loading ? 'Saving...' : 'Update Name' }}
               </button>
@@ -102,20 +123,20 @@
           </form>
 
           <!-- Google SSO Link section -->
-          <div class="space-y-4 pt-6 border-t border-gray-200">
-            <h3 class="text-xl font-bold text-gray-900">Google Authentication</h3>
-            <p class="text-sm text-gray-500">Enable one-click login by linking your Google account credentials.</p>
+          <div class="space-y-4 pt-6 border-t border-white/10">
+            <h3 class="text-base font-bold text-white">Google Authentication</h3>
+            <p class="text-xs text-slate-300">Enable one-click login by linking your Google account credentials.</p>
             
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-gray-50 rounded-xl border border-gray-200 gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 bg-slate-950/70 rounded-xl border border-white/10 gap-4">
               <div class="flex items-center">
-                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center mr-4 text-red-600">
-                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <div class="w-9 h-9 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mr-3 text-red-400 flex-shrink-0">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12.24 10.285V13.4h6.887C18.2 15.614 15.645 18 12.24 18c-3.86 0-7-3.14-7-7s3.14-7 7-7c1.7 0 3.3 0.6 4.6 1.8l2.4-2.4C17.3 1.6 14.9 0.8 12.24 0.8c-5.97 0-10.8 4.83-10.8 10.8s4.83 10.8 10.8 10.8c6.26 0 10.4-4.4 10.4-10.6 0-0.7-.1-1.3-.2-1.8H12.24z"/>
                   </svg>
                 </div>
                 <div>
-                  <h4 class="font-bold text-gray-900 text-sm">Google Sign-in Link</h4>
-                  <p class="text-xs text-gray-500">{{ user?.googleLinked ? 'Linked to your Google account' : 'Not linked yet' }}</p>
+                  <h4 class="font-bold text-white text-xs">Google Sign-in Link</h4>
+                  <p class="text-[10px] text-slate-400">{{ user?.googleLinked ? 'Linked to your Google account' : 'Not linked yet' }}</p>
                 </div>
               </div>
 
@@ -124,7 +145,7 @@
                   v-if="user?.googleLinked"
                   @click="handleUnlinkGoogle"
                   :disabled="loading"
-                  class="w-full sm:w-auto px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-lg text-sm border border-red-200 transition-colors"
+                  class="w-full sm:w-auto px-4 py-2 bg-red-950/60 hover:bg-red-900/80 text-red-300 font-semibold rounded-lg text-xs border border-red-800/60 transition-colors"
                 >
                   Unlink Account
                 </button>
@@ -139,43 +160,43 @@
         <!-- ── TAB 2: Change Password ─────────────────────────────────────── -->
         <div v-if="activeTab === 'password'">
           <form @submit.prevent="handleChangePassword" class="space-y-6">
-            <h3 class="text-xl font-bold text-gray-900 border-b pb-2">Update Password</h3>
+            <h3 class="text-base font-bold text-white border-b border-white/10 pb-2">Update Password</h3>
             
             <div class="space-y-4">
               <div>
-                <label for="currPass" class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                <label for="currPass" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Current Password</label>
                 <input
                   type="password"
                   id="currPass"
                   v-model="passwordForm.current"
                   required
                   placeholder="••••••••••••"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition"
                 />
               </div>
 
               <div>
-                <label for="newPass" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                <label for="newPass" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">New Password</label>
                 <input
                   type="password"
                   id="newPass"
                   v-model="passwordForm.new"
                   required
                   placeholder="••••••••••••"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition"
                 />
-                <span class="text-xs text-gray-400 mt-1 block">Password must be at least 12 characters, with uppercase, lowercase, numbers, and special symbols.</span>
+                <span class="text-[10px] text-slate-400 mt-1 block">Password must be at least 12 characters, with uppercase, lowercase, numbers, and special symbols.</span>
               </div>
 
               <div>
-                <label for="confirmPass" class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                <label for="confirmPass" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Confirm New Password</label>
                 <input
                   type="password"
                   id="confirmPass"
                   v-model="passwordForm.confirm"
                   required
                   placeholder="••••••••••••"
-                  class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition"
                 />
               </div>
             </div>
@@ -184,7 +205,7 @@
               <button
                 type="submit"
                 :disabled="loading"
-                class="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold rounded-lg text-sm shadow-md transition-all duration-200"
+                class="px-6 py-2.5 bg-slate-800/90 hover:bg-gradient-to-r hover:from-orange-500 hover:to-blue-500 border border-slate-700 hover:border-white/40 text-white font-bold rounded-lg text-xs shadow-md transition-all duration-300 disabled:opacity-50"
               >
                 {{ loading ? 'Updating...' : 'Change Password' }}
               </button>
@@ -194,24 +215,24 @@
 
         <!-- ── TAB 3: Danger Zone ─────────────────────────────────────────── -->
         <div v-if="activeTab === 'danger'" class="space-y-6">
-          <div class="p-6 border border-red-200 rounded-2xl bg-red-50/50">
-            <h3 class="text-xl font-bold text-red-800">Deactivate Account</h3>
-            <p class="mt-2 text-sm text-red-700">
+          <div class="p-6 border border-red-800/60 rounded-2xl bg-red-950/40 backdrop-blur-md">
+            <h3 class="text-base font-bold text-red-300">Deactivate Account</h3>
+            <p class="mt-2 text-xs text-red-200/80 leading-relaxed">
               Deactivating your account will instantly lock you out and terminate your access to the KSA Valuers management portal.
               This is a soft delete: your profile is hidden from the directories, but database integrity remains.
             </p>
             
             <form @submit.prevent="handleDeactivate" class="mt-6 space-y-4">
               <div>
-                <label for="deactConfirm" class="block text-sm font-bold text-red-900 mb-1">Confirm Your Password</label>
-                <p class="text-xs text-red-600 mb-2">Please enter your active account password to authorize this action.</p>
+                <label for="deactConfirm" class="block text-[11px] font-bold text-red-200 mb-1 uppercase tracking-wider">Confirm Your Password</label>
+                <p class="text-[10px] text-red-300 mb-2">Please enter your active account password to authorize this action.</p>
                 <input
                   type="password"
                   id="deactConfirm"
                   v-model="deactivatePassword"
                   required
                   placeholder="••••••••••••"
-                  class="w-full px-4 py-3 border border-red-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white"
+                  class="w-full px-3.5 py-2.5 bg-slate-950 border border-red-800/80 rounded-lg text-white text-xs outline-none focus:ring-1 focus:ring-red-500"
                 />
               </div>
 
@@ -219,7 +240,7 @@
                 <button
                   type="submit"
                   :disabled="loading || !deactivatePassword"
-                  class="px-6 py-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold rounded-lg text-sm shadow-md transition-colors"
+                  class="px-6 py-2.5 bg-red-700 hover:bg-red-600 disabled:opacity-50 text-white font-bold rounded-lg text-xs shadow-md transition-colors"
                 >
                   {{ loading ? 'Deactivating...' : 'Permanently Deactivate Account' }}
                 </button>
@@ -236,18 +257,30 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
+import { UserProfile } from '@clerk/vue'
 import { useAuthStore } from '@/stores/authStore'
+import { useSEO } from '@/hooks/useSEO'
+
+useSEO({
+  title: 'Profile & Account Settings | KSA Valuers',
+  description: 'Manage your KSA Valuers user profile, login credentials, and Clerk security preferences.',
+})
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-const tabs = [
+const hasClerkKey = computed(() => {
+  const key = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+  return key && key.startsWith('pk_')
+})
+
+const availableTabs = [
   { id: 'general', name: 'General Information' },
   { id: 'password', name: 'Security & Password' },
   { id: 'danger', name: 'Danger Zone' }
 ]
 
-const activeTab = ref('general')
+const activeTab = ref(hasClerkKey.value ? 'clerk' : 'general')
 const loading = ref(false)
 const successMsg = ref('')
 const errorMsg = ref('')
@@ -258,12 +291,37 @@ const deactivatePassword = ref('')
 
 const user = computed(() => authStore.user)
 
+const clerkAppearance = {
+  elements: {
+    rootBox: 'w-full flex justify-center',
+    cardBox: 'w-full shadow-2xl rounded-2xl border border-white/15 bg-gradient-to-br from-orange-950/70 via-slate-950/85 to-blue-950/75 backdrop-blur-2xl text-white',
+    card: 'bg-transparent text-white border-0 shadow-none p-4',
+    headerTitle: 'text-white font-extrabold text-xl tracking-tight',
+    headerSubtitle: 'text-slate-200 text-xs mt-1 font-normal',
+    navbarButton: 'text-slate-300 hover:text-white font-medium text-xs py-2',
+    navbarButton__active: 'text-white font-bold bg-slate-900/80 rounded-lg border border-white/10',
+    profileSectionTitleText: 'text-white font-bold text-sm border-b border-white/10 pb-1',
+    profileSectionPrimaryButton: 'text-blue-400 hover:text-blue-300 font-semibold text-xs',
+    formFieldLabel: 'text-slate-200 text-[11px] font-semibold mb-1 uppercase tracking-wider',
+    formFieldInput: 'bg-slate-950/70 border border-slate-700/60 text-white text-xs py-2 px-3 rounded-lg outline-none focus:border-orange-400',
+    formButtonPrimary: 'bg-slate-800/90 hover:bg-gradient-to-r hover:from-orange-500 hover:to-blue-500 text-white font-bold text-xs py-2 rounded-lg transition-all',
+    footer: 'hidden'
+  },
+  variables: {
+    colorPrimary: '#60a5fa',
+    colorText: '#ffffff',
+    colorTextSecondary: '#e2e8f0',
+    colorBackground: '#0b1329',
+    colorInputBackground: '#020617',
+    colorInputText: '#ffffff'
+  }
+}
+
 onMounted(() => {
   if (user.value) {
     profileName.value = user.value.name || ''
   }
   
-  // Render Google Login link button if script is available
   nextTick(() => {
     initGoogleLinkButton()
   })
@@ -291,7 +349,6 @@ function initGoogleLinkButton() {
       console.error('Google link button initialization failed:', err)
     }
   } else {
-    // Retry in 1 second if Google script hasn't finished loading yet
     setTimeout(initGoogleLinkButton, 1000)
   }
 }
@@ -323,7 +380,6 @@ async function handleUnlinkGoogle() {
     const res = await authStore.unlinkGoogle()
     if (res.success) {
       successMsg.value = 'Successfully unlinked Google account!'
-      // Re-initialize button after Vue rerender
       setTimeout(initGoogleLinkButton, 500)
     } else {
       errorMsg.value = res.error || 'Failed to unlink Google account.'
@@ -402,3 +458,34 @@ async function handleDeactivate() {
   }
 }
 </script>
+
+<style scoped>
+.clerk-profile-wrapper :deep(.cl-cardBox),
+.clerk-profile-wrapper :deep(.cl-card) {
+  background: linear-gradient(135deg, rgba(15, 41, 74, 0.75) 0%, rgba(15, 23, 42, 0.85) 50%, rgba(124, 45, 18, 0.75) 100%) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 1rem !important;
+  width: 100% !important;
+}
+
+.clerk-profile-wrapper :deep(p),
+.clerk-profile-wrapper :deep(span),
+.clerk-profile-wrapper :deep(h1),
+.clerk-profile-wrapper :deep(h2),
+.clerk-profile-wrapper :deep(h3),
+.clerk-profile-wrapper :deep(div) {
+  color: #ffffff !important;
+}
+
+.clerk-profile-wrapper :deep(.cl-navbarButton) {
+  color: #cbd5e1 !important;
+}
+
+.clerk-profile-wrapper :deep(.cl-navbarButton:hover) {
+  color: #ffffff !important;
+  background-color: rgba(30, 41, 59, 0.7) !important;
+}
+</style>

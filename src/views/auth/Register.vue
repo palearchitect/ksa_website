@@ -55,6 +55,18 @@
             >
           </div>
           <div>
+            <label for="reg-role" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Select Role</label>
+            <select
+              id="reg-role"
+              v-model="role"
+              class="w-full px-3.5 py-2.5 bg-slate-950/70 border border-slate-700/60 focus:border-orange-400 focus:ring-1 focus:ring-orange-500/30 rounded-lg text-white text-xs outline-none transition"
+            >
+              <option value="tenant">Tenant</option>
+              <option value="propertyowner">Property Owner</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+          <div>
             <label for="reg-password" class="block text-[11px] font-semibold text-slate-300 mb-1 uppercase tracking-wider">Password</label>
             <div class="relative">
               <input 
@@ -126,6 +138,7 @@ const authStore = useAuthStore()
 
 const name = ref('')
 const email = ref('')
+const role = ref('tenant')
 const password = ref('')
 const showPassword = ref(false)
 const loading = ref(false)
@@ -135,7 +148,7 @@ const handleRegister = async () => {
   loading.value = true
   errorMsg.value = ''
   try {
-    const res = await authStore.register(name.value, email.value, password.value)
+    const res = await authStore.register(name.value, email.value, password.value, role.value)
     if (res.success) {
       router.push(`/verify-email?email=${encodeURIComponent(email.value)}`)
     } else if (res.code === 'USER_ALREADY_EXISTS' || (res.error && (res.error.toLowerCase().includes('already') || res.error.toLowerCase().includes('exist')))) {

@@ -1,36 +1,45 @@
 <template>
   <ErrorBoundary>
-    <div class="min-h-screen bg-gray-50">
+    <div class="min-h-screen bg-gradient-to-b from-slate-100 via-slate-50 to-slate-100/90 text-slate-900">
       <!-- Hero Section -->
-      <div class="relative bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white py-20">
-        <div class="absolute inset-0 bg-black opacity-20"></div>
-        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 class="text-5xl md:text-6xl font-bold mb-4">Our Projects</h1>
-          <p class="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
-            Discover our portfolio of exceptional real estate developments across Nigeria.
+      <div class="relative bg-gradient-to-b from-[#030810] via-[#071328] to-[#0a1835] text-white pt-28 md:pt-36 pb-16 overflow-hidden border-b border-white/10">
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(37,99,235,0.25),rgba(249,104,22,0.1)_50%,transparent_80%)] pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-xs font-semibold uppercase tracking-widest text-orange-400 mb-4 shadow-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+            Capital Projects & Advisory
+          </div>
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-4">
+            Development <span class="text-gradient-brand">Projects</span>
+          </h1>
+          <p class="text-sm md:text-lg text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
+            Institutional property developments, statutory project monitoring, and infrastructure advisory across Nigeria.
           </p>
         </div>
       </div>
 
       <!-- Main Content -->
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <!-- Filters Section -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Floating Glassmorphic Filters Console -->
+        <div class="bg-white/80 backdrop-blur-xl border border-slate-200/80 rounded-2xl p-3.5 shadow-lg mb-10 -mt-16 relative z-20">
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
             <!-- Search Box -->
-            <div>
+            <div class="md:col-span-6 relative">
               <input
                 v-model="projectStore.searchQuery"
                 type="text"
-                placeholder="Search projects..."
-                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                placeholder="Search projects by name, location, keyword..."
+                class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
               >
+              <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
 
             <!-- Status Filter -->
-            <div>
-              <select v-model="projectStore.filters.status" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                <option value="all">All Status</option>
+            <div class="md:col-span-3">
+              <select v-model="projectStore.filters.status" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition cursor-pointer">
+                <option value="all">All Project Statuses</option>
                 <option v-for="status in projectStore.PROJECT_STATUS" :key="status.value" :value="status.value">
                   {{ status.label }}
                 </option>
@@ -38,9 +47,9 @@
             </div>
 
             <!-- Type Filter -->
-            <div>
-              <select v-model="projectStore.filters.type" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                <option value="all">All Types</option>
+            <div class="md:col-span-3">
+              <select v-model="projectStore.filters.type" class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition cursor-pointer">
+                <option value="all">All Asset Classes</option>
                 <option v-for="type in projectStore.PROJECT_TYPES" :key="type" :value="type">
                   {{ type }}
                 </option>
@@ -50,25 +59,27 @@
         </div>
 
         <!-- Results Info -->
-        <div class="mb-6 flex justify-between items-center">
+        <div class="mb-8 flex justify-between items-center">
           <div>
-            <h2 class="text-2xl font-bold text-gray-900">Our Projects</h2>
-            <p class="text-gray-600">{{ projectStore.filteredProjects.length }} projects found</p>
+            <h2 class="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight">Active Portfolio</h2>
+            <p class="text-xs text-slate-500 font-medium">{{ projectStore.filteredProjects.length }} development schemes cataloged</p>
           </div>
+          <button 
+            v-if="projectStore.searchQuery || projectStore.filters.status !== 'all' || projectStore.filters.type !== 'all'"
+            @click="resetFilters" 
+            class="text-xs font-semibold text-orange-600 hover:text-orange-700 underline"
+          >
+            Reset Filters
+          </button>
         </div>
 
         <!-- Loading State -->
         <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div v-for="n in 4" :key="n" class="bg-white rounded-xl shadow-md overflow-hidden animate-pulse">
-            <div class="h-64 bg-gray-300"></div>
-            <div class="p-6">
-              <div class="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
-              <div class="h-3 bg-gray-300 rounded w-1/2 mb-6"></div>
-              <div class="flex justify-between">
-                <div class="h-3 bg-gray-300 rounded w-1/4"></div>
-                <div class="h-3 bg-gray-300 rounded w-1/4"></div>
-              </div>
-            </div>
+          <div v-for="n in 4" :key="n" class="bento-card bg-white border border-slate-200 rounded-3xl p-6 animate-pulse">
+            <div class="h-56 bg-slate-200 rounded-2xl mb-4"></div>
+            <div class="h-5 bg-slate-200 rounded w-3/4 mb-3"></div>
+            <div class="h-4 bg-slate-200 rounded w-1/2 mb-4"></div>
+            <div class="h-10 bg-slate-100 rounded-xl"></div>
           </div>
         </div>
 
@@ -77,101 +88,109 @@
           <div 
             v-for="project in projectStore.filteredProjects" 
             :key="project.id"
-            class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
+            class="bento-card bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group"
           >
-            <!-- Project Image -->
-            <div class="relative h-64">
-              <img 
-                :src="project.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=600&fit=crop'" 
-                :alt="project.title"
-                class="w-full h-full object-cover"
-              >
-              <div class="absolute top-4 left-4">
-                <span :class="getStatusBadgeClass(project.status)" class="px-3 py-1 rounded-full text-xs font-semibold">
-                  {{ project.status }}
-                </span>
+            <div>
+              <!-- Project Image Header -->
+              <div class="relative h-64 overflow-hidden bg-slate-100">
+                <img 
+                  :src="project.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=600&fit=crop'" 
+                  :alt="project.title"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                >
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+                <div class="absolute top-4 left-4 flex gap-2">
+                  <span :class="getStatusBadgeClass(project.status)" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
+                    {{ project.status }}
+                  </span>
+                  <span class="px-3 py-1 bg-white/90 backdrop-blur-md text-slate-800 rounded-full text-xs font-semibold shadow-sm">
+                    {{ project.type }}
+                  </span>
+                </div>
+                <div v-if="project.featured" class="absolute top-4 right-4">
+                  <span class="px-3 py-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full text-xs font-bold uppercase tracking-wider shadow-md inline-flex items-center gap-1">
+                    ★ Featured
+                  </span>
+                </div>
+                <div class="absolute bottom-4 left-4 right-4 text-white">
+                  <h3 class="text-xl font-extrabold text-white tracking-tight">{{ project.title }}</h3>
+                  <p class="text-xs text-slate-300 flex items-center gap-1 mt-0.5">
+                    <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {{ project.location }}
+                  </p>
+                </div>
               </div>
-              <div v-if="project.featured" class="absolute top-4 right-4">
-                <span class="px-3 py-1 bg-purple-600 text-white rounded-full text-xs font-semibold inline-flex items-center gap-1">
-                  <svg class="w-3 h-3 text-yellow-300 fill-current" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                  </svg>
-                  Featured
-                </span>
+
+              <!-- Project Details -->
+              <div class="p-6 md:p-8">
+                <p class="text-slate-600 text-xs md:text-sm leading-relaxed mb-6 line-clamp-3">
+                  {{ project.description }}
+                </p>
+
+                <!-- Specifications Bento Strip -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 bg-slate-50 rounded-2xl border border-slate-100 mb-6 text-center">
+                  <div>
+                    <p class="text-[10px] uppercase font-bold text-slate-400">Class</p>
+                    <p class="text-xs font-bold text-slate-800 mt-0.5 truncate">{{ project.type }}</p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] uppercase font-bold text-slate-400">Budget</p>
+                    <p class="text-xs font-bold text-slate-800 mt-0.5">{{ projectStore.formatBudget(project.budget) }}</p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] uppercase font-bold text-slate-400">Units</p>
+                    <p class="text-xs font-bold text-slate-800 mt-0.5">{{ project.totalUnits || 'N/A' }}</p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] uppercase font-bold text-slate-400">Progress</p>
+                    <p class="text-xs font-extrabold text-blue-700 mt-0.5">{{ project.completionPercentage || 0 }}%</p>
+                  </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="space-y-1.5 mb-2">
+                  <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
+                    <div 
+                      :class="getProgressBarClass(project.completionPercentage)"
+                      class="h-full rounded-full transition-all duration-500"
+                      :style="{ width: `${project.completionPercentage || 0}%` }"
+                    ></div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- Project Details -->
-            <div class="p-6">
-              <div class="mb-4">
-                <h3 class="text-2xl font-bold text-gray-900 mb-2">{{ project.title }}</h3>
-                <p class="text-gray-600 flex items-center gap-2">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  {{ project.location }}
-                </p>
-              </div>
-
-              <p class="text-gray-700 mb-4 line-clamp-3">{{ project.description }}</p>
-
-              <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <p class="text-sm text-gray-500">Type</p>
-                  <p class="font-semibold text-gray-900">{{ project.type }}</p>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-500">Budget</p>
-                  <p class="font-semibold text-gray-900">{{ projectStore.formatBudget(project.budget) }}</p>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-500">Total Units</p>
-                  <p class="font-semibold text-gray-900">{{ project.totalUnits || 'N/A' }}</p>
-                </div>
-                <div>
-                  <p class="text-sm text-gray-500">Completion</p>
-                  <p class="font-semibold text-gray-900">{{ project.completionPercentage || 0 }}%</p>
-                </div>
-              </div>
-
-              <!-- Progress Bar -->
-              <div class="mb-4">
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    :class="getProgressBarClass(project.completionPercentage)"
-                    class="h-2 rounded-full transition-all"
-                    :style="{ width: `${project.completionPercentage || 0}%` }"
-                  ></div>
-                </div>
-              </div>
-
-              <div class="flex justify-between items-center pt-4 border-t border-gray-200">
-                <div class="text-sm text-gray-500">
-                  <span v-if="project.expectedCompletion">Expected: {{ projectStore.formatDate(project.expectedCompletion) }}</span>
-                </div>
-                <button
-                  @click="openProjectDetails(project)"
-                  class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition"
-                >
-                  View Details
-                </button>
-              </div>
+            <!-- Action Bar -->
+            <div class="px-6 md:px-8 py-4 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between">
+              <span class="text-xs text-slate-500 font-medium">
+                <span v-if="project.expectedCompletion">Target: {{ projectStore.formatDate(project.expectedCompletion) }}</span>
+                <span v-else>Milestones Ongoing</span>
+              </span>
+              <button
+                @click="openProjectDetails(project)"
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider text-blue-700 hover:text-white bg-blue-50 hover:bg-blue-700 transition-all duration-200"
+              >
+                <span>View Dossier</span>
+                <span>→</span>
+              </button>
             </div>
           </div>
         </div>
 
         <!-- Empty State -->
-        <div v-else class="text-center py-16">
-          <div class="inline-block p-8 bg-blue-50 rounded-full mb-6">
-            <svg class="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div v-else class="bento-card p-12 bg-white border border-slate-200/80 text-center max-w-lg mx-auto">
+          <div class="w-16 h-16 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-4">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
             </svg>
           </div>
-          <h3 class="text-2xl font-bold text-gray-900 mb-2">No Projects Found</h3>
-          <p class="text-gray-600 mb-6">Try adjusting your search filters or check back later for new projects.</p>
-          <button @click="resetFilters" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition">
-            Reset All Filters
+          <h3 class="text-xl font-bold text-slate-900 mb-2">No Projects Match Your Query</h3>
+          <p class="text-xs text-slate-500 mb-6">Try clearing your search terms or expanding your filter selection.</p>
+          <button @click="resetFilters" class="pill-button-primary px-6 py-2.5 text-xs font-bold uppercase tracking-wider">
+            Reset Filters
           </button>
         </div>
       </div>
@@ -181,23 +200,23 @@
         <Transition name="modal-fade">
           <div 
             v-if="selectedProject" 
-            class="fixed inset-0 z-[150] overflow-y-auto bg-gray-900/80 backdrop-blur-md flex items-center justify-center p-4 md:p-6"
+            class="fixed inset-0 z-[150] overflow-y-auto bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4 md:p-6"
             @click.self="closeProjectDetails"
           >
-            <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden relative flex flex-col md:flex-row max-h-[90vh]">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden relative flex flex-col md:flex-row max-h-[90vh] border border-slate-200">
               <!-- Close Button -->
               <button 
                 @click="closeProjectDetails" 
-                class="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/30 hover:bg-black/50 text-white transition hover:scale-110"
+                class="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-md transition hover:scale-105"
                 aria-label="Close modal"
               >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
 
               <!-- Left Side: Image / Carousel -->
-              <div class="md:w-1/2 relative bg-gray-100 flex items-center justify-center min-h-[300px] md:min-h-full">
+              <div class="md:w-1/2 relative bg-slate-900 flex items-center justify-center min-h-[280px] md:min-h-full">
                 <!-- Carousel view -->
                 <div v-if="projectImages.length > 1" class="absolute inset-0 w-full h-full">
                   <TransitionGroup name="fade">
@@ -214,31 +233,31 @@
                   <!-- Prev/Next buttons -->
                   <button 
                     @click="prevImage" 
-                    class="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 hover:bg-black/60 text-white transition hover:scale-110 z-10"
+                    class="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-md transition z-10"
                     aria-label="Previous image"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                   </button>
                   <button 
                     @click="nextImage" 
-                    class="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/40 hover:bg-black/60 text-white transition hover:scale-110 z-10"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-md transition z-10"
                     aria-label="Next image"
                   >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                   </button>
                   
                   <!-- Dots -->
-                  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm">
+                  <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-10 bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
                     <button 
-                      v-for="(img, idx) in projectImages" 
+                      v-for="(_, idx) in projectImages" 
                       :key="idx" 
                       @click="currentImageIndex = idx" 
                       :class="currentImageIndex === idx ? 'bg-white w-4' : 'bg-white/50 w-2'" 
-                      class="h-2 rounded-full transition-all duration-300"
+                      class="h-1.5 rounded-full transition-all duration-300"
                       :aria-label="`Go to image ${idx + 1}`"
                     ></button>
                   </div>
@@ -258,60 +277,57 @@
                 <div>
                   <!-- Badges -->
                   <div class="flex flex-wrap gap-2 mb-4">
-                    <span :class="getStatusBadgeClass(selectedProject.status)" class="px-3 py-1 rounded-full text-xs font-semibold">
+                    <span :class="getStatusBadgeClass(selectedProject.status)" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                       {{ selectedProject.status }}
                     </span>
-                    <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                    <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider border border-blue-100">
                       {{ selectedProject.type }}
                     </span>
-                    <span v-if="selectedProject.featured" class="px-3 py-1 bg-purple-600 text-white rounded-full text-xs font-semibold inline-flex items-center gap-1">
-                      <svg class="w-3 h-3 text-yellow-300 fill-current" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                      </svg>
-                      Featured
+                    <span v-if="selectedProject.featured" class="px-3 py-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full text-xs font-bold uppercase tracking-wider">
+                      Featured Project
                     </span>
                   </div>
 
-                  <h3 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">{{ selectedProject.title }}</h3>
+                  <h3 class="text-2xl font-extrabold text-slate-900 tracking-tight mb-2">{{ selectedProject.title }}</h3>
                   
-                  <p class="text-gray-600 flex items-center gap-2 mb-6">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <p class="text-slate-500 text-xs flex items-center gap-1.5 mb-6">
+                    <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     {{ selectedProject.location }}
                   </p>
 
-                  <h4 class="font-semibold text-gray-900 mb-2">Project Overview</h4>
-                  <p class="text-gray-700 leading-relaxed mb-6">{{ selectedProject.description }}</p>
+                  <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">Project Brief</h4>
+                  <p class="text-slate-600 text-xs md:text-sm leading-relaxed mb-6">{{ selectedProject.description }}</p>
 
                   <!-- Specifications -->
-                  <div class="grid grid-cols-2 gap-4 mb-6">
-                    <div class="bg-gray-50 p-3 rounded-lg">
-                      <p class="text-xs text-gray-500 font-medium">Budget</p>
-                      <p class="font-bold text-gray-900">{{ projectStore.formatBudget(selectedProject.budget) }}</p>
+                  <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <p class="text-[10px] text-slate-400 font-bold uppercase">Budget Estimate</p>
+                      <p class="font-bold text-slate-900 text-xs mt-0.5">{{ projectStore.formatBudget(selectedProject.budget) }}</p>
                     </div>
-                    <div class="bg-gray-50 p-3 rounded-lg">
-                      <p class="text-xs text-gray-500 font-medium">Total Units</p>
-                      <p class="font-bold text-gray-900">{{ selectedProject.totalUnits || 'N/A' }}</p>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <p class="text-[10px] text-slate-400 font-bold uppercase">Total Units</p>
+                      <p class="font-bold text-slate-900 text-xs mt-0.5">{{ selectedProject.totalUnits || 'N/A' }}</p>
                     </div>
-                    <div class="bg-gray-50 p-3 rounded-lg">
-                      <p class="text-xs text-gray-500 font-medium">Expected Completion</p>
-                      <p class="font-bold text-gray-900 text-sm">{{ selectedProject.expectedCompletion ? projectStore.formatDate(selectedProject.expectedCompletion) : 'N/A' }}</p>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <p class="text-[10px] text-slate-400 font-bold uppercase">Delivery Target</p>
+                      <p class="font-bold text-slate-900 text-xs mt-0.5">{{ selectedProject.expectedCompletion ? projectStore.formatDate(selectedProject.expectedCompletion) : 'N/A' }}</p>
                     </div>
-                    <div class="bg-gray-50 p-3 rounded-lg">
-                      <p class="text-xs text-gray-500 font-medium">Status</p>
-                      <p class="font-bold text-gray-900">{{ selectedProject.status }}</p>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <p class="text-[10px] text-slate-400 font-bold uppercase">Status</p>
+                      <p class="font-bold text-slate-900 text-xs mt-0.5">{{ selectedProject.status }}</p>
                     </div>
                   </div>
 
                   <!-- Progress Bar -->
-                  <div class="mb-6">
-                    <div class="flex justify-between text-sm font-semibold text-gray-700 mb-1.5">
+                  <div class="space-y-1.5 mb-6">
+                    <div class="flex justify-between text-xs font-bold text-slate-700">
                       <span>Development Progress</span>
-                      <span>{{ selectedProject.completionPercentage || 0 }}%</span>
+                      <span class="text-blue-700">{{ selectedProject.completionPercentage || 0 }}%</span>
                     </div>
-                    <div class="w-full bg-gray-200 rounded-full h-3.5 overflow-hidden">
+                    <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
                       <div 
                         :class="getProgressBarClass(selectedProject.completionPercentage)"
                         class="h-full rounded-full transition-all duration-500"
@@ -322,35 +338,32 @@
 
                   <!-- Amenities/Features -->
                   <div v-if="selectedProject.amenities && selectedProject.amenities.length > 0" class="mb-6">
-                    <h4 class="font-semibold text-gray-900 mb-2">Amenities & Features</h4>
+                    <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2">Amenities & Features</h4>
                     <div class="flex flex-wrap gap-2">
                       <span 
                         v-for="amenity in selectedProject.amenities" 
                         :key="amenity" 
-                        class="px-2.5 py-1 bg-green-50 border border-green-200 text-green-700 rounded-md text-xs font-medium inline-flex items-center gap-1"
+                        class="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-medium"
                       >
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                        </svg>
                         {{ amenity }}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div class="pt-4 border-t border-gray-100 flex justify-end gap-3">
+                <div class="pt-4 border-t border-slate-100 flex gap-3">
                   <button 
                     @click="closeProjectDetails" 
-                    class="px-5 py-2.5 border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium rounded-lg transition"
+                    class="px-6 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold uppercase tracking-wider rounded-full transition"
                   >
-                    Close
+                    Dismiss
                   </button>
-                  <a 
-                    href="/book-a-tour"
-                    class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition text-center"
+                  <router-link 
+                    to="/book-a-tour"
+                    class="flex-1 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xs font-bold uppercase tracking-wider rounded-full transition text-center shadow-glow-orange"
                   >
                     Book Site Tour
-                  </a>
+                  </router-link>
                 </div>
               </div>
             </div>
@@ -440,18 +453,18 @@ onUnmounted(() => {
 const getStatusBadgeClass = (status) => {
   const classes = {
     'Planning': 'bg-blue-100 text-blue-800',
-    'In Progress': 'bg-yellow-100 text-yellow-800',
-    'Completed': 'bg-green-100 text-green-800',
-    'On Hold': 'bg-orange-100 text-orange-800'
+    'In Progress': 'bg-orange-100 text-orange-800',
+    'Completed': 'bg-emerald-100 text-emerald-800',
+    'On Hold': 'bg-slate-100 text-slate-800'
   }
-  return classes[status] || 'bg-gray-100 text-gray-800'
+  return classes[status] || 'bg-slate-100 text-slate-800'
 }
 
 const getProgressBarClass = (percentage) => {
-  if (percentage >= 75) return 'bg-green-600'
-  if (percentage >= 50) return 'bg-yellow-600'
-  if (percentage >= 25) return 'bg-orange-600'
-  return 'bg-red-600'
+  if (percentage >= 75) return 'bg-emerald-600'
+  if (percentage >= 50) return 'bg-blue-600'
+  if (percentage >= 25) return 'bg-orange-500'
+  return 'bg-amber-500'
 }
 
 const resetFilters = () => {
