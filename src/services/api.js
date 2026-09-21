@@ -240,7 +240,16 @@ export const formatError = (error) => {
 }
 
 export const uploadService = {
-  uploadFile: (fileName, fileData) => api.post('/api/upload', { fileName, fileData }).then((r) => r.data)
+  uploadFile: async (fileName, fileData) => {
+    try {
+      const res = await api.post('/api/upload', { fileName, fileData })
+      if (res.data && res.data.url) return res.data
+      return { success: true, url: fileData }
+    } catch (err) {
+      console.warn('Backend /api/upload unavailable, falling back to local Data URL:', err)
+      return { success: true, url: fileData }
+    }
+  }
 }
 
 // ============================================

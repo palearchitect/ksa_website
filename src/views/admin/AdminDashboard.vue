@@ -38,7 +38,7 @@
           <p class="text-xs font-normal text-slate-500 pt-0.5">{{ livePropertiesCount }} Total &bull; 0 Added this month</p>
         </div>
         <div class="w-9 h-9 rounded-lg bg-slate-100/80 text-slate-600 group-hover:text-slate-900 group-hover:bg-slate-200/80 flex items-center justify-center border border-slate-200/60 flex-shrink-0 transition">
-          <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5v3m-6 0h6" />
           </svg>
         </div>
@@ -56,7 +56,7 @@
           <p class="text-xs font-normal text-slate-500 pt-0.5">{{ liveBookingsCount }} Bookings &bull; {{ pendingBookingsCount }} Pending review</p>
         </div>
         <div class="w-9 h-9 rounded-lg bg-slate-100/80 text-slate-600 group-hover:text-slate-900 group-hover:bg-slate-200/80 flex items-center justify-center border border-slate-200/60 flex-shrink-0 transition">
-          <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
           </svg>
         </div>
@@ -74,7 +74,7 @@
           <p class="text-xs font-normal text-slate-500 pt-0.5">{{ liveProjectsCount }} Projects &bull; {{ activeProjectsCount }} In development</p>
         </div>
         <div class="w-9 h-9 rounded-lg bg-slate-100/80 text-slate-600 group-hover:text-slate-900 group-hover:bg-slate-200/80 flex items-center justify-center border border-slate-200/60 flex-shrink-0 transition">
-          <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 01-3.586 0 2.548 2.548 0 010-3.586l5.653-4.655m3.788-3.412a4.5 4.5 0 00-6.364-6.364l1.757 1.757m13.356 13.356l1.757 1.757" />
           </svg>
         </div>

@@ -1,63 +1,63 @@
 <template>
-  <div class="space-y-8">
+  <div class="space-y-6 text-slate-800 font-sans">
     <!-- Header -->
-    <div class="bg-slate-900/60 backdrop-blur-xl p-6 rounded-2xl border border-slate-800/80 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-1">
       <div>
-        <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-3">
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight font-sans flex items-center gap-2">
           <span>Tour Bookings Management</span>
-          <span class="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
+          <span class="text-[10px] font-medium px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200">
             Site Inspections
           </span>
         </h1>
-        <p class="mt-1 text-sm text-slate-400">Manage client site viewing appointments, status transitions, and schedule confirmations.</p>
+        <p class="text-xs text-slate-500 font-normal">Manage client site viewing appointments, status transitions, and schedule confirmations.</p>
       </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
-      <div class="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 p-5 flex items-center justify-between shadow-xl">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl border border-slate-200/80 p-4 flex items-center justify-between shadow-2xs">
         <div>
-          <p class="text-xs font-mono text-slate-400 uppercase tracking-wider">Pending</p>
-          <p class="text-3xl font-extrabold text-amber-400 mt-1.5">{{ bookingStore.stats.pending }}</p>
+          <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Pending</p>
+          <p class="text-2xl font-bold text-amber-600 mt-1">{{ bookingStore.stats.pending }}</p>
         </div>
-        <div class="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
       </div>
 
-      <div class="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 p-5 flex items-center justify-between shadow-xl">
+      <div class="bg-white rounded-xl border border-slate-200/80 p-4 flex items-center justify-between shadow-2xs">
         <div>
-          <p class="text-xs font-mono text-slate-400 uppercase tracking-wider">Confirmed</p>
-          <p class="text-3xl font-extrabold text-blue-400 mt-1.5">{{ bookingStore.stats.confirmed }}</p>
+          <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Confirmed</p>
+          <p class="text-2xl font-bold text-blue-600 mt-1">{{ bookingStore.stats.confirmed }}</p>
         </div>
-        <div class="p-3.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
       </div>
 
-      <div class="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 p-5 flex items-center justify-between shadow-xl">
+      <div class="bg-white rounded-xl border border-slate-200/80 p-4 flex items-center justify-between shadow-2xs">
         <div>
-          <p class="text-xs font-mono text-slate-400 uppercase tracking-wider">Completed</p>
-          <p class="text-3xl font-extrabold text-emerald-400 mt-1.5">{{ bookingStore.stats.completed }}</p>
+          <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Completed</p>
+          <p class="text-2xl font-bold text-emerald-600 mt-1">{{ bookingStore.stats.completed }}</p>
         </div>
-        <div class="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-emerald-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
         </div>
       </div>
 
-      <div class="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 p-5 flex items-center justify-between shadow-xl">
+      <div class="bg-white rounded-xl border border-slate-200/80 p-4 flex items-center justify-between shadow-2xs">
         <div>
-          <p class="text-xs font-mono text-slate-400 uppercase tracking-wider">Total</p>
-          <p class="text-3xl font-extrabold text-white mt-1.5">{{ bookingStore.stats.total }}</p>
+          <p class="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Total</p>
+          <p class="text-2xl font-bold text-slate-900 mt-1">{{ bookingStore.stats.total }}</p>
         </div>
-        <div class="p-3.5 bg-slate-800/80 border border-slate-700/50 rounded-xl text-slate-400">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="p-2.5 bg-slate-100 border border-slate-200 rounded-lg text-slate-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
         </div>
@@ -65,19 +65,19 @@
     </div>
 
     <!-- Filters & Tabs -->
-    <div class="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 p-5 shadow-xl">
+    <div class="bg-white rounded-xl border border-slate-200/80 p-4 shadow-2xs">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <!-- Tab Buttons -->
-        <div class="flex border-b border-slate-800/80 overflow-x-auto no-scrollbar">
+        <div class="flex border-b border-slate-200 overflow-x-auto no-scrollbar">
           <button
             v-for="tab in tabs"
             :key="tab.value"
             @click="activeTab = tab.value"
             :class="[
-              'px-4 py-2.5 font-medium text-xs tracking-wider transition-colors whitespace-nowrap',
+              'px-3.5 py-2 font-medium text-xs transition-colors whitespace-nowrap',
               activeTab === tab.value
-                ? 'text-orange-400 border-b-2 border-orange-500 font-semibold'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-slate-900 border-b-2 border-slate-900 font-semibold'
+                : 'text-slate-500 hover:text-slate-900'
             ]"
           >
             {{ tab.label }} ({{ getTabCount(tab.value) }})
@@ -90,99 +90,99 @@
             v-model="searchQuery"
             type="text"
             placeholder="Search by name, email, or booking ID..."
-            class="w-full px-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm transition"
+            class="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white text-xs transition"
           >
         </div>
       </div>
     </div>
 
     <!-- Bookings Table -->
-    <div class="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800/80 overflow-hidden shadow-2xl">
+    <div class="bg-white rounded-xl border border-slate-200/80 overflow-hidden shadow-2xs">
       <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-slate-950/80 border-b border-slate-800/80">
+        <table class="w-full text-left">
+          <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-semibold uppercase tracking-wider">
             <tr>
-              <th class="px-6 py-4 text-left text-xs font-mono text-slate-400 uppercase tracking-wider">Booking ID</th>
-              <th class="px-6 py-4 text-left text-xs font-mono text-slate-400 uppercase tracking-wider">Customer</th>
-              <th class="px-6 py-4 text-left text-xs font-mono text-slate-400 uppercase tracking-wider">Date & Time</th>
-              <th class="px-6 py-4 text-left text-xs font-mono text-slate-400 uppercase tracking-wider">Contact</th>
-              <th class="px-6 py-4 text-left text-xs font-mono text-slate-400 uppercase tracking-wider">Status</th>
-              <th class="px-6 py-4 text-left text-xs font-mono text-slate-400 uppercase tracking-wider">Actions</th>
+              <th class="px-5 py-3">Booking ID</th>
+              <th class="px-5 py-3">Customer</th>
+              <th class="px-5 py-3">Date & Time</th>
+              <th class="px-5 py-3">Contact</th>
+              <th class="px-5 py-3">Status</th>
+              <th class="px-5 py-3">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-800/60">
+          <tbody class="divide-y divide-slate-100 text-xs">
             <tr v-if="filteredBookings.length === 0">
-              <td colspan="6" class="px-6 py-12 text-center text-slate-400">
-                <svg class="w-12 h-12 mx-auto mb-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                <svg class="w-10 h-10 mx-auto mb-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
-                <p class="text-lg font-medium text-white mb-1">No bookings found</p>
-                <p class="text-sm text-slate-400">{{ searchQuery ? 'Try adjusting your search query' : 'No bookings in this schedule filter' }}</p>
+                <p class="text-sm font-semibold text-slate-800 mb-1">No bookings found</p>
+                <p class="text-xs text-slate-500">{{ searchQuery ? 'Try adjusting your search query' : 'No bookings in this schedule filter' }}</p>
               </td>
             </tr>
-            <tr v-for="booking in filteredBookings" :key="booking.id" class="hover:bg-slate-800/40 transition duration-150">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="font-mono text-xs font-semibold text-orange-400 bg-orange-500/10 px-2.5 py-1 rounded-md border border-orange-500/20">{{ booking.id }}</span>
+            <tr v-for="booking in filteredBookings" :key="booking.id" class="hover:bg-slate-50/60 transition duration-150">
+              <td class="px-5 py-3.5 whitespace-nowrap">
+                <span class="font-mono text-xs font-semibold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">{{ booking.id }}</span>
               </td>
-              <td class="px-6 py-4">
+              <td class="px-5 py-3.5">
                 <div>
-                  <p class="font-bold text-white text-sm">{{ booking.name }}</p>
-                  <p class="text-xs text-slate-400 font-mono">{{ booking.guests }} {{ booking.guests === 1 ? 'guest' : 'guests' }}</p>
+                  <p class="font-semibold text-slate-900 text-xs">{{ booking.name }}</p>
+                  <p class="text-[11px] text-slate-500 font-mono">{{ booking.guests }} {{ booking.guests === 1 ? 'guest' : 'guests' }}</p>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
+              <td class="px-5 py-3.5 whitespace-nowrap">
                 <div>
-                  <p class="text-slate-200 text-xs font-medium">{{ formatDate(booking.date) }}</p>
-                  <p class="text-xs text-slate-400 font-mono">{{ booking.time }}</p>
+                  <p class="text-slate-800 text-xs font-medium">{{ formatDate(booking.date) }}</p>
+                  <p class="text-[11px] text-slate-500 font-mono">{{ booking.time }}</p>
                 </div>
               </td>
-              <td class="px-6 py-4">
-                <div class="space-y-1">
-                  <a :href="`mailto:${booking.email}`" class="text-xs text-blue-400 hover:text-blue-300 block font-mono">
+              <td class="px-5 py-3.5">
+                <div class="space-y-0.5">
+                  <a :href="`mailto:${booking.email}`" class="text-xs text-slate-700 hover:text-slate-900 block font-mono">
                     {{ booking.email }}
                   </a>
-                  <a :href="`tel:${booking.phone}`" class="text-xs text-slate-400 hover:text-white block font-mono">
+                  <a :href="`tel:${booking.phone}`" class="text-[11px] text-slate-500 hover:text-slate-800 block font-mono">
                     {{ booking.phone }}
                   </a>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span :class="getStatusClass(booking.status)" class="px-2.5 py-1 text-xxs font-mono font-semibold rounded-full border">
+              <td class="px-5 py-3.5 whitespace-nowrap">
+                <span :class="getStatusClass(booking.status)" class="px-2.5 py-0.5 text-[10px] font-mono font-semibold rounded-full border">
                   {{ getStatusLabel(booking.status) }}
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-xs">
+              <td class="px-5 py-3.5 whitespace-nowrap text-xs">
                 <div class="flex items-center gap-2.5">
                   <button 
                     @click="viewBooking(booking)"
-                    class="text-blue-400 hover:text-blue-300 font-medium"
+                    class="text-slate-700 hover:text-slate-900 font-medium"
                   >
                     View
                   </button>
                   <button 
                     v-if="booking.status === 'pending'"
                     @click="confirmBooking(booking.id)"
-                    class="text-emerald-400 hover:text-emerald-300 font-medium"
+                    class="text-emerald-700 hover:text-emerald-900 font-medium"
                   >
                     Confirm
                   </button>
                   <button 
                     v-if="booking.status === 'confirmed'"
                     @click="completeBooking(booking.id)"
-                    class="text-purple-400 hover:text-purple-300 font-medium"
+                    class="text-blue-700 hover:text-blue-900 font-medium"
                   >
                     Complete
                   </button>
                   <button 
                     v-if="booking.status !== 'cancelled' && booking.status !== 'completed'"
                     @click="cancelBooking(booking.id)"
-                    class="text-amber-400 hover:text-amber-300 font-medium"
+                    class="text-amber-700 hover:text-amber-900 font-medium"
                   >
                     Cancel
                   </button>
                   <button 
                     @click="deleteBookingConfirm(booking.id)"
-                    class="text-rose-400 hover:text-rose-300 font-medium"
+                    class="text-rose-600 hover:text-rose-800 font-medium"
                   >
                     Delete
                   </button>
@@ -196,116 +196,116 @@
 
     <!-- View Booking Modal -->
     <div v-if="selectedBooking" class="fixed inset-0 z-50 overflow-y-auto">
-      <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md" @click="selectedBooking = null"></div>
+      <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs" @click="selectedBooking = null"></div>
       <div class="relative min-h-screen flex items-center justify-center p-4">
-        <div class="relative bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full">
-          <div class="p-8">
+        <div class="relative bg-white border border-slate-200/80 rounded-2xl shadow-xl max-w-xl w-full text-slate-800">
+          <div class="p-6 sm:p-8">
             <!-- Header -->
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
-              <h3 class="text-2xl font-bold text-white flex items-center gap-3">
+            <div class="flex items-center justify-between mb-5 pb-3 border-b border-slate-100">
+              <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2.5">
                 <span>Booking Details</span>
-                <span class="text-xs font-mono font-normal px-2.5 py-0.5 rounded-full bg-orange-500/10 text-orange-400 border border-orange-500/20">
+                <span class="text-[11px] font-mono font-medium px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
                   {{ selectedBooking.id }}
                 </span>
               </h3>
               <button 
                 @click="selectedBooking = null"
-                class="text-slate-400 hover:text-white transition-colors"
+                class="text-slate-400 hover:text-slate-700 transition-colors p-1"
               >
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
             <!-- Content -->
-            <div class="space-y-6">
-              <div class="grid grid-cols-2 gap-6">
+            <div class="space-y-4 text-xs">
+              <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Booking ID</label>
-                  <p class="font-mono font-semibold text-orange-400 text-sm">{{ selectedBooking.id }}</p>
+                  <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Booking ID</label>
+                  <p class="font-mono font-semibold text-slate-900 text-xs">{{ selectedBooking.id }}</p>
                 </div>
                 <div>
-                  <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Status</label>
-                  <span :class="getStatusClass(selectedBooking.status)" class="inline-block px-3 py-1 text-xs font-mono font-semibold rounded-full border">
+                  <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Status</label>
+                  <span :class="getStatusClass(selectedBooking.status)" class="inline-block px-2.5 py-0.5 text-[10px] font-mono font-semibold rounded-full border">
                     {{ getStatusLabel(selectedBooking.status) }}
                   </span>
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-6">
+              <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Customer Name</label>
-                  <p class="font-bold text-white text-sm">{{ selectedBooking.name }}</p>
+                  <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Customer Name</label>
+                  <p class="font-bold text-slate-900 text-xs">{{ selectedBooking.name }}</p>
                 </div>
                 <div>
-                  <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Number of Guests</label>
-                  <p class="font-medium text-slate-200 text-sm">{{ selectedBooking.guests }}</p>
+                  <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Number of Guests</label>
+                  <p class="font-medium text-slate-700 text-xs">{{ selectedBooking.guests }}</p>
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-6">
+              <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Email</label>
-                  <a :href="`mailto:${selectedBooking.email}`" class="text-blue-400 hover:text-blue-300 text-sm font-mono">
+                  <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Email</label>
+                  <a :href="`mailto:${selectedBooking.email}`" class="text-slate-800 hover:text-slate-900 text-xs font-mono underline">
                     {{ selectedBooking.email }}
                   </a>
                 </div>
                 <div>
-                  <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Phone</label>
-                  <a :href="`tel:${selectedBooking.phone}`" class="text-blue-400 hover:text-blue-300 text-sm font-mono">
+                  <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Phone</label>
+                  <a :href="`tel:${selectedBooking.phone}`" class="text-slate-800 hover:text-slate-900 text-xs font-mono underline">
                     {{ selectedBooking.phone }}
                   </a>
                 </div>
               </div>
 
-              <div class="grid grid-cols-2 gap-6">
+              <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Date</label>
-                  <p class="font-medium text-slate-200 text-sm">{{ formatDate(selectedBooking.date) }}</p>
+                  <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Date</label>
+                  <p class="font-medium text-slate-800 text-xs">{{ formatDate(selectedBooking.date) }}</p>
                 </div>
                 <div>
-                  <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Time</label>
-                  <p class="font-medium text-slate-200 text-sm font-mono">{{ selectedBooking.time }}</p>
+                  <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Time</label>
+                  <p class="font-medium text-slate-800 text-xs font-mono">{{ selectedBooking.time }}</p>
                 </div>
               </div>
 
               <div v-if="selectedBooking.notes">
-                <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Notes</label>
-                <p class="text-slate-300 bg-slate-950/80 p-4 rounded-xl border border-slate-800 text-xs leading-relaxed">{{ selectedBooking.notes }}</p>
+                <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Notes</label>
+                <p class="text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs leading-relaxed">{{ selectedBooking.notes }}</p>
               </div>
 
-              <div class="grid grid-cols-2 gap-6 text-xs">
+              <div class="grid grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Created</label>
-                  <p class="text-slate-300 font-mono">{{ formatDateTime(selectedBooking.createdAt) }}</p>
+                  <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Created</label>
+                  <p class="text-slate-600 font-mono text-[11px]">{{ formatDateTime(selectedBooking.createdAt) }}</p>
                 </div>
                 <div>
-                  <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Last Updated</label>
-                  <p class="text-slate-300 font-mono">{{ formatDateTime(selectedBooking.updatedAt) }}</p>
+                  <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Last Updated</label>
+                  <p class="text-slate-600 font-mono text-[11px]">{{ formatDateTime(selectedBooking.updatedAt) }}</p>
                 </div>
               </div>
             </div>
 
             <!-- Actions -->
-            <div class="mt-8 flex gap-4 pt-4 border-t border-slate-800">
+            <div class="mt-6 flex gap-3 pt-4 border-t border-slate-100">
               <button
                 v-if="selectedBooking.status === 'pending'"
                 @click="confirmBooking(selectedBooking.id); selectedBooking = null"
-                class="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-xl transition text-sm shadow-lg shadow-emerald-500/20"
+                class="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition text-xs shadow-2xs"
               >
                 Confirm Booking
               </button>
               <button
                 v-if="selectedBooking.status === 'confirmed'"
                 @click="completeBooking(selectedBooking.id); selectedBooking = null"
-                class="flex-1 px-4 py-3 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl transition text-sm shadow-lg shadow-purple-500/20"
+                class="flex-1 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg transition text-xs shadow-2xs"
               >
                 Mark as Completed
               </button>
               <button
                 @click="selectedBooking = null"
-                class="flex-1 px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl transition text-sm border border-slate-700"
+                class="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition text-xs border border-slate-200"
               >
                 Close
               </button>
