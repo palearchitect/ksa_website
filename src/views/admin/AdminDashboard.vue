@@ -1,88 +1,83 @@
 <template>
   <div class="admin-dashboard space-y-6 max-w-[1600px] mx-auto text-slate-800">
     
-    <!-- ── Sub-Header: Title & Quick Metrics (High Contrast Editorial Style) ──── -->
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white/85 backdrop-blur-md p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
-      <!-- Title & Action Tools -->
-      <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
-        <button @click="router.back()" class="w-10 h-10 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 flex items-center justify-center transition shadow-sm" title="Go Back">
-          <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+    <!-- ── 1. Sub-Header: Title & Far-Right Action Icon Group ──── -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-1">
+      <!-- Title & Subtitle (Aligned Far Left) -->
+      <div class="flex items-center gap-3">
+        <button @click="router.back()" class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-2xs" title="Go Back">
+          <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
         </button>
         <div>
-          <h1 class="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">Estate Management</h1>
-          <p class="text-xs font-semibold text-slate-400">Live Operation Metrics & Property Control System</p>
-        </div>
-
-        <!-- Action Cluster Icons -->
-        <div class="hidden xl:flex items-center gap-1.5 bg-slate-100/80 px-3 py-1.5 rounded-2xl border border-slate-200/80 ml-3">
-          <button @click="refreshData" class="p-1.5 text-slate-600 hover:text-orange-600 rounded-xl hover:bg-white transition" title="Refresh Live Data">
-            <svg class="w-4 h-4" :class="{'animate-spin': loadingData}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
-          </button>
-          <router-link to="/dashboard/admin/properties/new" class="p-1.5 text-slate-600 hover:text-orange-600 rounded-xl hover:bg-white transition" title="Add New Property">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-          </router-link>
-          <button @click="showFAQModal = true" class="p-1.5 text-slate-600 hover:text-orange-600 rounded-xl hover:bg-white transition" title="Manage FAQs">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M12 18h.01" /></svg>
-          </button>
+          <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Estate Management</h1>
+          <p class="text-xs text-slate-500 font-normal">Live Operation Metrics & Property Control System</p>
         </div>
       </div>
 
-      <!-- Live KPI Pills -->
-      <div class="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-        <!-- Active Properties Pill -->
-        <div class="bg-slate-950 text-white px-5 py-3 rounded-2xl border border-slate-800 flex items-center gap-4 flex-1 sm:flex-initial shadow-md">
-          <div class="w-9 h-9 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center font-black text-sm">
-            🏠
-          </div>
-          <div>
-            <span class="text-[10px] font-extrabold text-slate-400 block uppercase tracking-wider">Properties</span>
-            <div class="flex items-center gap-2 mt-0.5">
-              <span class="text-xl font-black text-white leading-none">{{ livePropertiesCount }}</span>
-              <span class="px-2 py-0.5 bg-orange-500/20 text-orange-400 font-extrabold text-[10px] rounded-full">
-                Active
-              </span>
-            </div>
+      <!-- Action Button Group (Aligned Far Right) -->
+      <div class="flex items-center gap-2">
+        <button @click="refreshData" class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-2xs" title="Refresh Live Data">
+          <svg class="w-4 h-4" :class="{'animate-spin': loadingData}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
+        </button>
+        <router-link to="/dashboard/admin/properties/new" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition-colors shadow-2xs">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+          <span>Add Property</span>
+        </router-link>
+        <button @click="showFAQModal = true" class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-2xs" title="Manage FAQs">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M12 18h.01" /></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── 2. Standardized KPI Metric Bar (Clean SaaS Tiles) ──── -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <!-- Card 1: Total Properties -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+        <div class="space-y-1">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Total Properties</span>
+          <div class="flex items-baseline gap-2">
+            <span class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{{ livePropertiesCount }}</span>
+            <span class="text-xs font-medium text-emerald-600">+12% this month</span>
           </div>
         </div>
+        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center text-lg font-bold">
+          🏢
+        </div>
+      </div>
 
-        <!-- Viewing Bookings Pill -->
-        <div class="bg-white px-5 py-3 rounded-2xl border border-slate-200/90 shadow-sm flex items-center gap-4 flex-1 sm:flex-initial">
-          <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-sm">
-            📅
-          </div>
-          <div>
-            <span class="text-[10px] font-extrabold text-slate-400 block uppercase tracking-wider">Viewing Bookings</span>
-            <div class="flex items-center gap-2 mt-0.5">
-              <span class="text-xl font-black text-slate-950 leading-none">{{ liveBookingsCount }}</span>
-              <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 font-extrabold text-[10px] rounded-full">
-                Live
-              </span>
-            </div>
+      <!-- Card 2: Viewing Bookings -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+        <div class="space-y-1">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Viewing Bookings</span>
+          <div class="flex items-baseline gap-2">
+            <span class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{{ liveBookingsCount }}</span>
+            <span class="text-xs font-medium text-blue-600">Active schedule</span>
           </div>
         </div>
+        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center text-lg font-bold">
+          📅
+        </div>
+      </div>
 
-        <!-- Projects Pill -->
-        <div class="bg-white px-5 py-3 rounded-2xl border border-slate-200/90 shadow-sm flex items-center gap-4 flex-1 sm:flex-initial">
-          <div class="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-black text-sm">
-            🏗️
+      <!-- Card 3: Ongoing Projects -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+        <div class="space-y-1">
+          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Ongoing Projects</span>
+          <div class="flex items-baseline gap-2">
+            <span class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{{ liveProjectsCount }}</span>
+            <span class="text-xs font-medium text-amber-600">Under construction</span>
           </div>
-          <div>
-            <span class="text-[10px] font-extrabold text-slate-400 block uppercase tracking-wider">Projects</span>
-            <div class="flex items-center gap-2 mt-0.5">
-              <span class="text-xl font-black text-slate-950 leading-none">{{ liveProjectsCount }}</span>
-              <span class="px-2 py-0.5 bg-orange-100 text-orange-700 font-extrabold text-[10px] rounded-full">
-                Ongoing
-              </span>
-            </div>
-          </div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center text-lg font-bold">
+          🏗️
         </div>
       </div>
     </div>
 
     <!-- Alert Notification Banner -->
-    <div v-if="alertMsg" :class="['p-4 rounded-2xl border text-xs font-semibold flex items-center justify-between shadow-sm transition-all', alertIsError ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-emerald-50 border-emerald-200 text-emerald-800']">
+    <div v-if="alertMsg" :class="['p-4 rounded-xl border text-xs font-medium flex items-center justify-between shadow-2xs transition-all', alertIsError ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-emerald-50 border-emerald-200 text-emerald-800']">
       <div class="flex items-center gap-2.5">
         <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         <span>{{ alertMsg }}</span>
@@ -90,21 +85,21 @@
       <button @click="alertMsg = ''" class="text-slate-400 hover:text-slate-700">&times;</button>
     </div>
 
-    <!-- ── Main Bento Grid Layout (High Contrast Editorial) ────────────────── -->
+    <!-- ── 3. Main Dashboard Layout (Linear/SaaS Style) ────────────────── -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       
-      <!-- ── LEFT COLUMN (Sales Analytics, Multi-Tile Slider Marquee, Active Table) ── -->
+      <!-- ── LEFT COLUMN (Analytics, Marquee, Property Directory) ── -->
       <div class="lg:col-span-7 xl:col-span-8 space-y-6">
         
         <!-- 1. Sales Analytics Dual-Line Chart Card -->
-        <div class="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-4">
+        <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-2xs space-y-4">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-lg font-black text-slate-950">Valuation & Sales Analytics</h3>
-              <p class="text-xs font-semibold text-slate-400">Quarterly inquiry volume and revenue metrics</p>
+              <h3 class="text-base font-semibold text-slate-900">Valuation & Sales Analytics</h3>
+              <p class="text-xs text-slate-500 font-normal">Quarterly inquiry volume and revenue metrics</p>
             </div>
             <div class="relative">
-              <select v-model="analyticsPeriod" class="px-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 outline-none cursor-pointer hover:bg-slate-100 transition">
+              <select v-model="analyticsPeriod" class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 outline-none cursor-pointer hover:bg-slate-100 transition">
                 <option value="last_month">Last Month</option>
                 <option value="this_quarter">This Quarter</option>
                 <option value="this_year">This Year</option>
@@ -115,70 +110,70 @@
           <!-- Dual-Line SVG Chart Container -->
           <div class="relative pt-4 pb-2">
             <!-- Floating Tooltip Legend -->
-            <div class="absolute top-2 right-4 sm:right-12 bg-slate-950 text-white px-4 py-2 rounded-2xl shadow-lg flex items-center gap-4 text-xs font-bold z-10">
+            <div class="absolute top-2 right-4 bg-white border border-slate-200/80 rounded-lg p-2 px-3 shadow-2xs flex items-center gap-4 text-xs font-medium z-10">
               <div class="flex items-center gap-1.5">
-                <span class="w-3 h-3 rounded-full bg-orange-500"></span>
-                <span class="text-slate-400">Revenue</span>
-                <span class="text-white font-extrabold ml-1">₦485.2M</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
+                <span class="text-slate-500">Revenue:</span>
+                <span class="text-slate-900 font-semibold">₦485.2M</span>
               </div>
               <div class="flex items-center gap-1.5">
-                <span class="w-3 h-3 rounded-full bg-blue-500"></span>
-                <span class="text-slate-400">Inquiries</span>
-                <span class="text-white font-extrabold ml-1">1,240</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                <span class="text-slate-500">Inquiries:</span>
+                <span class="text-slate-900 font-semibold">1,240</span>
               </div>
             </div>
 
             <svg class="w-full h-48 sm:h-56 overflow-visible" viewBox="0 0 700 200">
               <defs>
                 <linearGradient id="incomeGradKSA" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#f96816" stop-opacity="0.3"/>
+                  <stop offset="0%" stop-color="#f96816" stop-opacity="0.08"/>
                   <stop offset="100%" stop-color="#f96816" stop-opacity="0"/>
                 </linearGradient>
                 <linearGradient id="expenseGradKSA" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stop-color="#2563eb" stop-opacity="0.2"/>
+                  <stop offset="0%" stop-color="#2563eb" stop-opacity="0.06"/>
                   <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
                 </linearGradient>
               </defs>
 
-              <line x1="0" y1="20" x2="700" y2="20" stroke="#f1f5f9" stroke-width="1.5" stroke-dasharray="4 4" />
-              <line x1="0" y1="70" x2="700" y2="70" stroke="#f1f5f9" stroke-width="1.5" stroke-dasharray="4 4" />
-              <line x1="0" y1="120" x2="700" y2="120" stroke="#f1f5f9" stroke-width="1.5" stroke-dasharray="4 4" />
-              <line x1="0" y1="170" x2="700" y2="170" stroke="#cbd5e1" stroke-width="1.5" />
+              <line x1="0" y1="20" x2="700" y2="20" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="3 3" />
+              <line x1="0" y1="70" x2="700" y2="70" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="3 3" />
+              <line x1="0" y1="120" x2="700" y2="120" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="3 3" />
+              <line x1="0" y1="170" x2="700" y2="170" stroke="#e2e8f0" stroke-width="1" />
 
               <path d="M 0,140 Q 100,60 200,70 T 400,20 T 600,60 L 700,65 L 700,170 L 0,170 Z" fill="url(#incomeGradKSA)" />
               <path d="M 0,160 Q 100,120 200,130 T 400,110 T 600,130 L 700,140 L 700,170 L 0,170 Z" fill="url(#expenseGradKSA)" />
 
-              <path d="M 0,140 Q 100,60 200,70 T 400,20 T 600,60 L 700,65" fill="none" stroke="#f96816" stroke-width="4" stroke-linecap="round" />
-              <path d="M 0,160 Q 100,120 200,130 T 400,110 T 600,130 L 700,140" fill="none" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round" />
+              <path d="M 0,140 Q 100,60 200,70 T 400,20 T 600,60 L 700,65" fill="none" stroke="#f96816" stroke-width="2" stroke-linecap="round" />
+              <path d="M 0,160 Q 100,120 200,130 T 400,110 T 600,130 L 700,140" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" />
 
-              <circle cx="400" cy="20" r="7" fill="#f96816" stroke="#ffffff" stroke-width="3" />
+              <circle cx="400" cy="20" r="5" fill="#f96816" stroke="#ffffff" stroke-width="2" />
             </svg>
 
-            <div class="flex justify-between text-[11px] font-bold text-slate-400 pt-2 px-1">
-              <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span class="text-orange-600 font-black">Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+            <div class="flex justify-between text-[11px] font-medium text-slate-400 pt-2 px-1">
+              <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span class="text-slate-900 font-semibold">Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
             </div>
           </div>
         </div>
 
-        <!-- 2. Multi-Tile Horizontal Slider Marquee Card (Mandatory Rule [user_global]) -->
-        <div class="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-4 relative overflow-hidden">
+        <!-- 2. Multi-Tile Horizontal Slider Marquee Card -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-2xs space-y-4 relative overflow-hidden">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-lg font-black text-slate-950 flex items-center gap-2">
+              <h3 class="text-base font-semibold text-slate-900 flex items-center gap-2">
                 <span>Featured Property Marquee</span>
-                <span class="px-2.5 py-0.5 bg-orange-100 text-orange-700 text-[10px] font-extrabold rounded-full">Interactive</span>
+                <span class="px-2 py-0.5 bg-slate-100 text-slate-700 text-[10px] font-medium rounded-md">Interactive</span>
               </h3>
-              <p class="text-xs font-semibold text-slate-400">Auto-glide ticker with pause-on-hover & manual navigation</p>
+              <p class="text-xs text-slate-500 font-normal">Auto-glide ticker with pause-on-hover & manual navigation</p>
             </div>
             <!-- Slider Controls -->
-            <div class="flex items-center gap-2">
-              <button @click="toggleMarqueePause" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition" :title="isMarqueePaused ? 'Resume Auto-Glide' : 'Pause Auto-Glide'">
-                <span class="text-xs font-black">{{ isMarqueePaused ? '▶ Play' : '⏸ Pause' }}</span>
+            <div class="flex items-center gap-1.5">
+              <button @click="toggleMarqueePause" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition" :title="isMarqueePaused ? 'Resume Auto-Glide' : 'Pause Auto-Glide'">
+                <span>{{ isMarqueePaused ? '▶ Play' : '⏸ Pause' }}</span>
               </button>
-              <button @click="scrollMarqueeLeft" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-700 flex items-center justify-center font-bold text-sm transition shadow-sm">
+              <button @click="scrollMarqueeLeft" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-sm transition">
                 ←
               </button>
-              <button @click="scrollMarqueeRight" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-700 flex items-center justify-center font-bold text-sm transition shadow-sm">
+              <button @click="scrollMarqueeRight" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-sm transition">
                 →
               </button>
             </div>
@@ -195,30 +190,30 @@
               ref="marqueeTrack"
               @mouseenter="isHovered = true"
               @mouseleave="isHovered = false"
-              class="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth py-2 px-1 cursor-grab active:cursor-grabbing"
+              class="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth py-1 px-0.5 cursor-grab active:cursor-grabbing"
             >
               <div
                 v-for="prop in activeDisplayProperties"
                 :key="prop.id"
-                class="min-w-[280px] max-w-[300px] bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex-shrink-0 hover:border-orange-500 hover:shadow-md transition-all duration-300 space-y-3"
+                class="min-w-[270px] max-w-[290px] bg-white border border-slate-200/80 rounded-xl p-3.5 flex-shrink-0 hover:border-slate-300 transition-all space-y-2.5 shadow-2xs"
               >
-                <div class="relative rounded-xl overflow-hidden h-36">
+                <div class="relative rounded-lg overflow-hidden h-36 bg-slate-100">
                   <img :src="prop.image_url || prop.image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80'" class="w-full h-full object-cover" />
-                  <span class="absolute top-2 left-2 px-2.5 py-0.5 bg-slate-950/80 backdrop-blur-md text-white font-extrabold text-[10px] rounded-full">
+                  <span class="absolute top-2 left-2 px-2 py-0.5 bg-slate-900/80 backdrop-blur-md text-white font-medium text-[10px] rounded-md">
                     {{ prop.status || 'For Sale' }}
                   </span>
-                  <span class="absolute bottom-2 right-2 px-2.5 py-0.5 bg-orange-500 text-white font-black text-xs rounded-lg shadow-md">
+                  <span class="absolute bottom-2 right-2 px-2 py-0.5 bg-slate-900/90 text-white font-semibold text-xs rounded-md shadow-2xs">
                     {{ prop.price || 'Contact for Price' }}
                   </span>
                 </div>
                 <div>
-                  <h4 class="text-sm font-black text-slate-950 truncate">{{ prop.title }}</h4>
-                  <p class="text-[11px] font-semibold text-slate-500 truncate">{{ prop.location || 'Lekki Phase 1, Lagos' }}</p>
+                  <h4 class="text-xs font-semibold text-slate-900 truncate">{{ prop.title }}</h4>
+                  <p class="text-[11px] text-slate-500 truncate">{{ prop.location || 'Lekki Phase 1, Lagos' }}</p>
                 </div>
-                <div class="flex items-center justify-between text-[11px] font-bold text-slate-600 pt-1 border-t border-slate-200/60">
+                <div class="flex items-center justify-between text-[11px] text-slate-600 pt-2 border-t border-slate-100 font-medium">
                   <span>🛏 {{ prop.bedrooms || 4 }} Beds</span>
                   <span>🚿 {{ prop.bathrooms || 3 }} Baths</span>
-                  <router-link :to="`/properties/${prop.id}`" class="text-orange-600 font-extrabold hover:underline">View →</router-link>
+                  <router-link :to="`/properties/${prop.id}`" class="text-orange-600 font-semibold hover:underline">View →</router-link>
                 </div>
               </div>
             </div>
@@ -226,11 +221,11 @@
         </div>
 
         <!-- 3. Active Listings Table Card -->
-        <div class="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-4">
+        <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-2xs space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 class="text-lg font-black text-slate-950">Active Property Directory</h3>
-              <p class="text-xs font-semibold text-slate-400">Manage live properties directly from PostgreSQL state</p>
+              <h3 class="text-base font-semibold text-slate-900">Active Property Directory</h3>
+              <p class="text-xs text-slate-500 font-normal">Manage live properties directly from PostgreSQL state</p>
             </div>
             <div class="flex items-center gap-2">
               <div class="relative">
@@ -238,11 +233,11 @@
                   type="text"
                   v-model="tableSearchQuery"
                   placeholder="Search listings..."
-                  class="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs outline-none focus:border-orange-500 focus:bg-white transition w-48"
+                  class="pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-slate-300 focus:bg-white transition w-48"
                 />
                 <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
               </div>
-              <router-link to="/dashboard/admin/properties" class="p-1.5 text-slate-600 hover:text-orange-600 transition">
+              <router-link to="/dashboard/admin/properties" class="p-1.5 text-slate-500 hover:text-slate-900 transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
               </router-link>
             </div>
@@ -252,32 +247,32 @@
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
-                <tr class="border-b border-slate-200 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  <th class="py-3 px-2">Property</th>
-                  <th class="py-3 px-2">Type</th>
-                  <th class="py-3 px-2">Price</th>
-                  <th class="py-3 px-2">Status</th>
-                  <th class="py-3 px-2 text-right">Action</th>
+                <tr class="border-b border-slate-200/80 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+                  <th class="py-2.5 px-2">Property</th>
+                  <th class="py-2.5 px-2">Type</th>
+                  <th class="py-2.5 px-2">Price</th>
+                  <th class="py-2.5 px-2">Status</th>
+                  <th class="py-2.5 px-2 text-right">Action</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 text-xs font-semibold">
-                <tr v-for="item in filteredActiveListings" :key="item.id" class="hover:bg-slate-50 transition-colors">
-                  <td class="py-3.5 px-2 flex items-center gap-3">
-                    <img :src="item.image_url || item.image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=150&q=80'" class="w-10 h-10 rounded-xl object-cover border border-slate-200 flex-shrink-0" />
+              <tbody class="divide-y divide-slate-100 text-xs">
+                <tr v-for="item in filteredActiveListings" :key="item.id" class="hover:bg-slate-50/60 transition-colors">
+                  <td class="py-3 px-2 flex items-center gap-3">
+                    <img :src="item.image_url || item.image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=150&q=80'" class="w-9 h-9 rounded-lg object-cover border border-slate-200 flex-shrink-0" />
                     <div>
-                      <span class="font-black text-slate-950 block leading-tight">{{ item.title }}</span>
-                      <span class="text-[10px] font-medium text-slate-400 block">{{ item.location || 'Lekki Phase 1, Lagos' }}</span>
+                      <span class="font-semibold text-slate-900 block leading-tight">{{ item.title }}</span>
+                      <span class="text-[11px] text-slate-400 block">{{ item.location || 'Lekki Phase 1, Lagos' }}</span>
                     </div>
                   </td>
-                  <td class="py-3.5 px-2 text-slate-600 font-bold">{{ item.type || 'Residential' }}</td>
-                  <td class="py-3.5 px-2 font-black text-slate-950">{{ item.price || '₦150M' }}</td>
-                  <td class="py-3.5 px-2">
-                    <span :class="['px-3 py-1 rounded-full text-[10px] font-black inline-block', item.status === 'For Sale' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700']">
+                  <td class="py-3 px-2 text-slate-600 font-medium">{{ item.type || 'Residential' }}</td>
+                  <td class="py-3 px-2 font-semibold text-slate-900">{{ item.price || '₦150M' }}</td>
+                  <td class="py-3 px-2">
+                    <span :class="['px-2.5 py-0.5 rounded-md text-[10px] font-medium inline-block border', item.status === 'For Sale' ? 'bg-slate-100 text-slate-800 border-slate-200' : 'bg-blue-50 text-blue-700 border-blue-200/60']">
                       {{ item.status || 'Active' }}
                     </span>
                   </td>
-                  <td class="py-3.5 px-2 text-right space-x-1">
-                    <router-link :to="`/dashboard/admin/properties/edit/${item.id}`" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-900 hover:text-white rounded-lg text-[10px] font-bold transition">
+                  <td class="py-3 px-2 text-right">
+                    <router-link :to="`/dashboard/admin/properties/edit/${item.id}`" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-[11px] font-medium transition">
                       Edit
                     </router-link>
                   </td>
@@ -289,27 +284,27 @@
 
       </div>
 
-      <!-- ── RIGHT COLUMN (Appointments, Reminders, FAQ Database) ────────── -->
+      <!-- ── RIGHT COLUMN (Appointments, FAQ Database) ────────── -->
       <div class="lg:col-span-5 xl:col-span-4 space-y-6">
         
         <!-- 1. Upcoming Viewing Appointments -->
-        <div class="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-4">
+        <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-2xs space-y-4">
           <div class="flex items-center justify-between">
-            <h3 class="text-base font-black text-slate-950">Viewing Appointments</h3>
-            <span class="px-2.5 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-extrabold rounded-full">Live Schedule</span>
+            <h3 class="text-base font-semibold text-slate-900">Viewing Appointments</h3>
+            <span class="px-2.5 py-0.5 bg-slate-100 text-slate-600 text-[11px] font-medium rounded-md">Live Schedule</span>
           </div>
 
-          <!-- Appointments List -->
-          <div class="space-y-3">
-            <div v-for="app in liveBookingsList" :key="app.id" class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/70 space-y-1 hover:border-orange-400 transition">
+          <!-- Appointments List with Calmed Badges -->
+          <div class="space-y-2.5">
+            <div v-for="app in liveBookingsList" :key="app.id" class="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/60 space-y-1.5 hover:border-slate-300 transition-all">
               <div class="flex items-center justify-between">
-                <h4 class="text-xs font-black text-slate-950">{{ app.name || app.title || 'Site Tour Appointment' }}</h4>
-                <span :class="['px-2 py-0.5 rounded-md text-[9px] font-extrabold uppercase', app.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700']">
+                <h4 class="text-xs font-semibold text-slate-900">{{ app.name || app.title || 'Site Tour Appointment' }}</h4>
+                <span :class="['px-2 py-0.5 rounded-md text-[10px] font-medium border uppercase tracking-wider', app.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-amber-50 text-amber-700 border-amber-200/60']">
                   {{ app.status || 'pending' }}
                 </span>
               </div>
-              <p class="text-[11px] text-slate-500 font-medium leading-tight">{{ app.email || app.address || 'client@ksavaluers.com' }}</p>
-              <div class="text-[10px] font-bold text-slate-400 pt-1 flex items-center gap-2">
+              <p class="text-xs text-slate-500 font-normal leading-tight">{{ app.email || app.address || 'client@ksavaluers.com' }}</p>
+              <div class="text-[11px] font-medium text-slate-400 pt-1 flex items-center gap-3">
                 <span>📅 {{ app.booking_date || '2026-09-25' }}</span>
                 <span>⏰ {{ app.preferred_time || '10:00 AM' }}</span>
               </div>
@@ -317,14 +312,14 @@
           </div>
         </div>
 
-        <!-- 2. FAQ Directory CRUD Card -->
-        <div class="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-sm space-y-3">
+        <!-- 2. FAQ Directory Management Card -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-2xs space-y-3">
           <div class="flex items-center justify-between">
             <div>
-              <h3 class="text-base font-black text-slate-950">FAQ Management</h3>
-              <p class="text-[11px] text-slate-400">Support question database</p>
+              <h3 class="text-base font-semibold text-slate-900">FAQ Management</h3>
+              <p class="text-xs text-slate-500 font-normal">Support question database</p>
             </div>
-            <button @click="openFAQModal()" class="px-3.5 py-1.5 bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-sm transition">
+            <button @click="openFAQModal()" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs rounded-lg shadow-2xs transition-colors">
               + Add FAQ
             </button>
           </div>
@@ -332,12 +327,12 @@
           <div class="divide-y divide-slate-100 max-h-56 overflow-y-auto">
             <div v-for="f in faqs" :key="f.id" class="py-2.5 flex items-center justify-between text-xs">
               <div class="truncate max-w-[200px]">
-                <span class="font-bold text-slate-950 block truncate">{{ f.question }}</span>
-                <span class="text-[10px] text-slate-400 truncate block">{{ f.answer }}</span>
+                <span class="font-semibold text-slate-900 block truncate">{{ f.question }}</span>
+                <span class="text-[11px] text-slate-500 truncate block">{{ f.answer }}</span>
               </div>
               <div class="flex items-center gap-1.5 flex-shrink-0">
-                <button @click="openFAQModal(f)" class="px-2 py-0.5 bg-slate-100 text-slate-800 rounded-lg text-[10px] font-bold">Edit</button>
-                <button @click="handleDeleteFAQ(f.id)" class="px-2 py-0.5 bg-rose-100 text-rose-700 rounded-lg text-[10px] font-bold">Delete</button>
+                <button @click="openFAQModal(f)" class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md text-[11px] font-medium">Edit</button>
+                <button @click="handleDeleteFAQ(f.id)" class="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-200/60 rounded-md text-[11px] font-medium">Delete</button>
               </div>
             </div>
           </div>
@@ -347,29 +342,29 @@
 
     </div>
 
-    <!-- FAQ Modal -->
+    <!-- FAQ Modal Overlay -->
     <div v-if="showFAQModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 border border-slate-100 space-y-4">
+      <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 border border-slate-200 space-y-4">
         <div class="flex justify-between items-center pb-3 border-b border-slate-100">
-          <h3 class="text-base font-black text-slate-950">{{ modalMode === 'create' ? 'Create FAQ Entry' : 'Edit FAQ Entry' }}</h3>
+          <h3 class="text-sm font-semibold text-slate-900">{{ modalMode === 'create' ? 'Create FAQ Entry' : 'Edit FAQ Entry' }}</h3>
           <button @click="showFAQModal = false" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
         </div>
         <form @submit.prevent="handleSaveFAQ" class="space-y-3 text-xs">
           <div>
-            <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wider text-[10px]">Question</label>
-            <input type="text" v-model="faqForm.question" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-orange-500 focus:bg-white transition" />
+            <label class="block font-medium text-slate-700 mb-1 uppercase tracking-wider text-[10px]">Question</label>
+            <input type="text" v-model="faqForm.question" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-slate-300 focus:bg-white transition" />
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wider text-[10px]">Answer</label>
-            <textarea v-model="faqForm.answer" required rows="3" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-orange-500 focus:bg-white transition resize-none"></textarea>
+            <label class="block font-medium text-slate-700 mb-1 uppercase tracking-wider text-[10px]">Answer</label>
+            <textarea v-model="faqForm.answer" required rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-slate-300 focus:bg-white transition resize-none"></textarea>
           </div>
           <div>
-            <label class="block font-bold text-slate-700 mb-1 uppercase tracking-wider text-[10px]">Sort Order</label>
-            <input type="number" v-model="faqForm.sort_order" min="0" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-orange-500 focus:bg-white transition" />
+            <label class="block font-medium text-slate-700 mb-1 uppercase tracking-wider text-[10px]">Sort Order</label>
+            <input type="number" v-model="faqForm.sort_order" min="0" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:border-slate-300 focus:bg-white transition" />
           </div>
           <div class="flex justify-end gap-2 pt-3">
-            <button type="button" @click="showFAQModal = false" class="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl">Cancel</button>
-            <button type="submit" class="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl shadow-md">Save FAQ</button>
+            <button type="button" @click="showFAQModal = false" class="px-3.5 py-1.5 bg-slate-100 text-slate-700 font-medium rounded-lg text-xs">Cancel</button>
+            <button type="submit" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg text-xs shadow-2xs">Save FAQ</button>
           </div>
         </form>
       </div>

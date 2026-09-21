@@ -1,117 +1,117 @@
 <template>
   <div class="space-y-6 max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-blue-950/80 via-slate-950/90 to-orange-950/80 backdrop-blur-2xl p-6 rounded-2xl border border-white/15 shadow-2xl">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-1">
       <div>
-        <h1 class="text-2xl font-extrabold text-white tracking-tight bg-gradient-to-r from-blue-300 via-white to-orange-300 bg-clip-text text-transparent">Property Listings</h1>
-        <p class="text-slate-300 text-xs mt-1 font-medium">{{ propertyStore.totalProperties }} total properties registered</p>
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Property Listings</h1>
+        <p class="text-xs text-slate-500 font-normal">{{ propertyStore.totalProperties }} total properties registered</p>
       </div>
       <router-link
         to="/dashboard/admin/properties/new"
-        class="inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-orange-500 to-blue-600 hover:from-orange-400 hover:to-blue-500 text-white font-bold rounded-xl shadow-md transition-all text-xs border border-white/20"
+        class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg text-xs transition-colors shadow-2xs"
       >
-        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Add Property Listing
+        <span>Add Property Listing</span>
       </router-link>
     </div>
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-gradient-to-br from-blue-950/75 via-slate-950/85 to-orange-950/70 backdrop-blur-2xl rounded-xl p-4 border border-white/15 shadow-lg">
-        <p class="text-[11px] font-semibold text-slate-300 uppercase tracking-wider">Total Properties</p>
-        <p class="text-2xl font-extrabold text-white mt-1">{{ propertyStore.totalProperties }}</p>
+      <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-2xs">
+        <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Total Properties</p>
+        <p class="text-2xl font-bold text-slate-900 mt-1">{{ propertyStore.totalProperties }}</p>
       </div>
-      <div class="bg-gradient-to-br from-blue-950/75 via-slate-950/85 to-orange-950/70 backdrop-blur-2xl rounded-xl p-4 border border-emerald-500/30 shadow-lg">
-        <p class="text-[11px] font-semibold text-emerald-400 uppercase tracking-wider">For Sale</p>
-        <p class="text-2xl font-extrabold text-white mt-1">{{ propertyStore.propertiesForSale.length }}</p>
+      <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-2xs">
+        <p class="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider">For Sale</p>
+        <p class="text-2xl font-bold text-slate-900 mt-1">{{ propertyStore.propertiesForSale.length }}</p>
       </div>
-      <div class="bg-gradient-to-br from-blue-950/75 via-slate-950/85 to-orange-950/70 backdrop-blur-2xl rounded-xl p-4 border border-blue-500/30 shadow-lg">
-        <p class="text-[11px] font-semibold text-blue-400 uppercase tracking-wider">For Rent</p>
-        <p class="text-2xl font-extrabold text-white mt-1">{{ propertyStore.propertiesForRent.length }}</p>
+      <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-2xs">
+        <p class="text-[11px] font-semibold text-blue-600 uppercase tracking-wider">For Rent</p>
+        <p class="text-2xl font-bold text-slate-900 mt-1">{{ propertyStore.propertiesForRent.length }}</p>
       </div>
-      <div class="bg-gradient-to-br from-blue-950/75 via-slate-950/85 to-orange-950/70 backdrop-blur-2xl rounded-xl p-4 border border-yellow-500/30 shadow-lg">
-        <p class="text-[11px] font-semibold text-yellow-400 uppercase tracking-wider">Featured</p>
-        <p class="text-2xl font-extrabold text-white mt-1">{{ propertyStore.featuredProperties.length }}</p>
+      <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-2xs">
+        <p class="text-[11px] font-semibold text-amber-600 uppercase tracking-wider">Featured</p>
+        <p class="text-2xl font-bold text-slate-900 mt-1">{{ propertyStore.featuredProperties.length }}</p>
       </div>
     </div>
 
     <!-- Filters -->
-    <div class="bg-gradient-to-br from-blue-950/75 via-slate-950/85 to-orange-950/70 backdrop-blur-2xl rounded-xl p-4 border border-white/15 shadow-xl">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+    <div class="bg-white rounded-xl p-4 border border-slate-200/80 shadow-2xs">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
         <input
           v-model="propertyStore.searchQuery"
           type="text"
           placeholder="Search properties by title or location..."
-          class="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white outline-none focus:border-orange-400"
+          class="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:border-slate-300 focus:bg-white transition"
         >
-        <select v-model="propertyStore.filters.status" class="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white outline-none focus:border-orange-400 cursor-pointer">
+        <select v-model="propertyStore.filters.status" class="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:border-slate-300 focus:bg-white transition cursor-pointer">
           <option value="all">All Statuses</option>
-          <option v-for="s in propertyStore.PROPERTY_STATUS" :key="s.value" :value="s.value" class="bg-slate-900 text-white">{{ s.label }}</option>
+          <option v-for="s in propertyStore.PROPERTY_STATUS" :key="s.value" :value="s.value">{{ s.label }}</option>
         </select>
-        <select v-model="propertyStore.filters.type" class="px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-white outline-none focus:border-orange-400 cursor-pointer">
+        <select v-model="propertyStore.filters.type" class="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 outline-none focus:border-slate-300 focus:bg-white transition cursor-pointer">
           <option value="all">All Property Types</option>
-          <option v-for="t in propertyStore.PROPERTY_TYPES" :key="t" :value="t" class="bg-slate-900 text-white">{{ t }}</option>
+          <option v-for="t in propertyStore.PROPERTY_TYPES" :key="t" :value="t">{{ t }}</option>
         </select>
       </div>
     </div>
 
     <!-- Properties Table -->
-    <div class="bg-gradient-to-br from-blue-950/75 via-slate-950/85 to-orange-950/70 backdrop-blur-2xl rounded-2xl border border-white/15 overflow-hidden shadow-2xl">
+    <div class="bg-white rounded-xl border border-slate-200/80 overflow-hidden shadow-2xs">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-slate-950/70 border-b border-white/10 text-[11px] font-bold uppercase tracking-wider text-slate-300">
-              <th class="px-5 py-3.5">Property</th>
-              <th class="px-5 py-3.5">Location</th>
-              <th class="px-5 py-3.5">Price</th>
-              <th class="px-5 py-3.5">Status</th>
-              <th class="px-5 py-3.5">Type</th>
-              <th class="px-5 py-3.5 text-right">Actions</th>
+            <tr class="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-medium uppercase tracking-wider text-slate-400">
+              <th class="px-5 py-3">Property</th>
+              <th class="px-5 py-3">Location</th>
+              <th class="px-5 py-3">Price</th>
+              <th class="px-5 py-3">Status</th>
+              <th class="px-5 py-3">Type</th>
+              <th class="px-5 py-3 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-white/10 text-xs">
+          <tbody class="divide-y divide-slate-100 text-xs">
             <tr v-if="propertyStore.filteredProperties.length === 0">
               <td colspan="6" class="px-6 py-12 text-center text-slate-400">
-                <p class="text-base font-bold mb-1 text-white">No properties found</p>
-                <p class="text-xs text-slate-400">Try adjusting your filters or add a new property listing.</p>
+                <p class="text-sm font-semibold mb-1 text-slate-900">No properties found</p>
+                <p class="text-xs text-slate-500">Try adjusting your filters or add a new property listing.</p>
               </td>
             </tr>
-            <tr v-for="property in propertyStore.filteredProperties" :key="property.id" class="hover:bg-slate-900/60 transition-colors">
-              <td class="px-5 py-4">
+            <tr v-for="property in propertyStore.filteredProperties" :key="property.id" class="hover:bg-slate-50/60 transition-colors">
+              <td class="px-5 py-3.5">
                 <div class="flex items-center gap-3">
                   <img
                     :src="property.image || 'https://via.placeholder.com/60x40?text=No+Image'"
                     :alt="property.title"
-                    class="w-14 h-10 object-cover rounded-lg border border-white/10"
+                    class="w-12 h-9 object-cover rounded-lg border border-slate-200"
                   >
                   <div>
-                    <p class="font-bold text-white">{{ property.title }}</p>
-                    <p class="text-[11px] text-slate-400">{{ property.bedrooms }} bed &middot; {{ property.bathrooms }} bath</p>
+                    <p class="font-semibold text-slate-900 leading-tight">{{ property.title }}</p>
+                    <p class="text-[11px] text-slate-500">{{ property.bedrooms }} bed &middot; {{ property.bathrooms }} bath</p>
                   </div>
                 </div>
               </td>
-              <td class="px-5 py-4 text-slate-300">{{ property.location }}</td>
-              <td class="px-5 py-4 font-bold text-orange-400">{{ propertyStore.formatPrice(property.price) }}</td>
-              <td class="px-5 py-4">
-                <span :class="getStatusClass(property.status)" class="px-2.5 py-1 text-[10px] font-extrabold rounded-full">
+              <td class="px-5 py-3.5 text-slate-600">{{ property.location }}</td>
+              <td class="px-5 py-3.5 font-semibold text-slate-900">{{ propertyStore.formatPrice(property.price) }}</td>
+              <td class="px-5 py-3.5">
+                <span :class="getStatusClass(property.status)" class="px-2.5 py-0.5 text-[10px] font-medium rounded-md inline-block border">
                   {{ property.status }}
                 </span>
               </td>
-              <td class="px-5 py-4 text-slate-300">{{ property.type }}</td>
-              <td class="px-5 py-4 text-right">
-                <div class="flex items-center justify-end gap-2">
+              <td class="px-5 py-3.5 text-slate-600">{{ property.type }}</td>
+              <td class="px-5 py-3.5 text-right">
+                <div class="flex items-center justify-end gap-1.5">
                   <router-link
                     :to="`/dashboard/admin/properties/${property.id}`"
-                    class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 text-[11px] font-semibold rounded-lg transition"
+                    class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium rounded-md transition"
                   >
                     Edit
                   </router-link>
                   <button
                     @click="toggleFeatured(property.id)"
-                    :class="property.featured ? 'text-yellow-400 bg-yellow-950/40 border-yellow-800' : 'text-slate-400 bg-slate-900 border-slate-700'"
-                    class="p-1 rounded-lg border hover:text-yellow-300 text-xs font-medium"
+                    :class="property.featured ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-slate-400 bg-slate-100 border-slate-200'"
+                    class="p-1 rounded-md border hover:text-amber-600 text-xs font-medium"
                     :title="property.featured ? 'Remove from featured' : 'Mark as featured'"
                   >
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
@@ -120,7 +120,7 @@
                   </button>
                   <button
                     @click="deleteProperty(property.id)"
-                    class="px-2.5 py-1 bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/60 text-[11px] font-semibold rounded-lg transition"
+                    class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60 text-[11px] font-medium rounded-md transition"
                   >
                     Delete
                   </button>
@@ -146,12 +146,12 @@ onMounted(() => {
 
 const getStatusClass = (status) => {
   const classes = {
-    'For Sale': 'bg-emerald-950/80 text-emerald-300 border border-emerald-800',
-    'For Rent': 'bg-blue-950/80 text-blue-300 border border-blue-800',
-    'Sold': 'bg-slate-900 text-slate-400 border border-slate-700',
-    'Rented': 'bg-purple-950/80 text-purple-300 border border-purple-800'
+    'For Sale': 'bg-slate-100 text-slate-800 border-slate-200',
+    'For Rent': 'bg-blue-50 text-blue-700 border-blue-200/60',
+    'Sold': 'bg-slate-50 text-slate-500 border-slate-200',
+    'Rented': 'bg-purple-50 text-purple-700 border-purple-200/60'
   }
-  return classes[status] || 'bg-slate-900 text-slate-300'
+  return classes[status] || 'bg-slate-100 text-slate-700 border-slate-200'
 }
 
 const toggleFeatured = async (id) => {

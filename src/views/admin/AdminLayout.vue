@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-layout-wrapper min-h-screen bg-transparent text-slate-800 font-sans selection:bg-orange-500 selection:text-white relative">
+  <div class="admin-layout-wrapper min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-orange-500 selection:text-white relative">
     
     <!-- Impersonation Warning Bar -->
     <div v-if="user?.impersonatorId" class="impersonation-warning-bar bg-gradient-to-r from-orange-500 via-amber-600 to-red-600 text-white px-6 py-2.5 flex items-center justify-between shadow-md relative z-50 text-xs font-semibold">
@@ -16,57 +16,57 @@
       </button>
     </div>
 
-    <!-- ── Top Header Navigation Bar (KSA Valuers Brand Preset) ─────────── -->
-    <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 shadow-[0_2px_15px_rgba(0,0,0,0.03)] transition-all">
-      <div class="max-w-[1600px] mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-4">
+    <!-- ── Top Header Navigation Bar (Clean Edge-to-Edge SaaS Header) ─────────── -->
+    <header class="sticky top-0 z-40 bg-white border-b border-slate-200/80 shadow-2xs transition-all">
+      <div class="max-w-[1600px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
         
         <!-- Left: Brand Logo & Title -->
         <div class="flex items-center gap-3">
           <router-link to="/dashboard/admin" class="flex items-center gap-2.5 group">
-            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-orange-600 via-orange-500 to-amber-500 hover:from-orange-500 hover:to-orange-600 transition-all flex items-center justify-center text-white shadow-md shadow-orange-500/25">
+            <div class="w-9 h-9 rounded-lg bg-slate-900 hover:bg-slate-800 transition-all flex items-center justify-center text-white shadow-2xs">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
             </div>
             <div class="flex flex-col">
-              <span class="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-1 group-hover:text-orange-500 transition-colors">
+              <span class="text-base sm:text-lg font-bold text-slate-900 tracking-tight flex items-center gap-1 group-hover:text-orange-600 transition-colors">
                 KSA Valuers
               </span>
-              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest -mt-0.5">Estate Management</span>
+              <span class="text-[10px] font-medium text-slate-400 uppercase tracking-wider -mt-0.5">Estate Management</span>
             </div>
           </router-link>
         </div>
 
-        <!-- Center: Floating Pill Navigation Tabs (KSA Orange & Navy) -->
-        <nav class="hidden md:flex items-center gap-1.5 bg-slate-100/90 p-1.5 rounded-full border border-slate-200/70 shadow-inner">
+        <!-- Center: Integrated Navigation Tabs (Subtle Slate/White Fill) -->
+        <nav class="hidden md:flex items-center gap-1 bg-slate-100/80 p-1 rounded-lg border border-slate-200/60">
           <router-link
             v-for="item in navItems"
             :key="item.to"
             :to="item.to"
-            class="px-5 py-2 rounded-full text-xs font-bold transition-all duration-200 flex items-center gap-2 whitespace-nowrap"
-            :class="isActive(item.match) ? 'bg-orange-500 text-white shadow-md shadow-orange-500/30' : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'"
+            class="px-4 py-1.5 rounded-md text-xs transition-all duration-200 whitespace-nowrap"
+            :class="isActive(item.match) ? 'bg-white text-slate-900 font-semibold shadow-2xs border border-slate-200/80' : 'text-slate-600 hover:text-slate-900 hover:bg-white/50 font-medium'"
           >
             <span>{{ item.label }}</span>
           </router-link>
         </nav>
 
-        <!-- Right: Actions & User Menu -->
-        <div class="flex items-center gap-2.5 sm:gap-3.5">
-          <!-- KSA Orange Action Button -->
+        <!-- Right: Cohesive 36px Action Icon Group & User Menu -->
+        <div class="flex items-center gap-2">
+          <!-- Add New Property Button -->
           <router-link
             to="/dashboard/admin/properties/new"
-            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center transition-all shadow-md shadow-orange-500/25 hover:scale-105"
+            class="w-9 h-9 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-2xs"
             title="Add New Listing"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
             </svg>
           </router-link>
 
-          <!-- Search Button -->
+          <!-- Quick Search Button -->
           <button
             @click="showSearchModal = true"
-            class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center transition shadow-sm"
+            class="w-9 h-9 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-2xs"
             title="Search"
           >
             <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -77,27 +77,27 @@
           <!-- Notifications Bell -->
           <div class="relative">
             <button
-              class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center transition shadow-sm relative"
+              class="w-9 h-9 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-2xs relative"
               title="Notifications"
             >
               <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
               </svg>
-              <span class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-orange-600 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white">7</span>
+              <span class="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white">7</span>
             </button>
           </div>
 
           <!-- User Profile & Dropdown -->
-          <div class="relative group">
-            <div class="flex items-center gap-2.5 p-1 pl-1.5 pr-2.5 bg-white border border-slate-200/80 rounded-full shadow-sm hover:border-orange-400 transition cursor-pointer">
+          <div class="relative group ml-1">
+            <div class="flex items-center gap-2 p-1 pl-1.5 pr-2.5 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer">
               <img
                 :src="userAvatar"
-                class="w-8 h-8 rounded-full object-cover border-2 border-orange-500/30"
+                class="w-7 h-7 rounded-md object-cover border border-slate-200"
                 alt="User Avatar"
               />
               <div class="hidden lg:flex flex-col text-left">
-                <span class="text-xs font-bold text-slate-900 leading-tight">{{ user?.name || 'Anthony' }}</span>
-                <span class="text-[10px] font-semibold text-slate-400 capitalize leading-none">{{ user?.role || 'Agent Sales' }}</span>
+                <span class="text-xs font-semibold text-slate-900 leading-tight">{{ user?.name || 'Anthony' }}</span>
+                <span class="text-[10px] text-slate-500 capitalize leading-none">{{ user?.role || 'Agent Sales' }}</span>
               </div>
               <svg class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -105,17 +105,17 @@
             </div>
 
             <!-- Dropdown Menu -->
-            <div class="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-100 p-2 hidden group-hover:block z-50 animation-fade-in">
-              <router-link to="/dashboard/profile" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-orange-50 hover:text-orange-600 rounded-xl transition">
-                <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            <div class="absolute right-0 mt-1.5 w-52 bg-white rounded-xl shadow-lg border border-slate-200/80 p-1.5 hidden group-hover:block z-50 animation-fade-in">
+              <router-link to="/dashboard/profile" class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 My Profile Settings
               </router-link>
-              <a href="/" target="_blank" class="flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition">
-                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+              <a href="/" target="_blank" class="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                 Visit Public Website
               </a>
               <div class="my-1 border-t border-slate-100"></div>
-              <button @click="handleLogout" class="w-full flex items-center gap-2.5 px-3.5 py-2.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition text-left">
+              <button @click="handleLogout" class="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-lg transition-colors text-left">
                 <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                 Sign Out
               </button>
@@ -123,7 +123,7 @@
           </div>
 
           <!-- Mobile Hamburger Toggle -->
-          <button @click="mobileNavOpen = !mobileNavOpen" class="md:hidden w-9 h-9 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center">
+          <button @click="mobileNavOpen = !mobileNavOpen" class="md:hidden w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-700 flex items-center justify-center">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
@@ -132,13 +132,13 @@
       </div>
 
       <!-- Mobile Navigation Drawer -->
-      <div v-if="mobileNavOpen" class="md:hidden bg-white border-b border-slate-200 px-4 py-3 space-y-2">
+      <div v-if="mobileNavOpen" class="md:hidden bg-white border-b border-slate-200 px-4 py-3 space-y-1">
         <router-link
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="block px-4 py-2.5 rounded-xl text-sm font-semibold transition"
-          :class="isActive(item.match) ? 'bg-orange-500 text-white' : 'text-slate-700 hover:bg-slate-100'"
+          class="block px-3.5 py-2 rounded-lg text-xs font-medium transition-colors"
+          :class="isActive(item.match) ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-700 hover:bg-slate-50'"
           @click="mobileNavOpen = false"
         >
           {{ item.label }}
