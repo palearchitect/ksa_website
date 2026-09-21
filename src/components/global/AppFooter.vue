@@ -1,5 +1,8 @@
 <template>
   <footer class="bg-slate-950 text-white relative overflow-hidden">
+    <!-- Dark Wallpaper SVG Pattern Layer -->
+    <PatternBackgroundDark />
+    
     <!-- Top Gradient Hairline Accent -->
     <div class="h-[1px] w-full bg-gradient-to-r from-transparent via-blue-500/40 via-orange-500/40 to-transparent"></div>
     
@@ -91,6 +94,7 @@
 </template>
 
 <script setup>
+import PatternBackgroundDark from './PatternBackgroundDark.vue'
 </script>
 
 <style scoped>

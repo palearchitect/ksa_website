@@ -3,6 +3,7 @@
     <div class="min-h-screen bg-transparent text-slate-900">
       <!-- Hero Section -->
       <div class="relative bg-gradient-to-b from-[#030810] via-[#071328] to-[#0a1835] text-white pt-28 md:pt-36 pb-16 overflow-hidden border-b border-white/10">
+        <PatternBackgroundDark />
         <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(37,99,235,0.25),rgba(249,104,22,0.1)_50%,transparent_80%)] pointer-events-none"></div>
         
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
@@ -310,6 +311,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ErrorBoundary from '../components/global/ErrorBoundary.vue'
+import PatternBackgroundDark from '../components/global/PatternBackgroundDark.vue'
 import { useProjectStore } from '@/stores/projectStore'
 import { useSEO } from '../hooks/useSEO'
 
