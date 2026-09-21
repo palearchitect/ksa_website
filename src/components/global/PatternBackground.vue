@@ -1,9 +1,9 @@
 <template>
-  <div class="fixed inset-0 pointer-events-none z-[1] overflow-hidden select-none" aria-hidden="true">
-    <svg class="w-full h-full text-slate-500/25" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none" aria-hidden="true">
+    <svg class="w-full h-full text-slate-600/30" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <pattern id="ksa-wallpaper-pattern" width="400" height="400" patternUnits="userSpaceOnUse">
-          <g fill="none" stroke="#64748b" stroke-opacity="0.22" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <g fill="none" stroke="#475569" stroke-opacity="0.28" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             
             <!-- ── GABLE HOUSES ─────────────────────────────── -->
             <!-- House 1 (x: 30, y: 40, rot: -15) -->

@@ -1,6 +1,6 @@
 <template>
   <ErrorBoundary>
-    <div id="app" class="flex flex-col min-h-screen bg-[#fcfcfd] relative selection:bg-orange-500 selection:text-white">
+    <div id="app" class="flex flex-col min-h-screen bg-transparent relative selection:bg-orange-500 selection:text-white">
       <!-- Seamless Micro-Icon Pattern Wallpaper Layer -->
       <PatternBackground />
 

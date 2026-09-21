@@ -1,5 +1,5 @@
 <template>
-  <section class="py-20 md:py-28 bg-gradient-to-b from-slate-100 via-slate-50 to-slate-100/90 relative overflow-hidden">
+  <section class="py-20 md:py-28 bg-transparent relative overflow-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
       <!-- Section Header -->
       <div class="text-center max-w-3xl mx-auto mb-16">

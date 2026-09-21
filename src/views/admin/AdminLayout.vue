@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-layout-wrapper min-h-screen bg-[#f8fafc] text-slate-800 font-sans selection:bg-orange-500 selection:text-white relative">
+  <div class="admin-layout-wrapper min-h-screen bg-transparent text-slate-800 font-sans selection:bg-orange-500 selection:text-white relative">
     
     <!-- Impersonation Warning Bar -->
     <div v-if="user?.impersonatorId" class="impersonation-warning-bar bg-gradient-to-r from-orange-500 via-amber-600 to-red-600 text-white px-6 py-2.5 flex items-center justify-between shadow-md relative z-50 text-xs font-semibold">

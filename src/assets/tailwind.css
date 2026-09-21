@@ -53,8 +53,10 @@
 
   /* Bento Grid Card */
   .bento-card {
-    background: #ffffff;
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(226, 232, 240, 0.9);
     border-radius: 1.25rem;
     box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.04);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);

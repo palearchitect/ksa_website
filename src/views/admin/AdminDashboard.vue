@@ -2,7 +2,7 @@
   <div class="admin-dashboard space-y-6 max-w-[1600px] mx-auto text-slate-800">
     
     <!-- ── Sub-Header: Title & Quick Metrics (High Contrast Editorial Style) ──── -->
-    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white/85 backdrop-blur-md p-5 sm:p-6 rounded-3xl border border-slate-200/90 shadow-sm">
       <!-- Title & Action Tools -->
       <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
         <button @click="router.back()" class="w-10 h-10 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 flex items-center justify-center transition shadow-sm" title="Go Back">

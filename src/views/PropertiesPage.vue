@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-slate-100 via-slate-50 to-slate-100/90 text-slate-900">
+  <div class="min-h-screen bg-transparent text-slate-900">
     <!-- Hero Section -->
     <div class="relative bg-gradient-to-b from-[#030810] via-[#071328] to-[#0a1835] text-white pt-28 pb-24 overflow-hidden border-b border-white/10">
       <!-- Ambient radial gradients -->

@@ -10,7 +10,7 @@
     <ServiceHighlights />
 
     <!-- Additional Info Section - Swiss Bento Architecture -->
-    <section class="py-20 md:py-28 bg-gradient-to-b from-slate-100 via-slate-50 to-slate-100/90 relative overflow-hidden">
+    <section class="py-20 md:py-28 bg-transparent relative overflow-hidden">
       <!-- Ambient background mesh gradients -->
       <div class="absolute top-1/4 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
       <div class="absolute bottom-10 right-0 w-96 h-96 bg-orange-500/5 rounded-full blur-3xl pointer-events-none"></div>
