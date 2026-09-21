@@ -3,17 +3,10 @@
     
     <!-- ── 1. Sub-Header: Title & Far-Right Action Icon Group ──── -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-1">
-      <!-- Title & Subtitle (Vertically Aligned with Back Arrow) -->
-      <div class="flex items-center gap-3">
-        <button @click="router.back()" class="w-9 h-9 rounded-lg bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-2xs flex-shrink-0" title="Go Back">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-          </svg>
-        </button>
-        <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight font-sans">Estate Management</h1>
-          <p class="text-xs text-slate-500 font-normal">Live Operation Metrics & Property Control System</p>
-        </div>
+      <!-- Title & Subtitle (Clean Far-Left Title without Back Arrow) -->
+      <div>
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight font-sans">Estate Management</h1>
+        <p class="text-xs text-slate-500 font-normal">Live Operation Metrics & Property Control System</p>
       </div>
 
       <!-- Action Button Group (Aligned Far Right) -->
@@ -25,50 +18,62 @@
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
           <span>Add Property</span>
         </router-link>
-        <button @click="showFAQModal = true" class="w-9 h-9 rounded-lg bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-2xs" title="Manage FAQs">
+        <button @click="openFAQModal()" class="w-9 h-9 rounded-lg bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-2xs" title="Manage FAQs">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M12 18h.01" /></svg>
         </button>
       </div>
     </div>
 
-    <!-- ── 2. Standardized KPI Metric Bar (Clean SaaS Tiles) ──── -->
+    <!-- ── 2. Standardized KPI Metric Bar (Routed & Clickable SaaS Tiles) ──── -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <!-- Card 1: Total Properties -->
-      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+      <!-- Card 1: Total Properties (Routes to /dashboard/admin/properties) -->
+      <div
+        @click="router.push('/dashboard/admin/properties')"
+        class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs hover:border-slate-300 hover:shadow-sm flex items-center justify-between cursor-pointer group transition-all"
+        title="View All Property Listings"
+      >
         <div class="space-y-0.5">
-          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Total Properties</span>
+          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block group-hover:text-slate-700 transition">Total Properties</span>
           <p class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-sans">{{ livePropertiesCount }}</p>
           <p class="text-xs font-normal text-slate-500 pt-0.5">{{ livePropertiesCount }} Total &bull; 0 Added this month</p>
         </div>
-        <div class="w-9 h-9 rounded-lg bg-slate-100/80 text-slate-600 flex items-center justify-center border border-slate-200/60 flex-shrink-0">
+        <div class="w-9 h-9 rounded-lg bg-slate-100/80 text-slate-600 group-hover:text-slate-900 group-hover:bg-slate-200/80 flex items-center justify-center border border-slate-200/60 flex-shrink-0 transition">
           <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5v3m-6 0h6" />
           </svg>
         </div>
       </div>
 
-      <!-- Card 2: Viewing Bookings -->
-      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+      <!-- Card 2: Viewing Bookings (Opens Interactive Schedule Modal) -->
+      <div
+        @click="showBookingsModal = true"
+        class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs hover:border-slate-300 hover:shadow-sm flex items-center justify-between cursor-pointer group transition-all"
+        title="Manage Viewing Appointments"
+      >
         <div class="space-y-0.5">
-          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Viewing Bookings</span>
+          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block group-hover:text-slate-700 transition">Viewing Bookings</span>
           <p class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-sans">{{ liveBookingsCount }}</p>
           <p class="text-xs font-normal text-slate-500 pt-0.5">{{ liveBookingsCount }} Bookings &bull; {{ pendingBookingsCount }} Pending review</p>
         </div>
-        <div class="w-9 h-9 rounded-lg bg-slate-100/80 text-slate-600 flex items-center justify-center border border-slate-200/60 flex-shrink-0">
+        <div class="w-9 h-9 rounded-lg bg-slate-100/80 text-slate-600 group-hover:text-slate-900 group-hover:bg-slate-200/80 flex items-center justify-center border border-slate-200/60 flex-shrink-0 transition">
           <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
           </svg>
         </div>
       </div>
 
-      <!-- Card 3: Ongoing Projects -->
-      <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
+      <!-- Card 3: Ongoing Projects (Routes to /dashboard/admin/projects) -->
+      <div
+        @click="router.push('/dashboard/admin/projects')"
+        class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs hover:border-slate-300 hover:shadow-sm flex items-center justify-between cursor-pointer group transition-all"
+        title="View All Development Projects"
+      >
         <div class="space-y-0.5">
-          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Ongoing Projects</span>
+          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block group-hover:text-slate-700 transition">Ongoing Projects</span>
           <p class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-sans">{{ liveProjectsCount }}</p>
           <p class="text-xs font-normal text-slate-500 pt-0.5">{{ liveProjectsCount }} Projects &bull; {{ activeProjectsCount }} In development</p>
         </div>
-        <div class="w-9 h-9 rounded-lg bg-slate-100/80 text-slate-600 flex items-center justify-center border border-slate-200/60 flex-shrink-0">
+        <div class="w-9 h-9 rounded-lg bg-slate-100/80 text-slate-600 group-hover:text-slate-900 group-hover:bg-slate-200/80 flex items-center justify-center border border-slate-200/60 flex-shrink-0 transition">
           <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 01-3.586 0 2.548 2.548 0 010-3.586l5.653-4.655m3.788-3.412a4.5 4.5 0 00-6.364-6.364l1.757 1.757m13.356 13.356l1.757 1.757" />
           </svg>
@@ -99,17 +104,17 @@
               <p class="text-xs text-slate-500 font-normal">Quarterly inquiry volume and revenue metrics</p>
             </div>
             <div class="flex items-center gap-3">
-              <!-- Header Static Legend Pill -->
+              <!-- Header Dynamic Legend Pill -->
               <div class="hidden sm:flex items-center gap-3 text-xs font-medium bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg">
                 <div class="flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-full bg-orange-500"></span>
                   <span class="text-slate-500">Revenue:</span>
-                  <span class="text-slate-900 font-semibold">₦485.2M</span>
+                  <span class="text-slate-900 font-semibold">{{ currentPeriodMetrics.revenue }}</span>
                 </div>
                 <div class="flex items-center gap-1.5">
                   <span class="w-2 h-2 rounded-full bg-blue-600"></span>
                   <span class="text-slate-500">Inquiries:</span>
-                  <span class="text-slate-900 font-semibold">1,240</span>
+                  <span class="text-slate-900 font-semibold">{{ currentPeriodMetrics.inquiries }}</span>
                 </div>
               </div>
               <div class="relative">
@@ -141,13 +146,13 @@
               <line x1="0" y1="120" x2="700" y2="120" stroke="#f1f5f9" stroke-width="1" stroke-dasharray="3 3" />
               <line x1="0" y1="170" x2="700" y2="170" stroke="#e2e8f0" stroke-width="1" />
 
-              <path d="M 0,140 Q 100,60 200,70 T 400,20 T 600,60 L 700,65 L 700,170 L 0,170 Z" fill="url(#incomeGradKSA)" />
-              <path d="M 0,160 Q 100,120 200,130 T 400,110 T 600,130 L 700,140 L 700,170 L 0,170 Z" fill="url(#expenseGradKSA)" />
+              <path :d="currentPeriodMetrics.revPath" fill="url(#incomeGradKSA)" />
+              <path :d="currentPeriodMetrics.inqPath" fill="url(#expenseGradKSA)" />
 
-              <path d="M 0,140 Q 100,60 200,70 T 400,20 T 600,60 L 700,65" fill="none" stroke="#f96816" stroke-width="2" stroke-linecap="round" />
-              <path d="M 0,160 Q 100,120 200,130 T 400,110 T 600,130 L 700,140" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" />
+              <path :d="currentPeriodMetrics.revPathStroke" fill="none" stroke="#f96816" stroke-width="2" stroke-linecap="round" />
+              <path :d="currentPeriodMetrics.inqPathStroke" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" />
 
-              <circle cx="400" cy="20" r="4" fill="#f96816" stroke="#ffffff" stroke-width="2" />
+              <circle :cx="currentPeriodMetrics.dotX" :cy="currentPeriodMetrics.dotY" r="4" fill="#f96816" stroke="#ffffff" stroke-width="2" />
             </svg>
 
             <div class="flex justify-between text-[11px] font-medium text-slate-400 pt-2 px-1">
@@ -166,16 +171,22 @@
               </h3>
               <p class="text-xs text-slate-500 font-normal">Auto-glide ticker with pause-on-hover & manual navigation</p>
             </div>
-            <!-- Slider Controls -->
+            <!-- Slider Controls with Lucide Icons -->
             <div class="flex items-center gap-1.5">
-              <button @click="toggleMarqueePause" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition" :title="isMarqueePaused ? 'Resume Auto-Glide' : 'Pause Auto-Glide'">
-                <span>{{ isMarqueePaused ? '▶ Play' : '⏸ Pause' }}</span>
+              <button
+                @click="toggleMarqueePause"
+                class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition flex items-center gap-1.5"
+                :title="isMarqueePaused ? 'Resume Auto-Glide' : 'Pause Auto-Glide'"
+              >
+                <svg v-if="isMarqueePaused" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>
+                <span>{{ isMarqueePaused ? 'Play' : 'Pause' }}</span>
               </button>
-              <button @click="scrollMarqueeLeft" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-sm transition">
-                ←
+              <button @click="scrollMarqueeLeft" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition" title="Scroll Left">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
               </button>
-              <button @click="scrollMarqueeRight" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-sm transition">
-                →
+              <button @click="scrollMarqueeRight" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center transition" title="Scroll Right">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
               </button>
             </div>
           </div>
@@ -196,7 +207,8 @@
               <div
                 v-for="prop in activeDisplayProperties"
                 :key="prop.id"
-                class="min-w-[270px] max-w-[290px] bg-white border border-slate-200/80 rounded-xl p-3.5 flex-shrink-0 hover:border-slate-300 transition-all space-y-2.5 shadow-2xs"
+                @click="router.push(`/dashboard/admin/properties/edit/${prop.id}`)"
+                class="min-w-[270px] max-w-[290px] bg-white border border-slate-200/80 rounded-xl p-3.5 flex-shrink-0 hover:border-slate-300 hover:shadow-sm cursor-pointer transition-all space-y-2.5"
               >
                 <div class="relative rounded-lg overflow-hidden h-36 bg-slate-100">
                   <img :src="prop.image_url || prop.image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=400&q=80'" class="w-full h-full object-cover" />
@@ -211,10 +223,20 @@
                   <h4 class="text-xs font-semibold text-slate-900 truncate">{{ prop.title }}</h4>
                   <p class="text-[11px] text-slate-500 truncate">{{ prop.location || 'Lekki Phase 1, Lagos' }}</p>
                 </div>
+                <!-- Clean Lucide SVG Specs -->
                 <div class="flex items-center justify-between text-[11px] text-slate-600 pt-2 border-t border-slate-100 font-medium">
-                  <span>🛏 {{ prop.bedrooms || 4 }} Beds</span>
-                  <span>🚿 {{ prop.bathrooms || 3 }} Baths</span>
-                  <router-link :to="`/properties/${prop.id}`" class="text-orange-600 font-semibold hover:underline">View →</router-link>
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2 12h20M2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6M4 12V8a2 2 0 012-2h12a2 2 0 012 2v4M8 12v-2a1 1 0 011-1h6a1 1 0 011 1v2" /></svg>
+                    {{ prop.bedrooms || 4 }} Beds
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M6 12V6a2 2 0 012-2h8a2 2 0 012 2v6" /></svg>
+                    {{ prop.bathrooms || 3 }} Baths
+                  </span>
+                  <span class="text-slate-900 font-semibold flex items-center gap-1 hover:text-orange-600 transition">
+                    View
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+                  </span>
                 </div>
               </div>
             </div>
@@ -238,8 +260,8 @@
                 />
                 <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" /></svg>
               </div>
-              <router-link to="/dashboard/admin/properties" class="p-1.5 text-slate-500 hover:text-slate-900 transition">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
+              <router-link to="/dashboard/admin/properties" class="p-1.5 text-slate-500 hover:text-slate-900 transition" title="View Full Property Directory">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" /></svg>
               </router-link>
             </div>
           </div>
@@ -257,7 +279,7 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 text-xs">
-                <tr v-for="item in filteredActiveListings" :key="item.id" class="hover:bg-slate-50/60 transition-colors">
+                <tr v-for="item in filteredActiveListings" :key="item.id" class="hover:bg-slate-50/60 transition-colors cursor-pointer" @click="router.push(`/dashboard/admin/properties/edit/${item.id}`)">
                   <td class="py-3 px-2 flex items-center gap-3">
                     <img :src="item.image_url || item.image || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=150&q=80'" class="w-9 h-9 rounded-lg object-cover border border-slate-200 flex-shrink-0" />
                     <div>
@@ -272,7 +294,7 @@
                       {{ item.status || 'Active' }}
                     </span>
                   </td>
-                  <td class="py-3 px-2 text-right">
+                  <td class="py-3 px-2 text-right" @click.stop>
                     <router-link :to="`/dashboard/admin/properties/edit/${item.id}`" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-[11px] font-medium transition">
                       Edit
                     </router-link>
@@ -292,12 +314,20 @@
         <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-2xs space-y-4">
           <div class="flex items-center justify-between">
             <h3 class="text-base font-semibold text-slate-900">Viewing Appointments</h3>
-            <span class="px-2.5 py-0.5 bg-slate-100 text-slate-600 text-[11px] font-medium rounded-md">Live Schedule</span>
+            <button @click="showBookingsModal = true" class="px-2.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 text-[11px] font-medium rounded-md transition" title="Open Schedule Manager">
+              Live Schedule &rarr;
+            </button>
           </div>
 
-          <!-- Appointments List with Calmed Badges -->
+          <!-- Appointments List with Lucide Icons -->
           <div class="space-y-2.5">
-            <div v-for="app in liveBookingsList" :key="app.id" class="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/60 space-y-1.5 hover:border-slate-300 transition-all">
+            <div
+              v-for="app in liveBookingsList"
+              :key="app.id"
+              @click="toggleBookingStatus(app)"
+              class="p-3.5 bg-slate-50/70 rounded-xl border border-slate-200/60 space-y-1.5 hover:border-slate-300 transition-all cursor-pointer"
+              title="Click to toggle status (Pending / Confirmed)"
+            >
               <div class="flex items-center justify-between">
                 <h4 class="text-xs font-semibold text-slate-900">{{ app.name || app.title || 'Site Tour Appointment' }}</h4>
                 <span :class="['px-2 py-0.5 rounded-md text-[10px] font-medium border uppercase tracking-wider', app.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-amber-50 text-amber-700 border-amber-200/60']">
@@ -306,8 +336,14 @@
               </div>
               <p class="text-xs text-slate-500 font-normal leading-tight">{{ app.email || app.address || 'client@ksavaluers.com' }}</p>
               <div class="text-[11px] font-medium text-slate-400 pt-1 flex items-center gap-3">
-                <span>📅 {{ app.booking_date || '2026-09-25' }}</span>
-                <span>⏰ {{ app.preferred_time || '10:00 AM' }}</span>
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>
+                  {{ app.booking_date || '2026-09-25' }}
+                </span>
+                <span class="flex items-center gap-1">
+                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                  {{ app.preferred_time || '10:00 AM' }}
+                </span>
               </div>
             </div>
           </div>
@@ -332,8 +368,8 @@
                 <span class="text-[11px] text-slate-500 truncate block">{{ f.answer }}</span>
               </div>
               <div class="flex items-center gap-1.5 flex-shrink-0">
-                <button @click="openFAQModal(f)" class="px-2 py-0.5 bg-slate-100 text-slate-700 rounded-md text-[11px] font-medium">Edit</button>
-                <button @click="handleDeleteFAQ(f.id)" class="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-200/60 rounded-md text-[11px] font-medium">Delete</button>
+                <button @click="openFAQModal(f)" class="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md text-[11px] font-medium transition">Edit</button>
+                <button @click="handleDeleteFAQ(f.id)" class="px-2 py-0.5 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/60 rounded-md text-[11px] font-medium transition">Delete</button>
               </div>
             </div>
           </div>
@@ -341,6 +377,47 @@
 
       </div>
 
+    </div>
+
+    <!-- ── Interactive Viewing Bookings Schedule Modal Overlay ── -->
+    <div v-if="showBookingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 border border-slate-200 space-y-4">
+        <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+          <div>
+            <h3 class="text-base font-semibold text-slate-900">Viewing Appointments Manager</h3>
+            <p class="text-xs text-slate-500 font-normal">Review and change appointment statuses</p>
+          </div>
+          <button @click="showBookingsModal = false" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+        </div>
+
+        <div class="space-y-3 max-h-96 overflow-y-auto">
+          <div v-for="app in liveBookingsList" :key="app.id" class="p-3.5 bg-slate-50 rounded-lg border border-slate-200/80 flex items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <h4 class="text-xs font-semibold text-slate-900">{{ app.name || app.title }}</h4>
+                <span :class="['px-2 py-0.5 rounded-md text-[10px] font-medium border uppercase', app.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60' : 'bg-amber-50 text-amber-700 border-amber-200/60']">
+                  {{ app.status || 'pending' }}
+                </span>
+              </div>
+              <p class="text-xs text-slate-500">{{ app.email }} &bull; {{ app.booking_date || '2026-09-25' }} at {{ app.preferred_time || '10:00 AM' }}</p>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              <button
+                @click="toggleBookingStatus(app)"
+                class="px-3 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-medium transition shadow-2xs"
+              >
+                {{ app.status === 'confirmed' ? 'Mark Pending' : 'Approve & Confirm' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-2 border-t border-slate-100">
+          <button @click="showBookingsModal = false" class="px-4 py-1.5 bg-slate-100 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-200 transition">
+            Close Schedule
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- FAQ Modal Overlay -->
@@ -398,6 +475,7 @@ const alertMsg = ref('')
 const alertIsError = ref(false)
 
 const showFAQModal = ref(false)
+const showBookingsModal = ref(false)
 const modalMode = ref('create')
 const selectedFaqId = ref(null)
 const faqForm = ref({ question: '', answer: '', sort_order: 0 })
@@ -418,8 +496,47 @@ const pendingBookingsCount = computed(() => {
   const list = bookingStore.bookings?.length ? bookingStore.bookings : fallbackBookings
   return list.filter(b => b.status === 'pending').length
 })
+
 const activeProjectsCount = computed(() => {
   return projectStore.projects?.filter(p => p.status === 'ongoing' || p.status === 'active').length || 0
+})
+
+// Dynamic Reactive Analytics Metrics based on selected Period
+const currentPeriodMetrics = computed(() => {
+  if (analyticsPeriod.value === 'this_quarter') {
+    return {
+      revenue: '₦1.42B',
+      inquiries: '3,890',
+      dotX: 550,
+      dotY: 40,
+      revPath: 'M 0,160 Q 100,80 200,90 T 400,30 T 600,40 L 700,45 L 700,170 L 0,170 Z',
+      inqPath: 'M 0,170 Q 100,130 200,140 T 400,90 T 600,110 L 700,120 L 700,170 L 0,170 Z',
+      revPathStroke: 'M 0,160 Q 100,80 200,90 T 400,30 T 600,40 L 700,45',
+      inqPathStroke: 'M 0,170 Q 100,130 200,140 T 400,90 T 600,110 L 700,120'
+    }
+  } else if (analyticsPeriod.value === 'this_year') {
+    return {
+      revenue: '₦5.68B',
+      inquiries: '14,250',
+      dotX: 620,
+      dotY: 15,
+      revPath: 'M 0,170 Q 100,100 200,60 T 400,40 T 600,15 L 700,20 L 700,170 L 0,170 Z',
+      inqPath: 'M 0,175 Q 100,140 200,110 T 400,80 T 600,50 L 700,55 L 700,170 L 0,170 Z',
+      revPathStroke: 'M 0,170 Q 100,100 200,60 T 400,40 T 600,15 L 700,20',
+      inqPathStroke: 'M 0,175 Q 100,140 200,110 T 400,80 T 600,50 L 700,55'
+    }
+  }
+  // default last_month
+  return {
+    revenue: '₦485.2M',
+    inquiries: '1,240',
+    dotX: 400,
+    dotY: 20,
+    revPath: 'M 0,140 Q 100,60 200,70 T 400,20 T 600,60 L 700,65 L 700,170 L 0,170 Z',
+    inqPath: 'M 0,160 Q 100,120 200,130 T 400,110 T 600,130 L 700,140 L 700,170 L 0,170 Z',
+    revPathStroke: 'M 0,140 Q 100,60 200,70 T 400,20 T 600,60 L 700,65',
+    inqPathStroke: 'M 0,160 Q 100,120 200,130 T 400,110 T 600,130 L 700,140'
+  }
 })
 
 const activeDisplayProperties = computed(() => {
@@ -480,6 +597,10 @@ async function refreshData() {
   } finally {
     loadingData.value = false
   }
+}
+
+function toggleBookingStatus(app) {
+  app.status = app.status === 'confirmed' ? 'pending' : 'confirmed'
 }
 
 // Marquee Auto-Glide Ticker Implementation
@@ -554,7 +675,7 @@ async function handleDeleteFAQ(id) {
 
 <style scoped>
 .admin-dashboard {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
@@ -564,4 +685,3 @@ async function handleDeleteFAQ(id) {
   scrollbar-width: none;
 }
 </style>
-
