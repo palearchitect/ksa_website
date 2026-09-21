@@ -294,6 +294,7 @@ export const usePropertyStore = defineStore('property', () => {
     
     // Actions
     addProperty,
+    createProperty: addProperty,
     updateProperty,
     deleteProperty,
     deleteAllProperties,

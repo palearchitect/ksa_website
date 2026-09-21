@@ -110,6 +110,7 @@ export const useTeamStore = defineStore('team', () => {
     error,
     fetchTeamMembers,
     addTeamMember,
+    createTeamMember: addTeamMember,
     updateTeamMember,
     deleteTeamMember,
     getTeamMemberById

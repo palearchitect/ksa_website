@@ -297,6 +297,7 @@ export const useProjectStore = defineStore('project', () => {
     
     // Actions
     addProject,
+    createProject: addProject,
     updateProject,
     deleteProject,
     deleteAllProjects,

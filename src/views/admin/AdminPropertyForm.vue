@@ -196,9 +196,10 @@ const handleSubmit = async () => {
   errorMessage.value = ''
   submitting.value = true
   
+  const saveFn = propertyStore.createProperty || propertyStore.addProperty
   const result = isEditMode.value
     ? await propertyStore.updateProperty(Number(route.params.id), form.value)
-    : await propertyStore.createProperty(form.value)
+    : await saveFn.call(propertyStore, form.value)
     
   submitting.value = false
   if (result.success !== false) {

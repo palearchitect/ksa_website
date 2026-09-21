@@ -186,9 +186,10 @@ const handleSubmit = async () => {
   errorMessage.value = ''
   submitting.value = true
   
+  const saveFn = projectStore.createProject || projectStore.addProject
   const result = isEditMode.value
     ? await projectStore.updateProject(Number(route.params.id), form.value)
-    : await projectStore.createProject(form.value)
+    : await saveFn.call(projectStore, form.value)
     
   submitting.value = false
   if (result.success !== false) {

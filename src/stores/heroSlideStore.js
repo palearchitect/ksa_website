@@ -92,6 +92,7 @@ export const useHeroSlideStore = defineStore('heroSlide', () => {
     error,
     fetchSlides,
     addSlide,
+    createSlide: addSlide,
     updateSlide,
     deleteSlide,
     getSlideById
