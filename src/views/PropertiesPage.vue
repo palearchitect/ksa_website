@@ -2,6 +2,7 @@
   <div class="min-h-screen bg-transparent text-slate-900">
     <!-- Hero Section -->
     <div class="relative bg-gradient-to-b from-[#030810] via-[#071328] to-[#0a1835] text-white pt-28 pb-24 overflow-hidden border-b border-white/10">
+      <PatternBackgroundDark />
       <!-- Ambient radial gradients -->
       <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(37,99,235,0.25),rgba(249,104,22,0.1)_50%,transparent_80%)] pointer-events-none"></div>
 
@@ -165,6 +166,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import PatternBackgroundDark from '../components/global/PatternBackgroundDark.vue'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { useSEO } from '../hooks/useSEO'
 import { captureEvent } from '@/plugins/posthog'

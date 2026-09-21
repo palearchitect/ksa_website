@@ -1,5 +1,8 @@
 <template>
   <section class="py-20 md:py-28 bg-gradient-to-b from-[#030810] via-[#071328] to-[#0a1835] text-white relative overflow-hidden border-t border-b border-white/10">
+    <!-- Dark SVG Pattern Wallpaper Layer -->
+    <PatternBackgroundDark />
+
     <!-- Ambient Lighting -->
     <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-blue-600/15 via-orange-500/10 to-blue-600/15 blur-3xl pointer-events-none"></div>
 
@@ -114,6 +117,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { usePropertyStore } from '@/stores/propertyStore'
 import PropertyCard from '@/components/properties/PropertyCard.vue'
+import PatternBackgroundDark from '@/components/global/PatternBackgroundDark.vue'
 
 const propertyStore = usePropertyStore()
 const currentIndex = ref(0)

@@ -1,25 +1,28 @@
 <template>
   <ErrorBoundary>
-    <div class="min-h-screen bg-transparent relative pt-28 md:pt-36 pb-20 px-4 sm:px-6">
-      <!-- Ambient Radial Mesh Lighting -->
-      <div class="absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_70%_60%_at_50%_-10%,rgba(37,99,235,0.18),rgba(249,104,22,0.08)_50%,transparent_80%)] pointer-events-none"></div>
-
-      <!-- Header -->
-      <div class="relative max-w-2xl mx-auto text-center mb-10">
-        <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200/60 text-xs font-semibold uppercase tracking-widest text-blue-700 mb-4 shadow-sm">
-          <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
-          VIP Private Scheduling
+    <div class="min-h-screen bg-transparent text-slate-900">
+      <!-- Hero Section -->
+      <div class="relative bg-gradient-to-b from-[#030810] via-[#071328] to-[#0a1835] text-white pt-28 md:pt-36 pb-20 overflow-hidden border-b border-white/10">
+        <PatternBackgroundDark />
+        <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(37,99,235,0.25),rgba(249,104,22,0.1)_50%,transparent_80%)] pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-xs font-semibold uppercase tracking-widest text-orange-400 mb-4 shadow-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
+            VIP Private Scheduling
+          </div>
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white mb-4">
+            Book an Exclusive <span class="text-gradient-brand">Property Tour</span>
+          </h1>
+          <p class="text-sm md:text-lg text-slate-300 max-w-2xl mx-auto font-normal leading-relaxed">
+            Select your preferred viewing slot for an in-person, guided walkthrough with our certified estate surveyor.
+          </p>
         </div>
-        <h1 class="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-3">
-          Book an Exclusive <span class="text-gradient-brand">Property Tour</span>
-        </h1>
-        <p class="text-sm md:text-base text-slate-500 max-w-lg mx-auto font-normal leading-relaxed">
-          Select your preferred viewing slot for an in-person, guided walkthrough with our certified estate surveyor.
-        </p>
       </div>
 
-      <!-- Main Booking Bento Card -->
-      <div class="relative bento-card bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 md:p-10 w-full max-w-2xl mx-auto shadow-xl">
+      <!-- Main Content Container -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Main Booking Bento Card -->
+        <div class="relative bento-card bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-3xl p-6 md:p-10 w-full max-w-3xl mx-auto shadow-xl -mt-16 relative z-20">
         <!-- Step Indicator Capsule -->
         <div class="flex justify-center mb-8">
           <div class="inline-flex items-center gap-3 p-1.5 rounded-full bg-slate-100 border border-slate-200/80 shadow-inner">
@@ -396,11 +399,13 @@
       <p class="mt-4 text-gray-500 text-sm">© {{ new Date().getFullYear() }} Kayode Segun & Associates. All rights reserved.</p>
     </div>
     </div>
+    </div>
   </ErrorBoundary>
 </template>
 
 <script setup>
 import ErrorBoundary from '../components/global/ErrorBoundary.vue'
+import PatternBackgroundDark from '../components/global/PatternBackgroundDark.vue'
 import { useSEO } from '../hooks/useSEO'
 useSEO({
   title: 'Book a Property Tour',

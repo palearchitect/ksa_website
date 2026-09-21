@@ -3,7 +3,7 @@
     <svg class="w-full h-full" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <pattern id="ksa-wallpaper-pattern-dark" width="400" height="400" patternUnits="userSpaceOnUse">
-          <g fill="none" stroke="#cbd5e1" stroke-opacity="0.18" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <g fill="none" stroke="#cbd5e1" stroke-opacity="0.25" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             
             <!-- ── GABLE HOUSES ─────────────────────────────── -->
             <g transform="translate(30, 40) rotate(-15)">

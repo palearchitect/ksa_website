@@ -37,72 +37,76 @@
       <!-- Bento Grid Layout Section -->
       <section class="py-12 md:py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            <!-- Left Column: Portrait Card & Credentials (4 cols) -->
+            <!-- Left Column: Commanding Visual Portrait & Badges (5 cols) -->
             <div class="lg:col-span-5 space-y-6">
-              <!-- Portrait Tile (White Bento Card) -->
-              <div class="bento-card p-6 md:p-8 bg-white text-slate-900 border border-slate-200/90 shadow-2xl relative overflow-hidden">
-                <div class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden mb-6 shadow-md border border-slate-100 bg-slate-100">
+              <!-- Dark Luxury Portrait Bento Card -->
+              <div class="bento-card-dark p-6 md:p-8 bg-[#0b132b] text-white border border-slate-800 shadow-2xl relative overflow-hidden group">
+                <!-- Atmospheric Backlighting Glow -->
+                <div class="absolute -top-10 -left-10 w-60 h-60 bg-blue-600/20 rounded-full blur-3xl pointer-events-none group-hover:bg-blue-600/30 transition-all duration-500"></div>
+                <div class="absolute -bottom-10 -right-10 w-60 h-60 bg-orange-500/15 rounded-full blur-3xl pointer-events-none group-hover:bg-orange-500/25 transition-all duration-500"></div>
+
+                <!-- Full-Bleed Portrait Container -->
+                <div class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden mb-6 shadow-2xl border border-slate-700/60 bg-slate-900 group">
                   <img
                     src="../assets/images/KAYODE-e1712319829816-277x300.jpg"
-                    alt="ESV. Kayode Segun"
-                    class="w-full h-full object-cover object-top filter contrast-105"
+                    alt="ESV. Kayode Segun - Principal Partner"
+                    class="w-full h-full object-cover object-top filter brightness-105 contrast-110 group-hover:scale-105 transition-all duration-700"
                   />
-                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent"></div>
-                  <div class="absolute bottom-4 left-4 right-4 text-white">
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500 text-white text-[11px] font-bold uppercase tracking-wider shadow">
+                  <!-- Gradient fade at bottom into card base -->
+                  <div class="absolute inset-0 bg-gradient-to-t from-[#0b132b] via-[#0b132b]/20 to-transparent"></div>
+                  
+                  <!-- Overlaid Verified Credential Badges -->
+                  <div class="absolute bottom-4 left-4 right-4 flex flex-wrap gap-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/90 backdrop-blur-md text-white text-[11px] font-extrabold uppercase tracking-wider shadow-lg border border-orange-400/40">
+                      <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
                       ANIVS, RSV, mcia
+                    </span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-900/90 backdrop-blur-md text-blue-200 text-[11px] font-bold uppercase tracking-wider shadow-lg border border-blue-400/30">
+                      Certified Valuer & Appraiser
                     </span>
                   </div>
                 </div>
 
-                <div class="text-left mb-6">
-                  <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">ESV. Kayode Segun</h2>
-                  <p class="text-sm font-semibold text-blue-700 mt-0.5">Principal Partner & Head of Practice</p>
-                  <p class="text-xs text-slate-500 mt-2 leading-relaxed">
-                    Registered Estate Surveyor & Valuer with extensive experience in statutory valuation, bank securities, and asset auditing.
-                  </p>
-                </div>
-
-                <!-- Accreditation Badges -->
-                <div class="space-y-2.5 pt-4 border-t border-slate-100">
-                  <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-                    <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
+                <!-- Verified Accreditations Strip -->
+                <div class="space-y-3 pt-4 border-t border-slate-800">
+                  <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs">
+                    <div class="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xs flex-shrink-0 border border-blue-500/30">
                       ✓
                     </div>
                     <div>
-                      <p class="font-bold text-slate-800">NIESV Member</p>
-                      <p class="text-[11px] text-slate-500">The Nigerian Institution of Estate Surveyors and Valuers</p>
+                      <p class="font-bold text-white">NIESV Member Practice</p>
+                      <p class="text-[11px] text-slate-400">The Nigerian Institution of Estate Surveyors and Valuers</p>
                     </div>
                   </div>
                   
-                  <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-                    <div class="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold text-[10px]">
+                  <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs">
+                    <div class="w-8 h-8 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold text-xs flex-shrink-0 border border-orange-500/30">
                       ✓
                     </div>
                     <div>
-                      <p class="font-bold text-slate-800">ESVARBON Registered</p>
-                      <p class="text-[11px] text-slate-500">Estate Surveyors and Valuers Registration Board</p>
+                      <p class="font-bold text-white">ESVARBON Licensed Valuer</p>
+                      <p class="text-[11px] text-slate-400">Estate Surveyors and Valuers Registration Board (Act 1975)</p>
                     </div>
                   </div>
 
-                  <div class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-xs">
-                    <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
+                  <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs">
+                    <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xs flex-shrink-0 border border-emerald-500/30">
                       ✓
                     </div>
                     <div>
-                      <p class="font-bold text-slate-800">CIAN Certified</p>
-                      <p class="text-[11px] text-slate-500">Certified Institute of Auctioneers of Nigeria</p>
+                      <p class="font-bold text-white">CIAN Certified Auctioneer</p>
+                      <p class="text-[11px] text-slate-400">Certified Institute of Auctioneers of Nigeria</p>
                     </div>
                   </div>
                 </div>
 
                 <!-- Direct Action Buttons -->
-                <div class="mt-6 pt-6 border-t border-slate-100 space-y-2">
+                <div class="mt-6 pt-6 border-t border-slate-800 space-y-3">
                   <router-link
                     to="/book-a-tour"
-                    class="w-full py-3 px-4 rounded-full font-bold text-xs uppercase tracking-wider text-white bg-gradient-to-r from-blue-700 via-blue-600 to-orange-500 hover:from-blue-800 hover:to-orange-600 shadow-glow-orange transition-all flex items-center justify-center gap-2"
+                    class="pill-button-primary w-full py-3.5 px-6 rounded-full font-bold text-xs uppercase tracking-wider text-white shadow-lg hover:shadow-orange-500/30 transition-all flex items-center justify-center gap-2"
                   >
                     <span>Request Executive Consultation</span>
                     <span>→</span>
@@ -110,119 +114,137 @@
                   
                   <a
                     href="tel:+2349053901001"
-                    class="w-full py-2.5 px-4 rounded-full font-semibold text-xs text-slate-700 hover:text-blue-700 border border-slate-200 hover:border-blue-400 bg-slate-50/50 hover:bg-blue-50/40 transition-all flex items-center justify-center gap-2"
+                    class="w-full py-3 px-6 rounded-full font-semibold text-xs text-slate-300 hover:text-white border border-slate-700 hover:border-slate-500 bg-slate-900/60 hover:bg-slate-800/80 transition-all flex items-center justify-center gap-2"
                   >
-                    <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    Direct Line: +234 905 390 1001
+                    Direct Desk: +234 905 390 1001
                   </a>
                 </div>
               </div>
             </div>
 
-            <!-- Right Column: Bento Cards (7 cols) -->
+            <!-- Right Column: Dominant Title, Bio, Mandate & Executive Stats (7 cols) -->
             <div class="lg:col-span-7 space-y-6">
               
-              <!-- Quote Bento Card -->
-              <div class="bento-card p-8 md:p-10 bg-gradient-to-br from-blue-900 via-[#0b1e42] to-slate-900 border border-white/15 text-white relative overflow-hidden shadow-xl">
-                <div class="absolute -right-8 -bottom-8 w-48 h-48 bg-orange-500/10 rounded-full blur-2xl pointer-events-none"></div>
-                <div class="text-orange-400 text-5xl font-serif font-black leading-none mb-3">“</div>
-                <blockquote class="text-lg md:text-xl font-light italic leading-relaxed text-slate-100 mb-6">
-                  Our core mandate is delivering rigorous, defensible valuation intelligence that empowers institutions and investors to deploy capital with unyielding confidence.
-                </blockquote>
-                <div class="flex items-center gap-3">
-                  <div class="h-0.5 w-8 bg-orange-500"></div>
-                  <p class="text-xs uppercase tracking-widest font-bold text-slate-300">
-                    ESV. Kayode Segun • Principal Partner
-                  </p>
+              <!-- Dominant Name & Executive Mandate Card (#0F172A) -->
+              <div class="bento-card-dark p-8 md:p-10 bg-[#0f172a] text-white border border-slate-800 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-12 -top-12 w-64 h-64 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <!-- Dominant Header Block -->
+                <div class="mb-8 pb-6 border-b border-slate-800">
+                  <span class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-[11px] font-bold tracking-widest-swiss uppercase text-orange-400 bg-orange-500/10 border border-orange-500/20 mb-4">
+                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                    Head of Practice & Lead Valuer
+                  </span>
+                  <h1 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white mb-2">
+                    ESV. Kayode Segun
+                  </h1>
+                  <h2 class="text-base sm:text-lg font-bold text-gradient-brand tracking-wide">
+                    Principal Partner & Head of Practice
+                  </h2>
+                </div>
+
+                <!-- Mandate Quote in High-Legibility Typography -->
+                <div class="mb-8 p-6 rounded-2xl bg-gradient-to-r from-blue-950/60 via-[#0a1835]/80 to-slate-900/80 border border-blue-500/20 shadow-inner">
+                  <div class="text-orange-400 text-4xl font-serif leading-none mb-2">“</div>
+                  <blockquote class="text-base sm:text-lg font-light italic leading-relaxed text-slate-100 mb-4">
+                    Our core mandate is delivering rigorous, defensible valuation intelligence that empowers institutions and investors to deploy capital with unyielding confidence.
+                  </blockquote>
+                  <div class="flex items-center gap-3">
+                    <div class="h-0.5 w-6 bg-orange-500"></div>
+                    <p class="text-[11px] uppercase tracking-widest font-bold text-slate-300">
+                      ESV. Kayode Segun • Practice Mandate
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Quick-Hit Executive Stats Bar -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                  <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-center shadow-md">
+                    <div class="text-2xl sm:text-3xl font-black text-white">13+ Yrs</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-1">Regulatory Excellence</div>
+                  </div>
+                  <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-center shadow-md">
+                    <div class="text-2xl sm:text-3xl font-black text-orange-400">₦50B+</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-1">Portfolio Appraised</div>
+                  </div>
+                  <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-center shadow-md">
+                    <div class="text-2xl sm:text-3xl font-black text-blue-400">300+</div>
+                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mt-1">Bank & Corporate Audits</div>
+                  </div>
                 </div>
               </div>
 
-              <!-- Biography Bento Tile (White) -->
-              <div class="bento-card p-8 md:p-10 bg-white text-slate-900 border border-slate-200/90 shadow-xl">
+              <!-- Biography Bento Tile (Dark Slate #0F172A) -->
+              <div class="bento-card-dark p-8 md:p-10 bg-[#0f172a] text-white border border-slate-800 shadow-2xl">
                 <div class="flex items-center gap-2 mb-4">
-                  <span class="w-1.5 h-4 bg-blue-600 rounded-full"></span>
-                  <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Leadership Profile</h3>
+                  <span class="w-1.5 h-4 bg-blue-500 rounded-full"></span>
+                  <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Leadership Biography</h3>
                 </div>
-                <h2 class="text-2xl font-extrabold tracking-tight text-slate-900 mb-6">Thirteen Years of Industry Benchmarking</h2>
-                <div class="space-y-4 text-sm text-slate-600 leading-relaxed font-normal">
+                <h3 class="text-2xl font-extrabold tracking-tight text-white mb-6">Thirteen Years of Industry Benchmarking</h3>
+                <div class="space-y-4 text-sm text-slate-300 leading-relaxed font-normal">
                   <p>
-                    <strong class="text-slate-900">ESV. Kayode Segun</strong> is an established Estate Surveyor and Registered Valuer with over thirteen (13) years of top-tier professional practice across Nigeria. As the founding Principal Partner of Kayode Segun & Associates, he oversees the firm's strategic valuation advisory, high-stakes asset auditing, and portfolio asset management.
+                    <strong class="text-white">ESV. Kayode Segun</strong> is a distinguished Estate Surveyor and Registered Valuer with over thirteen (13) years of top-tier professional practice across Nigeria. As founding Principal Partner of Kayode Segun & Associates, he directs the firm's strategic valuation practice, institutional asset audits, and capital investment advisory.
                   </p>
                   <p>
-                    Prior to launching Kayode Segun & Associates, he honed his practice at renowned professional firms including <span class="text-slate-900 font-medium">Oladipo, Awoeyo & Partners</span>, orchestrating nationwide property inspections, market analyses, insurance claims evaluations, and complex mortgage collateral valuations for institutional tier-1 lenders.
+                    Prior to establishing Kayode Segun & Associates, he honed his practice at renowned professional firms including <span class="text-white font-semibold">Oladipo, Awoeyo & Partners</span>, orchestrating nationwide property inspections, market feasibility studies, insurance claims evaluations, and complex mortgage collateral valuations for tier-1 financial institutions.
                   </p>
                 </div>
               </div>
 
-              <!-- Metrics Mini-Bento Row -->
-              <div class="grid grid-cols-3 gap-4">
-                <div class="bento-card p-5 bg-white text-slate-900 border border-slate-200/80 shadow-sm text-center">
-                  <div class="text-2xl md:text-3xl font-extrabold text-blue-900">13+</div>
-                  <div class="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">Years Practice</div>
-                </div>
-                <div class="bento-card p-5 bg-white text-slate-900 border border-slate-200/80 shadow-sm text-center">
-                  <div class="text-2xl md:text-3xl font-extrabold text-orange-600">₦50B+</div>
-                  <div class="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">Portfolio Valued</div>
-                </div>
-                <div class="bento-card p-5 bg-white text-slate-900 border border-slate-200/80 shadow-sm text-center">
-                  <div class="text-2xl md:text-3xl font-extrabold text-slate-900">100%</div>
-                  <div class="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-500 mt-1">Regulatory Score</div>
-                </div>
-              </div>
-
-              <!-- Areas of Expertise (Bento White Card) -->
-              <div class="bento-card p-8 bg-white text-slate-900 border border-slate-200/90 shadow-xl">
+              <!-- Advisory Domains (Dark Slate #0F172A) -->
+              <div class="bento-card-dark p-8 bg-[#0f172a] text-white border border-slate-800 shadow-2xl">
                 <div class="flex items-center gap-2 mb-4">
                   <span class="w-1.5 h-4 bg-orange-500 rounded-full"></span>
-                  <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Advisory Domains</h3>
+                  <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Practice Competencies</h3>
                 </div>
-                <h3 class="text-xl font-bold tracking-tight text-slate-900 mb-6">Core Competencies</h3>
+                <h3 class="text-xl font-bold tracking-tight text-white mb-6">Core Advisory Domains</h3>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                  <div class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
                     <div class="w-2 h-2 rounded-full bg-orange-500"></div>
-                    <span class="text-xs font-bold text-slate-800">Real Estate & Asset Valuation</span>
+                    <span class="text-xs font-bold text-slate-200">Statutory Real Estate & Asset Valuation</span>
                   </div>
-                  <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                    <div class="w-2 h-2 rounded-full bg-blue-600"></div>
-                    <span class="text-xs font-bold text-slate-800">Licensed Auctioneering</span>
+                  <div class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <span class="text-xs font-bold text-slate-200">Licensed Auctioneering & Asset Disposal</span>
                   </div>
-                  <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
-                    <div class="w-2 h-2 rounded-full bg-blue-600"></div>
-                    <span class="text-xs font-bold text-slate-800">Property & Tenancy Consultancy</span>
+                  <div class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
+                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <span class="text-xs font-bold text-slate-200">Property & Tenancy Consultancy</span>
                   </div>
-                  <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                  <div class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
                     <div class="w-2 h-2 rounded-full bg-orange-500"></div>
-                    <span class="text-xs font-bold text-slate-800">Institutional Asset Management</span>
+                    <span class="text-xs font-bold text-slate-200">Institutional Asset & Facility Governance</span>
                   </div>
-                  <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 sm:col-span-2">
-                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                    <span class="text-xs font-bold text-slate-800">Project Viability & Investment Advisory</span>
+                  <div class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 sm:col-span-2">
+                    <div class="w-2 h-2 rounded-full bg-emerald-400"></div>
+                    <span class="text-xs font-bold text-slate-200">Development Viability Modeling & Sensitivity Testing</span>
                   </div>
                 </div>
               </div>
 
-              <!-- Education & Training (Bento Tile) -->
-              <div class="bento-card p-8 bg-white text-slate-900 border border-slate-200/90 shadow-xl">
+              <!-- Qualifications & Training (Dark Slate #0F172A) -->
+              <div class="bento-card-dark p-8 bg-[#0f172a] text-white border border-slate-800 shadow-2xl">
                 <div class="flex items-center gap-2 mb-4">
-                  <span class="w-1.5 h-4 bg-blue-600 rounded-full"></span>
-                  <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Academic & Executive</h3>
+                  <span class="w-1.5 h-4 bg-blue-500 rounded-full"></span>
+                  <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400">Academic & Executive Training</h3>
                 </div>
-                <h3 class="text-xl font-bold tracking-tight text-slate-900 mb-4">Qualifications & Training</h3>
-                <ul class="space-y-3 text-xs md:text-sm text-slate-600">
+                <h3 class="text-xl font-bold tracking-tight text-white mb-4">Professional Certifications</h3>
+                <ul class="space-y-3.5 text-xs md:text-sm text-slate-300">
                   <li class="flex items-start gap-3">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0"></span>
-                    <span><strong class="text-slate-900">B.Sc. Estate Management & Valuation</strong> — University of Lagos (UNILAG).</span>
+                    <span class="w-2 h-2 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></span>
+                    <span><strong class="text-white">B.Sc. Estate Management & Valuation</strong> — University of Lagos (UNILAG).</span>
                   </li>
                   <li class="flex items-start gap-3">
-                    <span class="w-1.5 h-1.5 rounded-full bg-orange-500 mt-2 flex-shrink-0"></span>
-                    <span><strong class="text-slate-900">Executive Policy, Strategy and Leadership Training</strong> — National Institute for Policy and Strategic Studies (NIPSS), Kuru, Jos.</span>
+                    <span class="w-2 h-2 rounded-full bg-orange-400 mt-1.5 flex-shrink-0"></span>
+                    <span><strong class="text-white">Executive Policy, Strategy and Leadership Training</strong> — National Institute for Policy and Strategic Studies (NIPSS), Kuru, Jos.</span>
                   </li>
                   <li class="flex items-start gap-3">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-600 mt-2 flex-shrink-0"></span>
-                    <span><strong class="text-slate-900">Certified Member</strong> — Certified Institute of Auctioneers of Nigeria (CIAN).</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></span>
+                    <span><strong class="text-white">Certified Member</strong> — Certified Institute of Auctioneers of Nigeria (CIAN).</span>
                   </li>
                 </ul>
               </div>
