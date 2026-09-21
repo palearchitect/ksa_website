@@ -1,11 +1,14 @@
 <template>
   <ErrorBoundary>
-    <div id="app" class="flex flex-col min-h-screen">
+    <div id="app" class="flex flex-col min-h-screen bg-[#fcfcfd] relative selection:bg-orange-500 selection:text-white">
+      <!-- Seamless Micro-Icon Pattern Wallpaper Layer -->
+      <PatternBackground />
+
       <AppHeader v-slot="{}" v-if="!hideLayout" />
-      <main class="flex-grow">
+      <main class="flex-grow relative z-10">
         <router-view />
       </main>
-      <AppFooter v-if="!hideLayout" />
+      <AppFooter v-if="!hideLayout" class="relative z-10" />
     </div>
   </ErrorBoundary>
 </template>
@@ -19,6 +22,7 @@ import { supabase } from '@/lib/supabaseClient'
 import AppHeader from './components/global/AppHeader.vue'
 import AppFooter from './components/global/AppFooter.vue'
 import ErrorBoundary from './components/global/ErrorBoundary.vue'
+import PatternBackground from './components/global/PatternBackground.vue'
 
 const route = useRoute()
 const hideLayout = computed(() => route.path.startsWith('/admin') || route.path.startsWith('/dashboard'))
@@ -60,3 +64,4 @@ html, body {
   height: 100%;
 }
 </style>
+
