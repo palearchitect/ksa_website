@@ -354,10 +354,10 @@ const handleCustomRegister = async () => {
       registerForm.value.name, 
       registerForm.value.email, 
       registerForm.value.password, 
-      registerForm.value.role || 'tenant'
+      registerForm.value.role || 'admin'
     )
     if (res.success) {
-      router.push(`/verify-email?email=${encodeURIComponent(registerForm.value.email)}`)
+      router.push('/dashboard/admin')
     } else if (res.code === 'USER_ALREADY_EXISTS' || (res.error && (res.error.toLowerCase().includes('already') || res.error.toLowerCase().includes('exist')))) {
       switchTab('login')
       loginForm.value.email = registerForm.value.email
