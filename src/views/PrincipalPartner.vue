@@ -1,6 +1,6 @@
 <template>
   <ErrorBoundary>
-    <div class="min-h-screen bg-gradient-to-b from-[#030810] via-[#071328] to-[#040914] text-white">
+    <div class="min-h-screen bg-gradient-to-b from-[#030810]/80 via-[#071328]/85 to-[#040914]/90 backdrop-blur-md text-white">
       <!-- Hero Header -->
       <section class="relative pt-28 md:pt-36 pb-12 overflow-hidden border-b border-white/10">
         <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,rgba(37,99,235,0.25),rgba(249,104,22,0.1)_50%,transparent_80%)] pointer-events-none"></div>

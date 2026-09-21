@@ -1,6 +1,6 @@
 <template>
   <ErrorBoundary>
-    <div class="min-h-screen bg-slate-50 relative pt-28 md:pt-36 pb-20 px-4 sm:px-6">
+    <div class="min-h-screen bg-transparent relative pt-28 md:pt-36 pb-20 px-4 sm:px-6">
       <!-- Ambient Radial Mesh Lighting -->
       <div class="absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_70%_60%_at_50%_-10%,rgba(37,99,235,0.18),rgba(249,104,22,0.08)_50%,transparent_80%)] pointer-events-none"></div>
 
