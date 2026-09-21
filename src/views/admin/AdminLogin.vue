@@ -21,52 +21,8 @@
     <!-- Central Authentication Card -->
     <div class="w-full max-w-[380px] mx-auto my-auto flex flex-col items-center z-10">
       
-      <!-- Clerk Authentication Component -->
-      <div v-if="hasClerkKey && !useDirectDatabaseLogin" class="w-full flex flex-col items-center clerk-orange-wrapper">
-        <AuthenticateWithRedirectCallback 
-          v-if="isSsoCallback" 
-          signUpForceRedirectUrl="/dashboard/admin"
-          signInForceRedirectUrl="/dashboard/admin"
-        />
-        <SignIn 
-          v-else-if="activeTab === 'login'" 
-          routing="path" 
-          path="/admin/login" 
-          signUpUrl="/admin/login?tab=signup"
-          forceRedirectUrl="/dashboard/admin"
-          fallbackRedirectUrl="/dashboard/admin"
-          :appearance="clerkAppearance"
-        />
-        <SignUp 
-          v-else 
-          routing="path" 
-          path="/admin/login" 
-          signInUrl="/admin/login"
-          forceRedirectUrl="/dashboard/admin"
-          fallbackRedirectUrl="/dashboard/admin"
-          :appearance="clerkAppearance"
-        />
-
-        <button 
-          type="button" 
-          @click="useDirectDatabaseLogin = true" 
-          class="mt-3 text-[11px] text-slate-400 hover:text-orange-400 transition underline underline-offset-4"
-        >
-          Sign in with Database Credentials →
-        </button>
-      </div>
-
-      <!-- Fallback Custom Transparent Blue-to-Orange Glass Tile -->
-      <div v-else class="w-full bg-gradient-to-br from-blue-950/75 via-slate-950/85 to-orange-950/70 backdrop-blur-2xl rounded-2xl p-6 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_rgba(37,99,235,0.2),0_0_40px_rgba(249,115,22,0.2)]">
-        <div v-if="hasClerkKey" class="mb-4 text-left">
-          <button 
-            type="button" 
-            @click="useDirectDatabaseLogin = false" 
-            class="text-[11px] text-blue-400 hover:text-blue-300 transition inline-flex items-center gap-1 font-medium"
-          >
-            ← Back to Clerk SSO Sign In
-          </button>
-        </div>
+      <!-- Primary Authentication Glass Tile -->
+      <div class="w-full bg-gradient-to-br from-blue-950/75 via-slate-950/85 to-orange-950/70 backdrop-blur-2xl rounded-2xl p-6 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.8),0_0_40px_rgba(37,99,235,0.2),0_0_40px_rgba(249,115,22,0.2)]">
         <div class="text-center mb-6">
           <h2 class="text-xl font-extrabold text-white tracking-tight bg-gradient-to-r from-blue-300 via-white to-orange-300 bg-clip-text text-transparent">
             {{ activeTab === 'signup' ? 'Create Account' : 'Portal Sign In' }}
@@ -245,7 +201,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { SignIn, SignUp, AuthenticateWithRedirectCallback } from '@clerk/vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useSEO } from '@/hooks/useSEO'
 
