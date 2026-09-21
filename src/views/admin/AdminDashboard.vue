@@ -1,31 +1,31 @@
 <template>
-  <div class="admin-dashboard space-y-6 max-w-[1600px] mx-auto text-slate-800">
+  <div class="admin-dashboard space-y-6 max-w-[1600px] mx-auto text-slate-800 font-sans">
     
     <!-- ── 1. Sub-Header: Title & Far-Right Action Icon Group ──── -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-1">
-      <!-- Title & Subtitle (Aligned Far Left) -->
+      <!-- Title & Subtitle (Vertically Aligned with Back Arrow) -->
       <div class="flex items-center gap-3">
-        <button @click="router.back()" class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-2xs" title="Go Back">
-          <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <button @click="router.back()" class="w-9 h-9 rounded-lg bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-2xs flex-shrink-0" title="Go Back">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
         </button>
         <div>
-          <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">Estate Management</h1>
+          <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight font-sans">Estate Management</h1>
           <p class="text-xs text-slate-500 font-normal">Live Operation Metrics & Property Control System</p>
         </div>
       </div>
 
       <!-- Action Button Group (Aligned Far Right) -->
       <div class="flex items-center gap-2">
-        <button @click="refreshData" class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-2xs" title="Refresh Live Data">
+        <button @click="refreshData" class="w-9 h-9 rounded-lg bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-2xs" title="Refresh Live Data">
           <svg class="w-4 h-4" :class="{'animate-spin': loadingData}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" /></svg>
         </button>
         <router-link to="/dashboard/admin/properties/new" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-medium transition-colors shadow-2xs">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
           <span>Add Property</span>
         </router-link>
-        <button @click="showFAQModal = true" class="w-9 h-9 rounded-lg bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-2xs" title="Manage FAQs">
+        <button @click="showFAQModal = true" class="w-9 h-9 rounded-lg bg-white border border-slate-200/80 text-slate-700 hover:bg-slate-50 flex items-center justify-center transition-colors shadow-2xs" title="Manage FAQs">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M12 18h.01" /></svg>
         </button>
       </div>
@@ -35,43 +35,43 @@
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <!-- Card 1: Total Properties -->
       <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
-        <div class="space-y-1">
-          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Total Properties</span>
-          <div class="flex items-baseline gap-2">
-            <span class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{{ livePropertiesCount }}</span>
-            <span class="text-xs font-medium text-emerald-600">+12% this month</span>
-          </div>
+        <div class="space-y-0.5">
+          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Total Properties</span>
+          <p class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-sans">{{ livePropertiesCount }}</p>
+          <p class="text-xs font-normal text-slate-500 pt-0.5">{{ livePropertiesCount }} Total &bull; 0 Added this month</p>
         </div>
-        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center text-lg font-bold">
-          🏢
+        <div class="w-9 h-9 rounded-lg bg-slate-100/80 text-slate-600 flex items-center justify-center border border-slate-200/60 flex-shrink-0">
+          <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5v3m-6 0h6" />
+          </svg>
         </div>
       </div>
 
       <!-- Card 2: Viewing Bookings -->
       <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
-        <div class="space-y-1">
-          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Viewing Bookings</span>
-          <div class="flex items-baseline gap-2">
-            <span class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{{ liveBookingsCount }}</span>
-            <span class="text-xs font-medium text-blue-600">Active schedule</span>
-          </div>
+        <div class="space-y-0.5">
+          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Viewing Bookings</span>
+          <p class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-sans">{{ liveBookingsCount }}</p>
+          <p class="text-xs font-normal text-slate-500 pt-0.5">{{ liveBookingsCount }} Bookings &bull; {{ pendingBookingsCount }} Pending review</p>
         </div>
-        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center text-lg font-bold">
-          📅
+        <div class="w-9 h-9 rounded-lg bg-slate-100/80 text-slate-600 flex items-center justify-center border border-slate-200/60 flex-shrink-0">
+          <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+          </svg>
         </div>
       </div>
 
       <!-- Card 3: Ongoing Projects -->
       <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-2xs flex items-center justify-between">
-        <div class="space-y-1">
-          <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Ongoing Projects</span>
-          <div class="flex items-baseline gap-2">
-            <span class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">{{ liveProjectsCount }}</span>
-            <span class="text-xs font-medium text-amber-600">Under construction</span>
-          </div>
+        <div class="space-y-0.5">
+          <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">Ongoing Projects</span>
+          <p class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight font-sans">{{ liveProjectsCount }}</p>
+          <p class="text-xs font-normal text-slate-500 pt-0.5">{{ liveProjectsCount }} Projects &bull; {{ activeProjectsCount }} In development</p>
         </div>
-        <div class="w-10 h-10 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center text-lg font-bold">
-          🏗️
+        <div class="w-9 h-9 rounded-lg bg-slate-100/80 text-slate-600 flex items-center justify-center border border-slate-200/60 flex-shrink-0">
+          <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 01-3.586 0 2.548 2.548 0 010-3.586l5.653-4.655m3.788-3.412a4.5 4.5 0 00-6.364-6.364l1.757 1.757m13.356 13.356l1.757 1.757" />
+          </svg>
         </div>
       </div>
     </div>
@@ -93,36 +93,37 @@
         
         <!-- 1. Sales Analytics Dual-Line Chart Card -->
         <div class="bg-white p-6 rounded-xl border border-slate-200/80 shadow-2xs space-y-4">
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h3 class="text-base font-semibold text-slate-900">Valuation & Sales Analytics</h3>
+              <h3 class="text-base font-semibold text-slate-900 font-sans">Valuation & Sales Analytics</h3>
               <p class="text-xs text-slate-500 font-normal">Quarterly inquiry volume and revenue metrics</p>
             </div>
-            <div class="relative">
-              <select v-model="analyticsPeriod" class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 outline-none cursor-pointer hover:bg-slate-100 transition">
-                <option value="last_month">Last Month</option>
-                <option value="this_quarter">This Quarter</option>
-                <option value="this_year">This Year</option>
-              </select>
+            <div class="flex items-center gap-3">
+              <!-- Header Static Legend Pill -->
+              <div class="hidden sm:flex items-center gap-3 text-xs font-medium bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-lg">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                  <span class="text-slate-500">Revenue:</span>
+                  <span class="text-slate-900 font-semibold">₦485.2M</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+                  <span class="text-slate-500">Inquiries:</span>
+                  <span class="text-slate-900 font-semibold">1,240</span>
+                </div>
+              </div>
+              <div class="relative">
+                <select v-model="analyticsPeriod" class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 outline-none cursor-pointer hover:bg-slate-100 transition">
+                  <option value="last_month">Last Month</option>
+                  <option value="this_quarter">This Quarter</option>
+                  <option value="this_year">This Year</option>
+                </select>
+              </div>
             </div>
           </div>
 
           <!-- Dual-Line SVG Chart Container -->
-          <div class="relative pt-4 pb-2">
-            <!-- Floating Tooltip Legend -->
-            <div class="absolute top-2 right-4 bg-white border border-slate-200/80 rounded-lg p-2 px-3 shadow-2xs flex items-center gap-4 text-xs font-medium z-10">
-              <div class="flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span>
-                <span class="text-slate-500">Revenue:</span>
-                <span class="text-slate-900 font-semibold">₦485.2M</span>
-              </div>
-              <div class="flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                <span class="text-slate-500">Inquiries:</span>
-                <span class="text-slate-900 font-semibold">1,240</span>
-              </div>
-            </div>
-
+          <div class="relative pt-2 pb-2">
             <svg class="w-full h-48 sm:h-56 overflow-visible" viewBox="0 0 700 200">
               <defs>
                 <linearGradient id="incomeGradKSA" x1="0" y1="0" x2="0" y2="1">
@@ -146,7 +147,7 @@
               <path d="M 0,140 Q 100,60 200,70 T 400,20 T 600,60 L 700,65" fill="none" stroke="#f96816" stroke-width="2" stroke-linecap="round" />
               <path d="M 0,160 Q 100,120 200,130 T 400,110 T 600,130 L 700,140" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" />
 
-              <circle cx="400" cy="20" r="5" fill="#f96816" stroke="#ffffff" stroke-width="2" />
+              <circle cx="400" cy="20" r="4" fill="#f96816" stroke="#ffffff" stroke-width="2" />
             </svg>
 
             <div class="flex justify-between text-[11px] font-medium text-slate-400 pt-2 px-1">
@@ -412,6 +413,14 @@ let marqueeInterval = null
 const livePropertiesCount = computed(() => propertyStore.properties?.length || 0)
 const liveBookingsCount = computed(() => bookingStore.bookings?.length || 0)
 const liveProjectsCount = computed(() => projectStore.projects?.length || 0)
+
+const pendingBookingsCount = computed(() => {
+  const list = bookingStore.bookings?.length ? bookingStore.bookings : fallbackBookings
+  return list.filter(b => b.status === 'pending').length
+})
+const activeProjectsCount = computed(() => {
+  return projectStore.projects?.filter(p => p.status === 'ongoing' || p.status === 'active').length || 0
+})
 
 const activeDisplayProperties = computed(() => {
   if (propertyStore.properties && propertyStore.properties.length > 0) {

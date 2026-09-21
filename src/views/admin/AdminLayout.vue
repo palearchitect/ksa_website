@@ -52,24 +52,13 @@
 
         <!-- Right: Cohesive 36px Action Icon Group & User Menu -->
         <div class="flex items-center gap-2">
-          <!-- Add New Property Button -->
-          <router-link
-            to="/dashboard/admin/properties/new"
-            class="w-9 h-9 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-2xs"
-            title="Add New Listing"
-          >
-            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-          </router-link>
-
           <!-- Quick Search Button -->
           <button
             @click="showSearchModal = true"
             class="w-9 h-9 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 flex items-center justify-center transition-colors shadow-2xs"
-            title="Search"
+            title="Search Portal"
           >
-            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
             </svg>
           </button>
@@ -247,7 +236,16 @@ async function handleStopImpersonation() {
 }
 </script>
 
-<style scoped>
+<style>
+.admin-layout-wrapper h1,
+.admin-layout-wrapper h2,
+.admin-layout-wrapper h3,
+.admin-layout-wrapper h4,
+.admin-layout-wrapper .font-heading {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  letter-spacing: -0.02em;
+}
+
 .animation-fade-in {
   animation: fadeIn 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }

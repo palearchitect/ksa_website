@@ -51,8 +51,8 @@
   /* Floating Glassmorphic Pill Container */
   .glass-pill {
     background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.4);
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(229, 231, 235, 0.5);
     border-radius: 9999px;
@@ -60,8 +60,8 @@
 
   .glass-pill-dark {
     background: rgba(10, 15, 29, 0.75);
-    backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
     border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 30px rgba(37, 99, 235, 0.12);
     border-radius: 9999px;
@@ -70,8 +70,8 @@
   /* Bento Grid Card */
   .bento-card {
     background: rgba(255, 255, 255, 0.88);
-    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     border: 1px solid rgba(226, 232, 240, 0.9);
     border-radius: 1.25rem;
     box-shadow: 
@@ -91,8 +91,8 @@
 
   .bento-card-dark {
     background: linear-gradient(145deg, rgba(15, 23, 42, 0.82) 0%, rgba(3, 8, 16, 0.92) 100%);
-    backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 1.25rem;
     box-shadow: 
@@ -114,12 +114,14 @@
   .text-gradient-brand {
     background: linear-gradient(135deg, #1b4d84 0%, #2563eb 50%, #f96816 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   .text-gradient-brand-light {
     background: linear-gradient(135deg, #60a5fa 0%, #ffffff 50%, #fb923c 100%);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
