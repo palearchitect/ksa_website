@@ -12,15 +12,42 @@
       />
       <div class="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-transparent to-transparent pointer-events-none"></div>
 
+      <!-- Left / Right Navigation Arrows -->
+      <button
+        v-if="imageList.length > 1"
+        @click.stop="prevImage"
+        class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/60 hover:bg-slate-950 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center z-20 shadow-md border border-white/20"
+        title="Previous image"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <button
+        v-if="imageList.length > 1"
+        @click.stop="nextImage"
+        class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/60 hover:bg-slate-950 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center z-20 shadow-md border border-white/20"
+        title="Next image"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+
       <!-- Carousel Dots -->
-      <div v-if="property.images && property.images.length > 1" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+      <div v-if="imageList.length > 1" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 bg-slate-950/50 px-2.5 py-1 rounded-full backdrop-blur-sm">
         <button
-          v-for="(img, idx) in property.images"
+          v-for="(_, idx) in imageList"
           :key="idx"
           class="h-1.5 rounded-full transition-all duration-200"
-          :class="idx === imageIdx ? 'w-5 bg-orange-500' : 'w-1.5 bg-white/70 hover:bg-white'"
+          :class="idx === imageIdx ? 'w-4 bg-orange-500' : 'w-1.5 bg-white/70 hover:bg-white'"
           @click.stop="imageIdx = idx"
         ></button>
+      </div>
+
+      <!-- Image Count Indicator Pill -->
+      <div v-if="imageList.length > 1" class="absolute bottom-3 right-3 bg-slate-950/75 text-white px-2 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-md flex items-center gap-1 z-10 border border-white/20">
+        <span>📷 {{ imageIdx + 1 }}/{{ imageList.length }}</span>
       </div>
 
       <!-- Favorite Button -->
@@ -101,12 +128,32 @@ const emit = defineEmits(['favorite-toggle'])
 const router = useRouter()
 
 const imageIdx = ref(0)
-const currentImage = computed(() => {
-  if (props.property.images && props.property.images.length > 0) {
-    return props.property.images[imageIdx.value]
+
+const imageList = computed(() => {
+  if (Array.isArray(props.property.images) && props.property.images.length > 0) {
+    return props.property.images
   }
-  return props.property.image || 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80'
+  if (props.property.image) {
+    return [props.property.image]
+  }
+  return ['https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80']
 })
+
+const currentImage = computed(() => {
+  return imageList.value[imageIdx.value] || imageList.value[0]
+})
+
+function nextImage() {
+  if (imageList.value.length > 0) {
+    imageIdx.value = (imageIdx.value + 1) % imageList.value.length
+  }
+}
+
+function prevImage() {
+  if (imageList.value.length > 0) {
+    imageIdx.value = (imageIdx.value - 1 + imageList.value.length) % imageList.value.length
+  }
+}
 
 function toggleFavorite() {
   emit('favorite-toggle', props.property.id)

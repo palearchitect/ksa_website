@@ -146,26 +146,26 @@
     </router-link>
 
     <!-- Portal / Sign In (Dynamic) -->
-    <router-link
+    <a
       v-if="isAuthenticated"
-      :to="portalPath"
+      :href="portalUrl"
       class="nav-admin"
-      :class="{ 'nav-admin-active': isActiveRoute(portalPath) }"
-      @click="handleNavigate"
+      :class="{ 'nav-admin-active': isActiveRoute('/dashboard') }"
+      @click="handlePortalClick"
     >
       <Cog6ToothIcon class="nav-icon" />
       My Portal
-    </router-link>
-    <router-link
+    </a>
+    <a
       v-else
-      to="/login"
+      :href="loginUrl"
       class="nav-admin"
-      :class="{ 'nav-admin-active': isActiveRoute('/login') }"
-      @click="handleNavigate"
+      :class="{ 'nav-admin-active': isActiveRoute('/admin/login') || isActiveRoute('/login') }"
+      @click="handleLoginClick"
     >
       <Cog6ToothIcon class="nav-icon" />
       Sign In
-    </router-link>
+    </a>
   </nav>
 
   <!-- Mobile Navigation -->
@@ -230,26 +230,26 @@
       </div>
 
       <!-- Mobile Portal / Sign In (Dynamic) -->
-      <router-link
+      <a
         v-if="isAuthenticated"
-        :to="portalPath"
+        :href="portalUrl"
         class="mobile-admin"
-        :class="{ 'mobile-admin-active': isActiveRoute(portalPath) }"
-        @click="handleNavigate"
+        :class="{ 'mobile-admin-active': isActiveRoute('/dashboard') }"
+        @click="handlePortalClick"
       >
         <Cog6ToothIcon class="mobile-icon" />
         My Portal
-      </router-link>
-      <router-link
+      </a>
+      <a
         v-else
-        to="/login"
+        :href="loginUrl"
         class="mobile-admin"
-        :class="{ 'mobile-admin-active': isActiveRoute('/login') }"
-        @click="handleNavigate"
+        :class="{ 'mobile-admin-active': isActiveRoute('/admin/login') || isActiveRoute('/login') }"
+        @click="handleLoginClick"
       >
         <Cog6ToothIcon class="mobile-icon" />
         Sign In
-      </router-link>
+      </a>
     </div>
   </nav>
 </template>
@@ -258,6 +258,7 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
+import { getSubdomainUrl } from '@/utils/subdomain'
 
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -272,7 +273,24 @@ const roleDashboardMap = {
   tenant:        '/dashboard/admin',
 }
 
-const portalPath = computed(() => roleDashboardMap[userRole.value] || '/admin/login')
+const portalUrl = computed(() => getSubdomainUrl('dashboard', roleDashboardMap[userRole.value] || '/dashboard/admin'))
+const loginUrl = computed(() => getSubdomainUrl('accounts', '/admin/login'))
+
+const handlePortalClick = (event) => {
+  handleNavigate()
+  if (portalUrl.value.startsWith('http')) {
+    event.preventDefault()
+    window.location.href = portalUrl.value
+  }
+}
+
+const handleLoginClick = (event) => {
+  handleNavigate()
+  if (loginUrl.value.startsWith('http')) {
+    event.preventDefault()
+    window.location.href = loginUrl.value
+  }
+}
 
 // Import Heroicons
 import {

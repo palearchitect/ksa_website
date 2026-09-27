@@ -93,13 +93,46 @@
           >
             <div>
               <!-- Project Image Header -->
-              <div class="relative h-64 overflow-hidden bg-slate-100">
+              <div class="relative h-64 overflow-hidden bg-slate-100 group/img">
                 <img 
-                  :src="project.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=600&fit=crop'" 
+                  :src="getProjectCurrentImage(project)" 
                   :alt="project.title"
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 >
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+
+                <!-- Card Prev/Next Image Navigation Arrows -->
+                <button
+                  v-if="getProjectImages(project).length > 1"
+                  @click.stop="prevProjectImage(project)"
+                  class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/60 hover:bg-slate-950 text-white opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center z-20 shadow-md border border-white/20"
+                >
+                  ‹
+                </button>
+                <button
+                  v-if="getProjectImages(project).length > 1"
+                  @click.stop="nextProjectImage(project)"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/60 hover:bg-slate-950 text-white opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center z-20 shadow-md border border-white/20"
+                >
+                  ›
+                </button>
+
+                <!-- Dots Indicator -->
+                <div v-if="getProjectImages(project).length > 1" class="absolute bottom-14 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 bg-slate-950/50 px-2.5 py-1 rounded-full backdrop-blur-sm">
+                  <button
+                    v-for="(_, idx) in getProjectImages(project)"
+                    :key="idx"
+                    class="h-1.5 rounded-full transition-all duration-200"
+                    :class="idx === (activeCardImageMap[project.id] || 0) ? 'w-4 bg-orange-500' : 'w-1.5 bg-white/70 hover:bg-white'"
+                    @click.stop="activeCardImageMap[project.id] = idx"
+                  ></button>
+                </div>
+
+                <!-- Count Badge -->
+                <div v-if="getProjectImages(project).length > 1" class="absolute top-4 right-4 bg-slate-950/75 text-white px-2.5 py-1 rounded-full text-[10px] font-bold backdrop-blur-md flex items-center gap-1 z-10 border border-white/20">
+                  <span>📷 {{ (activeCardImageMap[project.id] || 0) + 1 }}/{{ getProjectImages(project).length }}</span>
+                </div>
+
                 <div class="absolute top-4 left-4 flex gap-2">
                   <span :class="getStatusBadgeClass(project.status)" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
                     {{ project.status }}
@@ -108,7 +141,7 @@
                     {{ project.type }}
                   </span>
                 </div>
-                <div v-if="project.featured" class="absolute top-4 right-4">
+                <div v-if="project.featured && getProjectImages(project).length <= 1" class="absolute top-4 right-4">
                   <span class="px-3 py-1 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full text-xs font-bold uppercase tracking-wider shadow-md inline-flex items-center gap-1">
                     ★ Featured
                   </span>
@@ -389,6 +422,43 @@ useSEO({
 
 const projectStore = useProjectStore()
 const loading = ref(false)
+
+// Card Multi-Image Navigation
+const activeCardImageMap = ref({})
+
+const getProjectImages = (p) => {
+  if (!p) return ['https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=600&fit=crop']
+  if (Array.isArray(p.images) && p.images.length > 0) return p.images
+  if (p.image) {
+    if (p.image.includes('unsplash.com')) {
+      return [
+        p.image,
+        p.image.replace(/\?.*$/, '') + '?w=800&h=600&fit=crop&q=80&sig=1',
+        p.image.replace(/\?.*$/, '') + '?w=800&h=600&fit=crop&q=80&sig=2'
+      ]
+    }
+    return [p.image]
+  }
+  return ['https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=600&fit=crop']
+}
+
+const getProjectCurrentImage = (p) => {
+  const imgs = getProjectImages(p)
+  const idx = activeCardImageMap.value[p?.id] || 0
+  return imgs[idx] || imgs[0]
+}
+
+const nextProjectImage = (p) => {
+  const imgs = getProjectImages(p)
+  const curr = activeCardImageMap.value[p.id] || 0
+  activeCardImageMap.value[p.id] = (curr + 1) % imgs.length
+}
+
+const prevProjectImage = (p) => {
+  const imgs = getProjectImages(p)
+  const curr = activeCardImageMap.value[p.id] || 0
+  activeCardImageMap.value[p.id] = (curr - 1 + imgs.length) % imgs.length
+}
 
 const selectedProject = ref(null)
 const currentImageIndex = ref(0)

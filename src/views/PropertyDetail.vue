@@ -127,74 +127,130 @@
 
             <!-- Property Details -->
             <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
-              <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-4">{{ property.title }}</h1>
-              
-              <!-- Location -->
-              <div class="flex items-center mb-6">
-                <svg class="w-5 h-5 text-gray-400 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span class="text-gray-600">{{ property.location }}</span>
+              <div class="flex flex-wrap items-center gap-2 mb-3">
+                <span v-if="property.titleDocument || property.title_document" class="px-3 py-1 bg-blue-50 text-blue-800 border border-blue-200/80 rounded-full text-xs font-bold tracking-wide">
+                  📜 {{ property.titleDocument || property.title_document }}
+                </span>
+                <span v-if="property.initialDeposit || property.initial_deposit" class="px-3 py-1 bg-amber-50 text-amber-800 border border-amber-200/80 rounded-full text-xs font-bold tracking-wide">
+                  💳 Initial Deposit: {{ property.initialDeposit || property.initial_deposit }}
+                </span>
               </div>
 
-              <!-- Price -->
-              <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-8">
+              <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-3">{{ property.title }}</h1>
+              
+              <!-- Location & Developer -->
+              <div class="space-y-2 mb-6 text-sm text-gray-600">
+                <div class="flex items-start">
+                  <svg class="w-5 h-5 text-orange-500 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span>{{ property.location }}</span>
+                </div>
+                <div v-if="property.developer" class="flex items-start">
+                  <svg class="w-5 h-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                  <span><strong>Developer:</strong> {{ property.developer }} <span v-if="property.developerAddress">({{ property.developerAddress }})</span></span>
+                </div>
+              </div>
+
+              <!-- Price Banner -->
+              <div class="bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-950 text-white rounded-xl p-6 mb-8 shadow-xl">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
-                    <p class="text-3xl md:text-4xl font-bold text-gray-900">{{ formatPrice(property.price) }}</p>
-                    <p class="text-gray-600 mt-1">
-                      {{ ['sale', 'For Sale'].includes(property.status) ? 'Sale Price' : 'Monthly Rent' }}
+                    <span class="text-xs font-semibold uppercase tracking-widest text-orange-400">Pricing & Value</span>
+                    <p class="text-3xl md:text-4xl font-extrabold text-white mt-1">
+                      {{ property.priceFormatted || formatPrice(property.price) }}
+                    </p>
+                    <p v-if="property.paymentTerms || property.payment_terms" class="text-xs text-slate-300 mt-2 flex items-center gap-1">
+                      <span>⚡ {{ property.paymentTerms || property.payment_terms }}</span>
                     </p>
                   </div>
                   <button 
                     @click="openBookingModal" 
-                    class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition shadow-lg"
+                    class="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-full transition shadow-lg text-xs uppercase tracking-widest"
                   >
-                    Book a Tour
+                    Book Inspection
                   </button>
                 </div>
               </div>
 
               <!-- Key Features -->
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div class="text-center p-4 bg-gray-50 rounded-xl">
-                  <div class="text-xl md:text-2xl font-bold text-blue-600 mb-2">{{ property.bedrooms || 0 }}</div>
-                  <div class="text-sm text-gray-600">Bedrooms</div>
+                <div class="text-center p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div class="text-xl md:text-2xl font-bold text-blue-600 mb-1">{{ property.bedrooms || 2 }}</div>
+                  <div class="text-xs text-gray-600 font-medium">Bedrooms</div>
                 </div>
-                <div class="text-center p-4 bg-gray-50 rounded-xl">
-                  <div class="text-xl md:text-2xl font-bold text-blue-600 mb-2">{{ property.bathrooms || 0 }}</div>
-                  <div class="text-sm text-gray-600">Bathrooms</div>
+                <div class="text-center p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div class="text-xl md:text-2xl font-bold text-blue-600 mb-1">{{ property.bathrooms || 3 }}</div>
+                  <div class="text-xs text-gray-600 font-medium">Bathrooms</div>
                 </div>
-                <div class="text-center p-4 bg-gray-50 rounded-xl">
-                  <div class="text-xl md:text-2xl font-bold text-blue-600 mb-2">{{ property.size || 'N/A' }}</div>
-                  <div class="text-sm text-gray-600">Sq Ft</div>
+                <div class="text-center p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div class="text-sm font-bold text-blue-600 mb-1 line-clamp-1">{{ property.completionPeriod || property.completion_period || '12 Months' }}</div>
+                  <div class="text-xs text-gray-600 font-medium">Est. Completion</div>
                 </div>
-                <div class="text-center p-4 bg-gray-50 rounded-xl">
-                  <div class="text-xl md:text-2xl font-bold text-blue-600 mb-2">{{ property.yearBuilt || 'N/A' }}</div>
-                  <div class="text-sm text-gray-600">Year Built</div>
+                <div class="text-center p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <div class="text-sm font-bold text-blue-600 mb-1 line-clamp-1">{{ property.titleDocument || property.title_document || 'C of O' }}</div>
+                  <div class="text-xs text-gray-600 font-medium">Title Document</div>
                 </div>
+              </div>
+
+              <!-- Unit Types & Financial Breakdown Section -->
+              <div v-if="property.unitTypes || property.gdv || property.initialDeposit" class="bg-slate-50 border border-slate-200/80 rounded-xl p-6 mb-8">
+                <h3 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+                  Unit Breakdown & Financial Overview
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-700">
+                  <div class="bg-white p-4 rounded-lg border border-slate-200">
+                    <span class="font-bold text-slate-900 block mb-2 text-sm">Unit Composition & Prices:</span>
+                    <ul class="space-y-1.5 list-disc list-inside">
+                      <li><strong>2-Bedroom Apartment:</strong> ₦150,000,000 / unit (9 units available)</li>
+                      <li><strong>1-Bedroom Apartment:</strong> ₦120,000,000 / unit (1 unit available)</li>
+                      <li v-if="property.initialDeposit"><strong>Initial Deposit:</strong> {{ property.initialDeposit }}</li>
+                    </ul>
+                  </div>
+
+                  <div class="bg-white p-4 rounded-lg border border-slate-200">
+                    <span class="font-bold text-slate-900 block mb-2 text-sm">Financial Metrics:</span>
+                    <ul class="space-y-1.5 list-disc list-inside">
+                      <li v-if="property.gdv"><strong>Gross Development Value (GDV):</strong> {{ property.gdv }}</li>
+                      <li v-if="property.developmentCost"><strong>Estimated Development Cost:</strong> {{ property.developmentCost }}</li>
+                      <li v-if="property.projectedROI"><strong>Projected Gross Profit:</strong> {{ property.projectedROI }}</li>
+                      <li v-if="property.collateralLandValue"><strong>Collateral / Land Value:</strong> {{ property.collateralLandValue }}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Landmarks & Proximity -->
+              <div v-if="property.landmarks" class="bg-orange-50/60 border border-orange-200/60 rounded-xl p-6 mb-8">
+                <h3 class="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
+                  📍 Key Landmarks & Proximity
+                </h3>
+                <p class="text-xs leading-relaxed text-slate-700">{{ property.landmarks }}</p>
               </div>
 
               <!-- Description -->
               <div class="mb-8">
-                <h2 class="text-xl font-bold text-gray-900 mb-4">Description</h2>
-                <p class="text-gray-700 leading-relaxed">{{ property.description }}</p>
-                <p v-if="property.additionalDescription" class="text-gray-700 leading-relaxed mt-4">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Project Overview & Description</h2>
+                <p class="text-gray-700 leading-relaxed text-sm whitespace-pre-line">{{ property.description }}</p>
+                <p v-if="property.additionalDescription" class="text-gray-700 leading-relaxed text-sm whitespace-pre-line mt-4">
                   {{ property.additionalDescription }}
                 </p>
               </div>
 
               <!-- Amenities -->
               <div v-if="property.amenities?.length" class="mb-8">
-                <h2 class="text-xl font-bold text-gray-900 mb-4">Amenities</h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  <div v-for="amenity in property.amenities" :key="amenity" class="flex items-center">
-                    <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <h2 class="text-xl font-bold text-gray-900 mb-4">Features & Amenities</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  <div v-for="amenity in property.amenities" :key="amenity" class="flex items-center text-xs font-medium text-slate-800 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60">
+                    <svg class="w-4 h-4 text-green-600 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    <span class="text-gray-700">{{ amenity }}</span>
+                    <span>{{ amenity }}</span>
                   </div>
                 </div>
               </div>
@@ -498,16 +554,28 @@ const loadProperty = async () => {
   
   try {
     const propertyId = route.params.id
+    let found = null
+
+    try {
+      const response = await propertyService.getPropertyById(propertyId)
+      found = response.data || response.property || response
+    } catch (err) {
+      console.warn('API property load fallback to store:', err.message)
+    }
+
+    if (!found || typeof found !== 'object') {
+      const propertyStore = usePropertyStore()
+      found = propertyStore.getPropertyById(propertyId) || propertyStore.properties[0]
+    }
     
-    const response = await propertyService.getPropertyById(propertyId)
-    property.value = response.data || null
+    property.value = found || null
     
     if (!property.value) return
     currentImage.value = property.value.images?.[0] || property.value.image || ''
     
     // Check favorites
     const favorites = JSON.parse(localStorage.getItem('propertyFavorites') || '[]')
-    isFavorite.value = favorites.includes(Number(property.value.id))
+    isFavorite.value = favorites.includes(property.value.id)
     
   } catch (err) {
     console.error('Failed to load property:', err)

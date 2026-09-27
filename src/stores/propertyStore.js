@@ -28,9 +28,80 @@ export const NIGERIAN_LOCATIONS_LIST = [
   'Maitama, Abuja', 'Port Harcourt', 'Ibadan'
 ]
 
+export const DEFAULT_PROPERTIES = [
+  {
+    id: '25th-apartments',
+    title: '25th Apartments (25th Apartment)',
+    location: 'Olu-Akinbola Drive, Off SPG Road, Igbo-Efon, Off Lekki-Epe Expressway, Lekki, Eti-Osa L.G.A., Lagos State',
+    developer: 'Kayode Segun & Associates (Estate Surveyors and Valuers)',
+    developerAddress: 'Suite J260, Road 5, Ikota Shopping Complex, Ikota, Ajah, Lagos State',
+    price: 150000000,
+    priceFormatted: '₦120,000,000 - ₦150,000,000',
+    initialDeposit: '₦40,000,000',
+    status: 'For Sale',
+    type: 'Apartment',
+    bedrooms: 2,
+    bathrooms: 3,
+    squareFootage: 180,
+    titleDocument: 'Certificate of Occupancy (C of O)',
+    completionPeriod: '12 months from commencement',
+    gdv: '₦1,470,000,000',
+    developmentCost: '₦900,000,000',
+    projectedROI: '~50% Return on Investment (Gross Profit: ₦450,000,000)',
+    collateralLandValue: '₦250,000,000 (collateral valuation)',
+    paymentTerms: '6 Months Payment Plan available. Premium discount available for full outright payment.',
+    units: '9 units of 2-Bedroom luxury apartments & 1 unit of 1-Bedroom apartment',
+    unitTypes: [
+      { name: '2-Bedroom Luxury Apartment', price: '₦150,000,000' },
+      { name: '1-Bedroom Luxury Apartment', price: '₦120,000,000' }
+    ],
+    landmarks: '3-minute drive from Lekki-Epe Expressway. Situated on the same street as Troika School. Close to commercial centers, healthcare facilities, shopping destinations, and recreational spots.',
+    featured: true,
+    image: '/images/25th-apartment/25th-apartment-1.jpg',
+    images: [
+      '/images/25th-apartment/25th-apartment-1.jpg',
+      '/images/25th-apartment/25th-apartment-living.jpg',
+      '/images/25th-apartment/25th-apartment-bedroom.jpg',
+      '/images/25th-apartment/25th-apartment-kitchen.jpg',
+      '/images/25th-apartment/25th-apartment-pool.jpg',
+      '/images/25th-apartment/25th-apartment-2.jpg',
+      '/images/25th-apartment/25th-apartment-3.jpg'
+    ],
+    description: '25th Apartments is a premier luxury development located on Olu-Akinbola Drive, Off SPG Road, Igbo-Efon, Lekki. Developed by Kayode Segun & Associates, this modern 4-story architectural landmark comprises 9 units of 2-bedroom luxury apartments and 1 unit of a 1-bedroom apartment, featuring high-end finishes, private balconies, a swimming pool, and a fully equipped gymnasium with a Certificate of Occupancy (C of O) title.',
+    additionalDescription: 'Key Architectural & Financial Breakdown:\n• Title Document: Certificate of Occupancy (C of O)\n• Construction Period: 12 months from commencement\n• Initial Deposit: ₦40,000,000\n• Financial GDV: ₦1,470,000,000 | Est. Development Cost: ₦900,000,000 | Projected Profit: ₦450,000,000 (~50% ROI)\n• Land Value / Collateral: ₦250,000,000\n• Payment Terms: 6 Months Payment Plan available; Premium discount for full outright payment.\n• Layout & Facilities: All luxury en-suite bedrooms, guest powder room (W.C.), living & dining area, fully fitted kitchen, private terraces, central lobby & elevator/staircase.',
+    amenities: [
+      'Luxury en-suite bedrooms',
+      'Fully fitted kitchen',
+      'Tastefully finished interiors',
+      'Gymnasium',
+      'Swimming pool',
+      '24/7 security',
+      'Fully serviced environment',
+      'Ample parking space',
+      'Good electricity supply',
+      'Excellent road network',
+      'Certificate of Occupancy (C of O)'
+    ],
+    tags: ['25th Apartments', 'Lekki', 'Luxury Apartment', 'Now Selling', 'C of O', 'Pool & Gym'],
+    contacts: [
+      '+234 905 390 1802',
+      '+234 905 390 1001',
+      '+234 0905 389 8636',
+      '+234 905 740 3313',
+      '+234 706 206 2331',
+      '+234 810 320 6531'
+    ],
+    agent: {
+      name: 'Kayode Segun & Associates',
+      email: 'info@ksavaluers.com',
+      phone: '+234 905 390 1802'
+    }
+  }
+]
+
 export const usePropertyStore = defineStore('property', () => {
   // ========== STATE ==========
-  const properties = ref([])
+  const properties = ref([...DEFAULT_PROPERTIES])
   const searchQuery = ref('')
   const filters = ref({
     status: 'all',
@@ -79,7 +150,7 @@ export const usePropertyStore = defineStore('property', () => {
     try {
       const response = await propertyService.getProperties(params)
       
-      const data = response?.data || response
+      const data = response?.data || response?.properties || response
       if (Array.isArray(data) && data.length > 0) {
         properties.value = data
         saveToLocalStorage()
@@ -88,7 +159,9 @@ export const usePropertyStore = defineStore('property', () => {
       throw new Error('Empty or invalid server response')
     } catch (err) {
       console.warn('Property fetch fallback to local state/storage:', err.message)
-      loadFromLocalStorage()
+      if (!loadFromLocalStorage()) {
+        properties.value = [...DEFAULT_PROPERTIES]
+      }
       return { success: true, data: properties.value }
     } finally {
       loading.value = false

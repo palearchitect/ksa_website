@@ -64,40 +64,35 @@ async function seedDatabase() {
     if (existingProperties.rows[0].count == 0) {
       const sampleProperties = [
         {
-          title: 'Modern Luxury Villa',
-          location: 'Ikoyi, Lagos',
-          image: 'https://images.unsplash.com/photo-1570129477492-45c003d96efd?w=600',
-          price: 250000000,
-          status: 'sale',
-          type: 'residential',
-          bedrooms: 5,
-          bathrooms: 4,
-          square_footage: 5000,
-          description: 'Stunning modern villa with contemporary architecture',
-          featured: true,
-          tags: ['luxury', 'villa', 'modern']
-        },
-        {
-          title: 'Commercial Space',
-          location: 'VI, Lagos',
-          image: 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600',
+          title: '25th Apartments (25th Apartment)',
+          location: 'Olu-Akinbola Drive, Off SPG Road, Igbo-Efon, Off Lekki-Epe Expressway, Lekki, Eti-Osa L.G.A., Lagos State',
+          image: '/images/25th-apartment/25th-apartment-1.jpg',
+          images: [
+            '/images/25th-apartment/25th-apartment-1.jpg',
+            '/images/25th-apartment/25th-apartment-living.jpg',
+            '/images/25th-apartment/25th-apartment-bedroom.jpg',
+            '/images/25th-apartment/25th-apartment-kitchen.jpg',
+            '/images/25th-apartment/25th-apartment-pool.jpg',
+            '/images/25th-apartment/25th-apartment-2.jpg',
+            '/images/25th-apartment/25th-apartment-3.jpg'
+          ],
           price: 150000000,
-          status: 'rent',
-          type: 'commercial',
-          bedrooms: 0,
+          status: 'sale',
+          type: 'Apartment',
+          bedrooms: 2,
           bathrooms: 3,
-          square_footage: 3000,
-          description: 'Premium commercial office space',
+          square_footage: 180,
+          description: '25th Apartments is a premier luxury development located on Olu-Akinbola Drive, Off SPG Road, Igbo-Efon, Lekki. Developed by Kayode Segun & Associates, this modern 4-story architectural landmark comprises 9 units of 2-bedroom luxury apartments and 1 unit of a 1-bedroom apartment with C of O, fitted kitchen, gym, swimming pool, and 24/7 security.',
           featured: true,
-          tags: ['office', 'commercial']
+          tags: ['25th Apartments', 'Lekki', 'Luxury Apartment', 'Now Selling', 'C of O', 'Pool & Gym']
         }
       ];
       
       for (const prop of sampleProperties) {
         await client.query(
-          `INSERT INTO properties (title, location, image, price, status, type, bedrooms, bathrooms, square_footage, description, featured, tags)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb)`,
-          [prop.title, prop.location, prop.image, prop.price, prop.status, prop.type, prop.bedrooms, prop.bathrooms, prop.square_footage, prop.description, prop.featured, JSON.stringify(prop.tags)]
+          `INSERT INTO properties (title, location, image, images, price, status, type, bedrooms, bathrooms, square_footage, description, featured, tags)
+           VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7, $8, $9, $10, $11, $12, $13::jsonb)`,
+          [prop.title, prop.location, prop.image, JSON.stringify(prop.images), prop.price, prop.status, prop.type, prop.bedrooms, prop.bathrooms, prop.square_footage, prop.description, prop.featured, JSON.stringify(prop.tags)]
         );
       }
       console.log(`✅ Seeded ${sampleProperties.length} sample properties\n`);
@@ -110,17 +105,17 @@ async function seedDatabase() {
     if (existingProjects.rows[0].count == 0) {
       const sampleProjects = [
         {
-          title: 'Sunset Gardens',
-          location: 'Lekki, Lagos',
-          image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=600',
-          description: 'Premium residential development with modern amenities',
+          title: '25th Apartments Development Milestone',
+          location: 'Igbo-Efon, Lekki, Lagos',
+          image: '/images/25th-apartment/25th-apartment-1.jpg',
+          description: '9 units of 2-bedroom luxury apartments & 1 unit of 1-bedroom apartment under development in Igbo-Efon, Lekki.',
           status: 'In Progress',
           type: 'Residential',
-          total_units: 150,
-          completion_percentage: 65,
-          budget: 500000000,
+          total_units: 10,
+          completion_percentage: 35,
+          budget: 900000000,
           featured: true,
-          amenities: ['pool', 'gym', 'security', 'parking']
+          amenities: ['Gymnasium', 'Swimming pool', '24/7 security', 'Fully serviced environment']
         }
       ];
       
@@ -141,26 +136,26 @@ async function seedDatabase() {
     if (existingSlides.rows[0].count == 0) {
       const sampleSlides = [
         {
-          image_url: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&h=900&fit=crop',
-          title: "Nigeria's Premier Property Valuers",
-          tagline: 'Expert property valuations and comprehensive real estate solutions across Nigeria',
-          cta_text: 'Explore Properties',
-          cta_link: '/properties',
+          image_url: '/images/25th-apartment/25th-apartment-1.jpg',
+          title: "25th Apartments — Igbo-Efon, Lekki",
+          tagline: 'Live Where You Belong, Invest Where You Prosper. Luxury 2-Bedroom & 1-Bedroom Apartments with C of O.',
+          cta_text: 'Explore Property',
+          cta_link: '/properties/25th-apartments',
           sort_order: 1
         },
         {
-          image_url: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1600&h=900&fit=crop',
-          title: 'Smart Real Estate Investments',
-          tagline: 'Discover high-yield properties in prime locations across Lagos, Abuja, and Port Harcourt',
-          cta_text: 'View Ongoing Projects',
-          cta_link: '/ongoing-projects',
+          image_url: '/images/25th-apartment/25th-apartment-2.jpg',
+          title: 'Luxury Living & Prime ROI',
+          tagline: '9 Units of Luxury 2-Bedroom & 1-Bedroom Apartments with Gym, Swimming Pool, and 24/7 Security. 3 mins from Lekki-Epe Expressway.',
+          cta_text: 'View Property Details',
+          cta_link: '/properties/25th-apartments',
           sort_order: 2
         },
         {
-          image_url: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&h=900&fit=crop',
-          title: 'Expert Valuation Reports',
-          tagline: 'Get fast, accurate, and bank-recognized valuation reports for your assets',
-          cta_text: 'Schedule an Appointment',
+          image_url: '/images/25th-apartment/25th-apartment-3.jpg',
+          title: 'Now Selling — Flexible Payment Terms',
+          tagline: 'Initial Deposit: ₦40,000,000 with 6 Months Payment Plan. Developed by Kayode Segun & Associates.',
+          cta_text: 'Book Site Inspection',
           cta_link: '/book-a-tour',
           sort_order: 3
         }

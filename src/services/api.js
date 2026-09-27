@@ -1,9 +1,24 @@
 import axios from 'axios'
+import { getSubdomainUrl } from '@/utils/subdomain'
 
 // ============================================
 // API CONFIGURATION & CONSTANTS
 // ============================================
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.PROD ? 'https://api.ksavaluers.com' : '')
+export const getApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL
+  }
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname.toLowerCase()
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.')) {
+      return ''
+    }
+    return 'https://api.ksavaluers.com'
+  }
+  return 'https://api.ksavaluers.com'
+}
+
+const API_BASE_URL = getApiBaseUrl()
 const REFRESH_ENDPOINT = '/api/v1/auth/refresh'
 const LOGIN_ENDPOINT = '/api/v1/auth/login'
 
@@ -28,7 +43,7 @@ let refreshPromise = null
 const createRefreshPromise = async () => {
   try {
     const response = await axios.post(
-      `${API_BASE_URL}${REFRESH_ENDPOINT}`,
+      `${getApiBaseUrl()}${REFRESH_ENDPOINT}`,
       {},
       {
         withCredentials: true,
@@ -37,9 +52,16 @@ const createRefreshPromise = async () => {
     )
     return response.data
   } catch (error) {
+    // Clear local user storage on session expiration to break redirect loop
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.removeItem('ksa_token')
+        localStorage.removeItem('ksa_local_user')
+      } catch (e) {}
+    }
     // Redirect to login on refresh failure
     if (typeof window !== 'undefined') {
-      window.location.href = '/admin/login'
+      window.location.href = getSubdomainUrl('accounts', '/admin/login')
     }
     throw error
   } finally {
@@ -57,8 +79,8 @@ const getCookie = (name) => {
 };
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
+  baseURL: getApiBaseUrl(),
+  timeout: 15000,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
@@ -66,10 +88,22 @@ const api = axios.create({
 });
 
 // ============================================
-// REQUEST INTERCEPTOR (CSRF Protection Header)
+// REQUEST INTERCEPTOR (CSRF Protection Header + Bearer Token)
 // ============================================
 api.interceptors.request.use(
   (config) => {
+    if (!config.baseURL && typeof window !== 'undefined') {
+      config.baseURL = getApiBaseUrl();
+    }
+    // Attach Bearer token from localStorage if present
+    if (typeof localStorage !== 'undefined') {
+      try {
+        const token = localStorage.getItem('ksa_token');
+        if (token && !config.headers['Authorization']) {
+          config.headers['Authorization'] = `Bearer ${token}`;
+        }
+      } catch (e) {}
+    }
     // Add CSRF token to mutating requests
     if (['POST', 'PUT', 'DELETE', 'PATCH'].includes(config.method?.toUpperCase())) {
       const csrfToken = getCookie('ksa_csrf');
@@ -103,7 +137,7 @@ api.interceptors.response.use(
       if (onAdminRoute && window.location.pathname !== '/admin/login') {
         // Don't retry login endpoint itself
         if (config.url.includes(LOGIN_ENDPOINT)) {
-          window.location.href = '/admin/login';
+          window.location.href = getSubdomainUrl('accounts', '/admin/login');
           return Promise.reject(error);
         }
  

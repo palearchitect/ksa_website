@@ -172,6 +172,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { authAPI } from '@/services/api'
+import { getSubdomainUrl } from '@/utils/subdomain'
 
 const route = useRoute()
 const router = useRouter()
@@ -218,7 +219,12 @@ const isActive = (matchPrefix) => {
 
 async function handleLogout() {
   await authStore.logout()
-  router.push('/admin/login')
+  const loginUrl = getSubdomainUrl('accounts', '/admin/login')
+  if (loginUrl.startsWith('http')) {
+    window.location.href = loginUrl
+  } else {
+    router.push('/admin/login')
+  }
 }
 
 async function handleStopImpersonation() {

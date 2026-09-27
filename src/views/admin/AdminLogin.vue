@@ -7,15 +7,15 @@
 
     <!-- Top Navigation (Back to Website) -->
     <div class="absolute top-6 right-6 z-10">
-      <router-link 
-        to="/" 
+      <a 
+        :href="mainSiteUrl" 
         class="text-xs font-semibold text-slate-300 hover:text-white transition-all flex items-center gap-1.5 bg-slate-900/70 hover:bg-slate-800/90 backdrop-blur-md px-3.5 py-2 rounded-xl border border-white/10 hover:border-orange-500/40 shadow-sm"
       >
         <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
         <span>Back to Website</span>
-      </router-link>
+      </a>
     </div>
 
     <!-- Central Authentication Card -->
@@ -203,6 +203,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 import { useSEO } from '@/hooks/useSEO'
+import { getSubdomainUrl } from '@/utils/subdomain'
 
 useSEO({
   title: 'Portal Authentication | KSA Valuers',
@@ -212,6 +213,8 @@ useSEO({
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+
+const mainSiteUrl = computed(() => getSubdomainUrl('main', '/'))
 
 const isSsoCallback = computed(() => {
   return route.path.includes('sso-callback') || route.query.sso === 'true' || !!route.query.code
@@ -234,7 +237,13 @@ const checkAndRedirect = () => {
     const target = rawTarget && !rawTarget.startsWith('/admin/login') && !rawTarget.startsWith('/login')
       ? rawTarget
       : '/dashboard/admin'
-    router.replace(target)
+
+    const dashUrl = getSubdomainUrl('dashboard', target)
+    if (dashUrl.startsWith('http')) {
+      window.location.href = dashUrl
+    } else {
+      router.replace(target)
+    }
   }
 }
 
@@ -330,7 +339,13 @@ const handleCustomLogin = async () => {
   try {
     const res = await authStore.login(loginForm.value.email, loginForm.value.password)
     if (res.success) {
-      router.push('/dashboard/admin')
+      const target = '/dashboard/admin'
+      const dashUrl = getSubdomainUrl('dashboard', target)
+      if (dashUrl.startsWith('http')) {
+        window.location.href = dashUrl
+      } else {
+        router.push(target)
+      }
     } else if (res.code === 'USER_NOT_FOUND' || (res.error && res.error.toLowerCase().includes('not found'))) {
       switchTab('signup')
       registerForm.value.email = loginForm.value.email
@@ -357,7 +372,13 @@ const handleCustomRegister = async () => {
       registerForm.value.role || 'admin'
     )
     if (res.success) {
-      router.push('/dashboard/admin')
+      const target = '/dashboard/admin'
+      const dashUrl = getSubdomainUrl('dashboard', target)
+      if (dashUrl.startsWith('http')) {
+        window.location.href = dashUrl
+      } else {
+        router.push(target)
+      }
     } else if (res.code === 'USER_ALREADY_EXISTS' || (res.error && (res.error.toLowerCase().includes('already') || res.error.toLowerCase().includes('exist')))) {
       switchTab('login')
       loginForm.value.email = registerForm.value.email

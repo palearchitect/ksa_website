@@ -70,81 +70,11 @@
 
       <!-- Properties Bento Grid -->
       <div v-if="propertyStore.filteredProperties.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div 
-          v-for="property in propertyStore.filteredProperties" 
+        <PropertyCard
+          v-for="property in propertyStore.filteredProperties"
           :key="property.id"
-          class="bento-card overflow-hidden hover:-translate-y-1 hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col justify-between"
-          @click="viewProperty(property.id)"
-        >
-          <!-- Property Image -->
-          <div class="relative h-52 bg-slate-100 overflow-hidden">
-            <img 
-              :src="property.image || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop'" 
-              :alt="property.title"
-              class="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-            >
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none"></div>
-            
-            <div class="absolute top-3 left-3">
-              <span class="px-3 py-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-full text-[11px] font-bold tracking-wider uppercase shadow-md">
-                {{ property.status }}
-              </span>
-            </div>
-            <div v-if="property.featured" class="absolute top-3 right-3">
-              <span class="px-3 py-1 bg-slate-950/80 backdrop-blur-md text-white border border-white/20 rounded-full text-[11px] font-semibold inline-flex items-center gap-1 shadow-md">
-                <svg class="w-3 h-3 text-amber-400 fill-current" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                </svg>
-                Featured
-              </span>
-            </div>
-          </div>
-
-          <!-- Property Details -->
-          <div class="p-6 flex-1 flex flex-col justify-between">
-            <div>
-              <div class="mb-3">
-                <h3 class="text-lg font-bold text-slate-900 group-hover:text-blue-700 transition line-clamp-1 mb-1">{{ property.title }}</h3>
-                <p class="text-slate-500 flex items-center gap-1.5 text-xs">
-                  <svg class="w-3.5 h-3.5 text-orange-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span class="truncate">{{ property.location }}</span>
-                </p>
-              </div>
-
-              <p class="text-slate-600 mb-4 line-clamp-2 text-xs leading-relaxed">{{ property.description }}</p>
-
-              <div class="flex items-center gap-4 text-xs text-slate-500 mb-4 pb-4 border-b border-slate-100">
-                <span class="flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                  </svg>
-                  {{ property.bedrooms }} beds
-                </span>
-                <span class="flex items-center gap-1">
-                  <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  {{ property.bathrooms }} baths
-                </span>
-              </div>
-            </div>
-
-            <div class="flex justify-between items-center pt-2">
-              <div>
-                <p class="text-xl font-extrabold text-blue-900">{{ propertyStore.formatPrice(property.price) }}</p>
-              </div>
-              <button
-                @click.stop="viewProperty(property.id)"
-                class="pill-button-primary px-4 py-2 text-xs uppercase tracking-wider font-bold shadow-sm hover:shadow-orange-500/25"
-              >
-                View Details →
-              </button>
-            </div>
-          </div>
-        </div>
+          :property="property"
+        />
       </div>
 
       <!-- Empty State -->
@@ -167,6 +97,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import PatternBackgroundDark from '../components/global/PatternBackgroundDark.vue'
+import PropertyCard from '@/components/properties/PropertyCard.vue'
 import { usePropertyStore } from '@/stores/propertyStore'
 import { useSEO } from '../hooks/useSEO'
 import { captureEvent } from '@/plugins/posthog'

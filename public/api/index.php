@@ -87,48 +87,35 @@ function initializeSeedData() {
     if (!file_exists(getDataFilePath('properties'))) {
         $initialProperties = [
             [
-                'id' => 'prop_1',
-                'title' => 'Luxury 5 Bedroom Detached Duplex',
-                'location' => 'Ikoyi, Lagos',
-                'price' => '₦450,000,000',
-                'type' => 'Residential',
+                'id' => '25th-apartments',
+                'title' => '25th Apartments (25th Apartment)',
+                'location' => 'Olu-Akinbola Drive, Off SPG Road, Igbo-Efon, Off Lekki-Epe Expressway, Lekki, Eti-Osa L.G.A., Lagos State',
+                'developer' => 'Kayode Segun & Associates (Estate Surveyors and Valuers)',
+                'developer_address' => 'Suite J260, Road 5, Ikota Shopping Complex, Ikota, Ajah, Lagos State',
+                'price' => 150000000,
+                'price_formatted' => '₦120,000,000 - ₦150,000,000',
+                'initial_deposit' => '₦40,000,000',
+                'type' => 'Apartment',
                 'status' => 'For Sale',
-                'bedrooms' => 5,
-                'bathrooms' => 6,
-                'area' => '850 sqm',
+                'bedrooms' => 2,
+                'bathrooms' => 3,
+                'square_footage' => 180,
+                'title_document' => 'Certificate of Occupancy (C of O)',
+                'completion_period' => '12 months from commencement',
+                'gdv' => '₦1,470,000,000',
+                'development_cost' => '₦900,000,000',
+                'projected_roi' => '~50% ROI (Gross Profit: ₦450,000,000)',
+                'collateral_land_value' => '₦250,000,000',
+                'payment_terms' => '6 Months Payment Plan available. Premium discount available for full outright payment.',
+                'units' => '9 units of 2-Bedroom luxury apartments & 1 unit of 1-Bedroom apartment',
                 'featured' => true,
-                'image' => '/assets/DSC00141-scaled-930000b2.jpeg',
-                'description' => 'Exquisite architectural masterpiece located in a serene neighborhood in Ikoyi with swimming pool, smart home automation, and 24/7 power.',
-                'created_at' => date('c')
-            ],
-            [
-                'id' => 'prop_2',
-                'title' => 'Commercial High-Rise Office Tower',
-                'location' => 'Victoria Island, Lagos',
-                'price' => '₦1,200,000,000',
-                'type' => 'Commercial',
-                'status' => 'For Sale',
-                'bedrooms' => 0,
-                'bathrooms' => 12,
-                'area' => '2,400 sqm',
-                'featured' => true,
-                'image' => '/assets/WhatsApp-Image-2024-04-05-at-15.18.48_6e12ddea-35f7d3b7.jpg',
-                'description' => 'Grade A commercial office building with multi-level basement parking, high-speed elevators, and panoramic ocean view.',
-                'created_at' => date('c')
-            ],
-            [
-                'id' => 'prop_3',
-                'title' => 'Modern 3 Bedroom Terrace Duplex',
-                'location' => 'Lekki Phase 1, Lagos',
-                'price' => '₦160,000,000',
-                'type' => 'Residential',
-                'status' => 'For Sale',
-                'bedrooms' => 3,
-                'bathrooms' => 4,
-                'area' => '400 sqm',
-                'featured' => false,
-                'image' => '/assets/WhatsApp-Image-2024-04-05-at-15.20.38_0e769bae-eeccaf3a.jpg',
-                'description' => 'Contemporary finished terrace with fitted kitchen, automated gates, and private playground.',
+                'image' => '/images/25th-apartment/25th-apartment-1.jpg',
+                'images' => [
+                    '/images/25th-apartment/25th-apartment-1.jpg',
+                    '/images/25th-apartment/25th-apartment-2.jpg',
+                    '/images/25th-apartment/25th-apartment-3.jpg'
+                ],
+                'description' => '25th Apartments is a premier luxury development located on Olu-Akinbola Drive, Off SPG Road, Igbo-Efon, Lekki. Developed by Kayode Segun & Associates, this modern 4-story architectural landmark comprises 9 units of 2-bedroom luxury apartments and 1 unit of a 1-bedroom apartment, featuring high-end finishes, private balconies, a swimming pool, and a fully equipped gymnasium with a Certificate of Occupancy (C of O) title.',
                 'created_at' => date('c')
             ]
         ];
@@ -140,28 +127,15 @@ function initializeSeedData() {
         $initialProjects = [
             [
                 'id' => 'proj_1',
-                'title' => 'The Pinnacle Heights Valuation & Asset Advisory',
-                'location' => 'Eko Atlantic City, Lagos',
-                'status' => 'Completed',
-                'completion_percentage' => 100,
-                'client' => 'Pinnacle Development Partners',
-                'budget' => '₦2.4B Valuation Scope',
-                'category' => 'Commercial Valuation',
-                'image' => '/assets/DSC00141-scaled-930000b2.jpeg',
-                'description' => 'Comprehensive financial asset appraisal and structural valuation for a 24-storey mixed-use development.',
-                'created_at' => date('c')
-            ],
-            [
-                'id' => 'proj_2',
-                'title' => 'Marina View Estate Masterplan Feasibility Study',
-                'location' => 'Lekki, Lagos',
+                'title' => '25th Apartments Development Milestone',
+                'location' => 'Igbo-Efon, Lekki, Lagos',
                 'status' => 'Ongoing',
-                'completion_percentage' => 75,
-                'client' => 'Horizon Properties Ltd',
-                'budget' => '₦850M Valuation Scope',
-                'category' => 'Feasibility & Advisory',
-                'image' => '/assets/WhatsApp-Image-2024-04-05-at-15.18.48_6e12ddea-35f7d3b7.jpg',
-                'description' => 'Land asset valuation, environmental impact audit, and yield projection analysis for 45-hectare residential masterplan.',
+                'completion_percentage' => 35,
+                'client' => 'Kayode Segun & Associates',
+                'budget' => '₦900M Development Cost',
+                'category' => 'Residential Development',
+                'image' => '/images/25th-apartment/25th-apartment-1.jpg',
+                'description' => '9 units of 2-bedroom luxury apartments & 1 unit of 1-bedroom apartment under construction in Igbo-Efon, Lekki.',
                 'created_at' => date('c')
             ]
         ];
@@ -173,22 +147,32 @@ function initializeSeedData() {
         $initialSlides = [
             [
                 'id' => 'slide_1',
-                'title' => 'Valuation & Advisory Services Built on Integrity',
-                'subtitle' => 'Estate Surveying, Valuation, Property Management & Real Estate Advisory across Nigeria.',
-                'button_text' => 'Explore Properties',
-                'button_link' => '/properties',
-                'image' => '/assets/DSC00141-scaled-930000b2.jpeg',
+                'title' => '25th Apartments — Igbo-Efon, Lekki',
+                'subtitle' => 'Live Where You Belong, Invest Where You Prosper. Luxury 2-Bedroom & 1-Bedroom Apartments with C of O.',
+                'button_text' => 'Explore Property',
+                'button_link' => '/properties/25th-apartments',
+                'image' => '/images/25th-apartment/25th-apartment-1.jpg',
                 'sort_order' => 1,
                 'is_active' => true
             ],
             [
                 'id' => 'slide_2',
-                'title' => 'Precision Asset Appraisals & Advisory',
-                'subtitle' => 'Trusted valuation reports for financial institutions, corporate portfolios, and individual investors.',
-                'button_text' => 'Book Inspection',
-                'button_link' => '/book-tour',
-                'image' => '/assets/WhatsApp-Image-2024-04-05-at-15.18.48_6e12ddea-35f7d3b7.jpg',
+                'title' => 'Luxury Living & Prime ROI',
+                'subtitle' => '9 Units of Luxury 2-Bedroom & 1-Bedroom Apartments with Gym, Swimming Pool, and 24/7 Security. 3 mins from Lekki-Epe Expressway.',
+                'button_text' => 'View Property Details',
+                'button_link' => '/properties/25th-apartments',
+                'image' => '/images/25th-apartment/25th-apartment-2.jpg',
                 'sort_order' => 2,
+                'is_active' => true
+            ],
+            [
+                'id' => 'slide_3',
+                'title' => 'Now Selling — Flexible Payment Terms',
+                'subtitle' => 'Initial Deposit: ₦40,000,000 with 6 Months Payment Plan. Developed by Kayode Segun & Associates.',
+                'button_text' => 'Book Site Inspection',
+                'button_link' => '/book-a-tour',
+                'image' => '/images/25th-apartment/25th-apartment-3.jpg',
+                'sort_order' => 3,
                 'is_active' => true
             ]
         ];
@@ -255,6 +239,30 @@ function setAuthCookie($name, $value, $expirySeconds) {
     ]);
 }
 
+$jwtSecret = 'super_secret_jwt_key_ksa_valuers_2026_dev_prod';
+
+function createAuthToken($user) {
+    global $jwtSecret;
+    $payload = base64_encode(json_encode([
+        'user' => $user,
+        'exp' => time() + (7 * 86400)
+    ]));
+    $sig = hash_hmac('sha256', $payload, $jwtSecret);
+    return $payload . '.' . $sig;
+}
+
+function verifyAuthToken($token) {
+    global $jwtSecret;
+    if (!$token || strpos($token, '.') === false) return null;
+    list($payload, $sig) = explode('.', $token, 2);
+    $expectedSig = hash_hmac('sha256', $payload, $jwtSecret);
+    if (!hash_equals($expectedSig, $sig)) return null;
+    $data = json_decode(base64_decode($payload), true);
+    if (!is_array($data) || empty($data['user'])) return null;
+    if (isset($data['exp']) && $data['exp'] < time()) return null;
+    return $data['user'];
+}
+
 // Extract ID from path (e.g. /properties/prop_1 -> prop_1)
 function getPathId($pathPattern, $currentPath) {
     $regex = '#^' . preg_replace('/\{[a-zA-Z0-9_]+\}/', '([a-zA-Z0-9_\-]+)', $pathPattern) . '$#';
@@ -302,21 +310,25 @@ if (strpos($path, '/auth/') === 0) {
             'role' => (strpos($email, 'admin') !== false || strpos($email, 'ksavaluers.com') !== false) ? 'admin' : 'agent'
         ];
 
-        // Issue auth cookies
-        setAuthCookie('ksa_access', 'token_acc_' . md5($user['id'] . time()), 900);
-        setAuthCookie('ksa_refresh', 'token_ref_' . md5($user['id'] . time()), 604800);
+        $token = createAuthToken($user);
+
+        // Issue cross-subdomain auth cookies
+        setAuthCookie('ksa_access', $token, 7 * 86400);
+        setAuthCookie('ksa_refresh', $token, 30 * 86400);
         setAuthCookie('ksa_csrf', bin2hex(random_bytes(16)), 86400);
 
         sendJson([
             'success' => true,
             'user' => $user,
-            'token' => 'token_acc_' . md5($user['id'])
+            'data' => $user,
+            'token' => $token
         ]);
     }
 
     if ($subAuth === 'register') {
         $email = trim($body['email'] ?? '');
         $name = trim($body['name'] ?? explode('@', $email)[0]);
+        $role = trim($body['role'] ?? 'agent');
 
         if (!$email) sendError('Email is required', 400);
 
@@ -325,29 +337,38 @@ if (strpos($path, '/auth/') === 0) {
             'id' => 'usr_' . substr(md5($email . time()), 0, 8),
             'email' => $email,
             'name' => $name,
-            'role' => 'agent',
+            'role' => $role,
             'created_at' => date('c')
         ];
         $users[] = $user;
         writeTableData('users', $users);
 
-        setAuthCookie('ksa_access', 'token_acc_' . md5($user['id'] . time()), 900);
-        setAuthCookie('ksa_refresh', 'token_ref_' . md5($user['id'] . time()), 604800);
+        $token = createAuthToken($user);
+        setAuthCookie('ksa_access', $token, 7 * 86400);
+        setAuthCookie('ksa_refresh', $token, 30 * 86400);
+        setAuthCookie('ksa_csrf', bin2hex(random_bytes(16)), 86400);
 
         sendJson([
             'success' => true,
-            'user' => $user
+            'user' => $user,
+            'data' => $user,
+            'token' => $token
         ], 201);
     }
 
     if ($subAuth === 'me') {
-        $user = [
-            'id' => 'usr_admin',
-            'email' => 'admin@ksavaluers.com',
-            'name' => 'KSA Administrator',
-            'role' => 'admin'
-        ];
-        sendJson(['success' => true, 'user' => $user]);
+        $token = $_COOKIE['ksa_access'] ?? '';
+        if (!$token) {
+            $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
+            if (preg_match('/Bearer\s+(\S+)/i', $authHeader, $m)) {
+                $token = $m[1];
+            }
+        }
+        $user = verifyAuthToken($token);
+        if (!$user) {
+            sendError('Unauthenticated. Please sign in.', 401);
+        }
+        sendJson(['success' => true, 'user' => $user, 'data' => $user]);
     }
 
     if ($subAuth === 'logout') {
@@ -358,8 +379,14 @@ if (strpos($path, '/auth/') === 0) {
     }
 
     if ($subAuth === 'refresh') {
-        setAuthCookie('ksa_access', 'token_acc_' . time(), 900);
-        sendJson(['success' => true, 'message' => 'Token refreshed']);
+        $token = $_COOKIE['ksa_refresh'] ?? $_COOKIE['ksa_access'] ?? '';
+        $user = verifyAuthToken($token);
+        if (!$user) {
+            sendError('Session expired. Please sign in again.', 401);
+        }
+        $newToken = createAuthToken($user);
+        setAuthCookie('ksa_access', $newToken, 7 * 86400);
+        sendJson(['success' => true, 'token' => $newToken]);
     }
 
     sendError('Auth endpoint not found', 404);

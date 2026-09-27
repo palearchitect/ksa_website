@@ -49,7 +49,7 @@ function copyRecursive(src, dest) {
   try { fs.chmodSync(dest, 0o755); } catch (e) {}
 }
 
-const rootDir = path.resolve(__dirname, '..');
+const rootDir = path.resolve(__dirname, '../../');
 const distDir = path.join(rootDir, 'dist');
 
 if (!fs.existsSync(distDir)) {

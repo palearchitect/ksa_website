@@ -37,6 +37,7 @@ const error = ref(null)
 onErrorCaptured((err) => {
   error.value = err
   console.error('[ErrorBoundary caught exception]:', err)
+  return false
 })
 
 const reloadPage = () => {

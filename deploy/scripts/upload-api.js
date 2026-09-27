@@ -59,8 +59,8 @@ async function uploadFile(localPath, remoteRelativePath) {
 }
 
 async function main() {
-  await uploadFile(path.join(__dirname, '../public/api/index.php'), 'api/index.php');
-  await uploadFile(path.join(__dirname, '../public/api/.htaccess'), 'api/.htaccess');
+  await uploadFile(path.join(__dirname, '../../public/api/index.php'), 'api/index.php');
+  await uploadFile(path.join(__dirname, '../../public/api/.htaccess'), 'api/.htaccess');
 }
 
 main().catch(console.error);

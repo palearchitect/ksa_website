@@ -586,7 +586,7 @@ onUnmounted(() => {
 async function refreshData() {
   loadingData.value = true
   try {
-    await Promise.all([
+    await Promise.allSettled([
       propertyStore.fetchProperties(),
       projectStore.fetchProjects(),
       bookingStore.loadBookings(),
@@ -628,9 +628,17 @@ function toggleMarqueePause() {
 }
 
 async function fetchFAQs() {
-  const res = await faqStore.fetchFAQs()
-  if (res.success) {
-    faqs.value = res.data.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+  try {
+    const res = await faqStore.fetchFAQs()
+    if (res?.success && Array.isArray(res.data)) {
+      faqs.value = res.data.sort((a, b) => {
+        const orderA = a.sort_order ?? a.sortOrder ?? 0
+        const orderB = b.sort_order ?? b.sortOrder ?? 0
+        return orderA - orderB
+      })
+    }
+  } catch (err) {
+    console.error('Error fetching FAQs:', err)
   }
 }
 

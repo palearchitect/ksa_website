@@ -73,21 +73,6 @@ export const useAuthStore = defineStore('auth', () => {
       return user.value
     }
 
-    // 0. Check localStorage fallback
-    if (typeof localStorage !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('ksa_local_user')
-        if (stored) {
-          const parsed = JSON.parse(stored)
-          if (parsed && parsed.email) {
-            user.value = parsed
-            isAuthenticated.value = true
-            return user.value
-          }
-        }
-      } catch (e) {}
-    }
-
     // 1. Check if Clerk is available in browser window and wait for readiness
     if (typeof window !== 'undefined' && window.Clerk) {
       if (!window.Clerk.loaded) {
@@ -112,26 +97,45 @@ export const useAuthStore = defineStore('auth', () => {
       }
     }
 
-    // 2. Fallback to Express backend cookie authentication (/api/v1/auth/me)
+    // 2. Validate session via backend API (/api/v1/auth/me)
     if (!sessionPromise || force) {
       sessionPromise = authAPI.me()
         .then(response => {
-          if (response?.data) {
-            user.value = response.data
+          const userData = response?.user || response?.data
+          if (userData) {
+            user.value = userData
             isAuthenticated.value = true
-            if (response.data?.id) {
-              identifyUser(response.data.id, {
-                email: response.data.email,
-                name: response.data.name,
-                role: response.data.role
+            if (typeof localStorage !== 'undefined') {
+              try { localStorage.setItem('ksa_local_user', JSON.stringify(userData)) } catch (e) {}
+            }
+            if (userData?.id) {
+              identifyUser(userData.id, {
+                email: userData.email,
+                name: userData.name,
+                role: userData.role
               })
             }
+            return userData
+          } else {
+            user.value = null
+            isAuthenticated.value = false
+            if (typeof localStorage !== 'undefined') {
+              try {
+                localStorage.removeItem('ksa_token')
+                localStorage.removeItem('ksa_local_user')
+              } catch (e) {}
+            }
+            return null
           }
-          return response?.data || null
         })
         .catch(() => {
-          if (!user.value) {
-            isAuthenticated.value = false
+          user.value = null
+          isAuthenticated.value = false
+          if (typeof localStorage !== 'undefined') {
+            try {
+              localStorage.removeItem('ksa_token')
+              localStorage.removeItem('ksa_local_user')
+            } catch (e) {}
           }
           return null
         })
@@ -148,17 +152,28 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     try {
       const response = await authAPI.login({ email, password })
-      user.value = response.data
-      isAuthenticated.value = true
-      sessionPromise = Promise.resolve(response.data)
-      if (response.data?.id) {
-        identifyUser(response.data.id, {
-          email: response.data.email,
-          name: response.data.name,
-          role: response.data.role
-        })
+      const userData = response?.user || response?.data
+      const token = response?.token
+      if (userData) {
+        user.value = userData
+        isAuthenticated.value = true
+        sessionPromise = Promise.resolve(userData)
+        if (typeof localStorage !== 'undefined') {
+          try {
+            if (token) localStorage.setItem('ksa_token', token)
+            localStorage.setItem('ksa_local_user', JSON.stringify(userData))
+          } catch (e) {}
+        }
+        if (userData?.id) {
+          identifyUser(userData.id, {
+            email: userData.email,
+            name: userData.name,
+            role: userData.role
+          })
+        }
+        return { success: true, user: userData }
       }
-      return { success: true, user: response.data }
+      return { success: false, error: 'User profile missing in response' }
     } catch (err) {
       const status = err.response?.status
       if (status === 404 || err.code === 'ERR_NETWORK' || !err.response) {
@@ -185,19 +200,23 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     try {
       const response = await authAPI.googleLogin({ credential, intent })
-      if (response.data) {
-        user.value = response.data
+      const userData = response?.user || response?.data
+      if (userData) {
+        user.value = userData
         isAuthenticated.value = true
-        sessionPromise = Promise.resolve(response.data)
-        if (response.data?.id) {
-          identifyUser(response.data.id, {
-            email: response.data.email,
-            name: response.data.name,
-            role: response.data.role
+        sessionPromise = Promise.resolve(userData)
+        if (typeof localStorage !== 'undefined') {
+          try { localStorage.setItem('ksa_local_user', JSON.stringify(userData)) } catch (e) {}
+        }
+        if (userData?.id) {
+          identifyUser(userData.id, {
+            email: userData.email,
+            name: userData.name,
+            role: userData.role
           })
         }
       }
-      return { success: true, ...response }
+      return { success: true, ...response, user: userData }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
       const code = err.response?.data?.code
@@ -217,11 +236,19 @@ export const useAuthStore = defineStore('auth', () => {
     error.value = null
     try {
       const response = await authAPI.register({ name, email, password, role })
-      if (response?.data) {
-        user.value = response.data
+      const userData = response?.user || response?.data
+      const token = response?.token
+      if (userData) {
+        user.value = userData
         isAuthenticated.value = true
+        if (typeof localStorage !== 'undefined') {
+          try {
+            if (token) localStorage.setItem('ksa_token', token)
+            localStorage.setItem('ksa_local_user', JSON.stringify(userData))
+          } catch (e) {}
+        }
       }
-      return { success: true, ...response }
+      return { success: true, ...response, user: userData }
     } catch (err) {
       const status = err.response?.status
       if (status === 404 || err.code === 'ERR_NETWORK' || !err.response) {
@@ -311,6 +338,12 @@ export const useAuthStore = defineStore('auth', () => {
       isAuthenticated.value = false
       clerkToken.value = null
       sessionPromise = null
+      if (typeof localStorage !== 'undefined') {
+        try {
+          localStorage.removeItem('ksa_token')
+          localStorage.removeItem('ksa_local_user')
+        } catch (e) {}
+      }
       resetUser()
       return { success: true }
     } finally {

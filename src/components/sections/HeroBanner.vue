@@ -8,14 +8,14 @@
           v-show="activeIndex === index"
           :key="slide.id || index"
           class="absolute inset-0 bg-cover bg-center flex items-center justify-center transition-all duration-1000"
-          :style="{ backgroundImage: `linear-gradient(to bottom, rgba(3, 8, 16, 0.75) 0%, rgba(7, 19, 36, 0.6) 50%, rgba(3, 8, 16, 0.9) 100%), radial-gradient(circle at 80% 20%, rgba(249, 104, 22, 0.18) 0%, transparent 45%), radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.22) 0%, transparent 50%), url('${slide.imageUrl}')` }"
+          :style="{ backgroundImage: `linear-gradient(to bottom, rgba(3, 8, 16, 0.75) 0%, rgba(7, 19, 36, 0.6) 50%, rgba(3, 8, 16, 0.9) 100%), radial-gradient(circle at 80% 20%, rgba(249, 104, 22, 0.18) 0%, transparent 45%), radial-gradient(circle at 20% 80%, rgba(37, 99, 235, 0.22) 0%, transparent 50%), url('${slide.imageUrl || slide.image || slide.image_url}')` }"
         >
           <!-- Content Container -->
           <div class="text-center text-white max-w-4xl px-4 sm:px-6 lg:px-8 mt-20 md:mt-24">
             <!-- Micro Pill Badge -->
             <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs uppercase font-bold tracking-widest text-orange-400 mb-6 shadow-sm">
               <span class="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></span>
-              Chartered Valuation & Asset Advisory
+              Now Selling • Igbo-Efon, Lekki
             </div>
 
             <!-- Main Headline -->
@@ -34,7 +34,7 @@
                 :to="slide.ctaLink || '/properties'"
                 class="pill-button-primary px-8 py-3.5 text-xs uppercase tracking-widest font-bold shadow-lg hover:shadow-orange-500/30 transition-all duration-300 w-full sm:w-auto"
               >
-                {{ slide.ctaText || 'Explore Properties' }}
+                {{ slide.ctaText || 'Explore Property' }}
               </router-link>
 
               <router-link
@@ -88,13 +88,20 @@ const autoPlayInterval = ref(null)
 const fetchSlides = async () => {
   try {
     const response = await axios.get('/api/hero-slides')
-    if (response.data?.success && response.data.data.length > 0) {
-      slides.value = response.data.data
+    if (response.data?.success && Array.isArray(response.data.data) && response.data.data.length > 0) {
+      slides.value = response.data.data.map(slide => ({
+        id: slide.id,
+        imageUrl: slide.imageUrl || slide.image_url || slide.image,
+        title: slide.title,
+        tagline: slide.tagline || slide.subtitle,
+        ctaText: slide.ctaText || slide.cta_text || slide.button_text || 'Explore Property',
+        ctaLink: slide.ctaLink || slide.cta_link || slide.button_link || '/properties'
+      }))
     } else {
       useFallbackSlides()
     }
   } catch (error) {
-    console.error('Failed to load hero slides:', error)
+    console.warn('Hero slides fetch fallback to local default:', error.message)
     useFallbackSlides()
   }
 }
@@ -103,19 +110,27 @@ const useFallbackSlides = () => {
   slides.value = [
     {
       id: 1,
-      imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1600&h=900&fit=crop',
-      title: "Nigeria's Premier Property Valuers",
-      tagline: 'Expert property valuations and comprehensive real estate solutions across Nigeria',
-      ctaText: 'Explore Properties',
-      ctaLink: '/properties'
+      imageUrl: '/images/25th-apartment/25th-apartment-1.jpg',
+      title: "25th Apartments, Igbo-Efon, Lekki",
+      tagline: 'Live Where You Belong, Invest Where You Prosper. Luxury 2-Bedroom & 1-Bedroom Apartments with C of O.',
+      ctaText: 'Explore Property',
+      ctaLink: '/properties/25th-apartments'
     },
     {
       id: 2,
-      imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1600&h=900&fit=crop',
-      title: 'Smart Real Estate Investments',
-      tagline: 'Discover high-yield properties in prime locations across Lagos, Abuja, and Port Harcourt',
-      ctaText: 'View Ongoing Projects',
-      ctaLink: '/ongoing-projects'
+      imageUrl: '/images/25th-apartment/25th-apartment-2.jpg',
+      title: 'Luxury Living & High-Yield Investment',
+      tagline: '9 Units of Luxury 2-Bedroom & 1-Bedroom Apartments. 3 mins from Lekki-Epe Expressway with Pool & Gym.',
+      ctaText: 'View Property Details',
+      ctaLink: '/properties/25th-apartments'
+    },
+    {
+      id: 3,
+      imageUrl: '/images/25th-apartment/25th-apartment-3.jpg',
+      title: 'Now Selling — Flexible Payment Terms',
+      tagline: 'Initial Deposit: ₦40,000,000 with 6 Months Payment Plan. Developed by Kayode Segun & Associates.',
+      ctaText: 'Book Site Inspection',
+      ctaLink: '/book-a-tour'
     }
   ]
 }

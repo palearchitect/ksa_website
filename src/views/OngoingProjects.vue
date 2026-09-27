@@ -97,14 +97,47 @@
             class="bento-card bg-white border border-slate-200/90 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between group"
           >
             <div>
-              <!-- Project Image with Badge -->
-              <div class="relative h-64 overflow-hidden bg-slate-100">
+              <!-- Project Image Header with Multi-Image Support -->
+              <div class="relative h-64 overflow-hidden bg-slate-100 group/img">
                 <img 
-                  :src="project.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=600&fit=crop'" 
+                  :src="getProjectCurrentImage(project)" 
                   :alt="project.title"
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 >
                 <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+                
+                <!-- Card Prev/Next Image Navigation Arrows -->
+                <button
+                  v-if="getProjectImages(project).length > 1"
+                  @click.stop="prevProjectImage(project)"
+                  class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/60 hover:bg-slate-950 text-white opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center z-20 shadow-md border border-white/20"
+                >
+                  ‹
+                </button>
+                <button
+                  v-if="getProjectImages(project).length > 1"
+                  @click.stop="nextProjectImage(project)"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-950/60 hover:bg-slate-950 text-white opacity-0 group-hover/img:opacity-100 transition-all flex items-center justify-center z-20 shadow-md border border-white/20"
+                >
+                  ›
+                </button>
+
+                <!-- Dots Indicator -->
+                <div v-if="getProjectImages(project).length > 1" class="absolute bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10 bg-slate-950/50 px-2.5 py-1 rounded-full backdrop-blur-sm">
+                  <button
+                    v-for="(_, idx) in getProjectImages(project)"
+                    :key="idx"
+                    class="h-1.5 rounded-full transition-all duration-200"
+                    :class="idx === (activeImageMap[project.id] || 0) ? 'w-4 bg-orange-500' : 'w-1.5 bg-white/70 hover:bg-white'"
+                    @click.stop="activeImageMap[project.id] = idx"
+                  ></button>
+                </div>
+
+                <!-- Count Badge -->
+                <div v-if="getProjectImages(project).length > 1" class="absolute top-4 right-4 bg-slate-950/75 text-white px-2.5 py-1 rounded-full text-[10px] font-bold backdrop-blur-md flex items-center gap-1 z-10 border border-white/20">
+                  <span>📷 {{ (activeImageMap[project.id] || 0) + 1 }}/{{ getProjectImages(project).length }}</span>
+                </div>
+
                 <div class="absolute top-4 left-4">
                   <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-orange-500 text-white shadow-md">
                     <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
@@ -204,20 +237,49 @@
         <div class="fixed inset-0 bg-slate-950/70 backdrop-blur-sm transition-opacity" @click="closeProjectModal"></div>
         <div class="relative min-h-screen flex items-center justify-center p-4">
           <div class="relative bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200">
-            <!-- Modal Header Image -->
-            <div class="relative h-60 overflow-hidden">
+            <!-- Modal Multi-Image Header Carousel -->
+            <div class="relative h-64 overflow-hidden bg-slate-950">
               <img
-                :src="selectedProject.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=400&fit=crop'"
+                :src="modalCurrentImage"
                 :alt="selectedProject.title"
-                class="w-full h-full object-cover"
+                class="w-full h-full object-cover transition-opacity duration-300"
               >
               <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent"></div>
-              <button @click="closeProjectModal" class="absolute top-4 right-4 w-9 h-9 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center backdrop-blur-md transition">
+              
+              <!-- Modal Prev/Next Navigation -->
+              <button 
+                v-if="modalImages.length > 1"
+                @click="modalPrevImage"
+                class="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md transition z-20 border border-white/20"
+              >
+                ‹
+              </button>
+              <button 
+                v-if="modalImages.length > 1"
+                @click="modalNextImage"
+                class="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md transition z-20 border border-white/20"
+              >
+                ›
+              </button>
+
+              <!-- Modal Dots -->
+              <div v-if="modalImages.length > 1" class="absolute bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20 bg-black/40 px-3 py-1 rounded-full backdrop-blur-sm">
+                <button
+                  v-for="(_, idx) in modalImages"
+                  :key="idx"
+                  @click="modalImageIdx = idx"
+                  class="h-1.5 rounded-full transition-all duration-200"
+                  :class="idx === modalImageIdx ? 'w-4 bg-orange-500' : 'w-1.5 bg-white/60 hover:bg-white'"
+                ></button>
+              </div>
+
+              <button @click="closeProjectModal" class="absolute top-4 right-4 w-9 h-9 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center backdrop-blur-md transition z-20">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
-              <div class="absolute bottom-4 left-6 right-6 text-white">
+
+              <div class="absolute bottom-4 left-6 right-6 text-white z-10">
                 <span class="px-3 py-1 bg-orange-500 text-white rounded-full text-[11px] font-bold uppercase tracking-wider mb-2 inline-block">
                   {{ selectedProject.status }}
                 </span>
@@ -358,10 +420,54 @@ const calculateAvgCompletion = () => {
   return Math.round(total / ongoingProjects.value.length)
 }
 
+// Multi-Image Handling for Cards & Modal
+const activeImageMap = ref({})
+const modalImageIdx = ref(0)
+
+const getProjectImages = (p) => {
+  if (!p) return ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80']
+  if (Array.isArray(p.images) && p.images.length > 0) return p.images
+  return [p.image || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80']
+}
+
+const getProjectCurrentImage = (p) => {
+  const imgs = getProjectImages(p)
+  const idx = activeImageMap.value[p?.id] || 0
+  return imgs[idx] || imgs[0]
+}
+
+const nextProjectImage = (p) => {
+  const imgs = getProjectImages(p)
+  const curr = activeImageMap.value[p.id] || 0
+  activeImageMap.value[p.id] = (curr + 1) % imgs.length
+}
+
+const prevProjectImage = (p) => {
+  const imgs = getProjectImages(p)
+  const curr = activeImageMap.value[p.id] || 0
+  activeImageMap.value[p.id] = (curr - 1 + imgs.length) % imgs.length
+}
+
 const selectedProject = ref(null)
+
+const modalImages = computed(() => getProjectImages(selectedProject.value))
+
+const modalCurrentImage = computed(() => {
+  const imgs = modalImages.value
+  return imgs[modalImageIdx.value] || imgs[0]
+})
+
+const modalNextImage = () => {
+  modalImageIdx.value = (modalImageIdx.value + 1) % modalImages.value.length
+}
+
+const modalPrevImage = () => {
+  modalImageIdx.value = (modalImageIdx.value - 1 + modalImages.value.length) % modalImages.value.length
+}
 
 const viewProjectDetails = (project) => {
   selectedProject.value = project
+  modalImageIdx.value = 0
 }
 
 const closeProjectModal = () => {

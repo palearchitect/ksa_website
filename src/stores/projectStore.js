@@ -37,9 +37,45 @@ export const PROJECT_LOCATIONS_LIST = [
   'Kaduna'
 ]
 
+export const DEFAULT_PROJECTS = [
+  {
+    id: '25th-apartments-dev',
+    title: '25th Apartments (25th Apartment)',
+    location: 'Olu-Akinbola Drive, Off SPG Road, Igbo-Efon, Off Lekki-Epe Expressway, Lekki, Eti-Osa L.G.A., Lagos State',
+    developer: 'Kayode Segun & Associates',
+    image: '/images/25th-apartment/25th-apartment-1.jpg',
+    images: [
+      '/images/25th-apartment/25th-apartment-1.jpg',
+      '/images/25th-apartment/25th-apartment-living.jpg',
+      '/images/25th-apartment/25th-apartment-bedroom.jpg',
+      '/images/25th-apartment/25th-apartment-kitchen.jpg',
+      '/images/25th-apartment/25th-apartment-pool.jpg',
+      '/images/25th-apartment/25th-apartment-2.jpg',
+      '/images/25th-apartment/25th-apartment-3.jpg'
+    ],
+    description: '25th Apartments is an ongoing premier luxury development located in Igbo-Efon, Lekki. Developed by Kayode Segun & Associates, this modern 4-story architectural landmark comprises 9 units of 2-bedroom luxury apartments and 1 unit of a 1-bedroom apartment with Certificate of Occupancy (C of O) title, private balconies, rooftop pool, and fully equipped gym.',
+    status: 'In Progress',
+    type: 'Residential',
+    totalUnits: 10,
+    completionPercentage: 35,
+    budget: 900000000,
+    expectedCompletion: '2027-09-01',
+    featured: true,
+    amenities: [
+      'Luxury en-suite bedrooms',
+      'Fully fitted kitchen',
+      'Gymnasium',
+      'Swimming pool',
+      '24/7 security',
+      'Fully serviced environment',
+      'Certificate of Occupancy (C of O)'
+    ]
+  }
+]
+
 export const useProjectStore = defineStore('project', () => {
   // ========== STATE ==========
-  const projects = ref([])
+  const projects = ref([...DEFAULT_PROJECTS])
   const searchQuery = ref('')
   const filters = ref({
     status: 'all',
@@ -51,6 +87,8 @@ export const useProjectStore = defineStore('project', () => {
     limit: 20,
     pages: 1
   })
+  const loading = ref(false)
+  const error = ref(null)
   
   const saveToLocalStorage = () => {
     if (typeof localStorage !== 'undefined') {
@@ -73,6 +111,7 @@ export const useProjectStore = defineStore('project', () => {
         }
       } catch (e) {}
     }
+    projects.value = [...DEFAULT_PROJECTS]
     return false
   }
 
