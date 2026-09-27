@@ -196,6 +196,15 @@
 import HeroBanner from '@/components/sections/HeroBanner.vue'
 import FeaturedPropertiesCarousel from '@/components/sections/FeaturedPropertiesCarousel.vue'
 import ServiceHighlights from '@/components/sections/ServiceHighlights.vue'
+import { useSEO } from '@/hooks/useSEO'
+
+useSEO({
+  title: 'KSA Valuers | Registered Estate Surveyors, Valuers & Luxury Real Estate Nigeria',
+  description: 'Kayode Segun & Associates (KSA Valuers) are NIESV & ESVARBON certified Estate Surveyors and Valuers in Nigeria. Valuation, asset appraisal, feasibility studies, and luxury developments like 25th Apartments Lekki.',
+  keywords: 'Estate Surveyors in Nigeria, Valuers in Lagos, Property Valuation Nigeria, 25th Apartments Lekki, Luxury Apartments Lekki, C of O Property Lagos, Real Estate Appraisal Ikoyi, Kayode Segun Associates, Commercial Valuation Abuja',
+  url: '/',
+  image: '/images/25th-apartment/25th-apartment-1.jpg'
+})
 </script>
 
 <style scoped>

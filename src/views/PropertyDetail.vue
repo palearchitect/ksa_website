@@ -491,10 +491,40 @@ import { useSEO } from '../hooks/useSEO'
 import { propertyService, bookingService } from '@/services/api'
 import { captureEvent } from '@/plugins/posthog'
 
-// SEO
-useSEO({
-  title: 'Property Details',
-  description: 'View detailed information about this property.'
+// Dynamic SEO for Property Detail
+watchEffect(() => {
+  if (property.value) {
+    const p = property.value
+    useSEO({
+      title: `${p.title} - ${p.type} in ${p.location}`,
+      description: `${p.title} for ${p.status} in ${p.location}. ${p.description ? p.description.substring(0, 150) + '...' : 'Luxury real estate in Nigeria by KSA Valuers.'}`,
+      keywords: `${p.title}, ${p.location}, ${p.type} for ${p.status} Nigeria, KSA Valuers properties, Lekki real estate, C of O properties`,
+      image: p.image || p.images?.[0] || '/images/25th-apartment/25th-apartment-1.jpg',
+      url: `/properties/${p.id}`,
+      jsonLd: {
+        "@context": "https://schema.org",
+        "@type": "SingleFamilyResidence",
+        "name": p.title,
+        "description": p.description,
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": p.location,
+          "addressCountry": "NG"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": p.price || "150000000",
+          "priceCurrency": "NGN",
+          "availability": "https://schema.org/InStock"
+        }
+      }
+    })
+  } else {
+    useSEO({
+      title: 'Luxury Property Details | KSA Valuers',
+      description: 'Explore premier residential and commercial properties in Lagos, Abuja, and across Nigeria with KSA Valuers.'
+    })
+  }
 })
 
 const route = useRoute()

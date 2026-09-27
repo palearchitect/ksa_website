@@ -1,0 +1,23 @@
+# User-agent Rules for Search Engines
+User-agent: *
+Allow: /
+Allow: /properties
+Allow: /properties/*
+Allow: /ongoing-projects
+Allow: /projects
+Allow: /about
+Allow: /contact
+Allow: /book-a-tour
+Allow: /blog
+Allow: /faq
+Allow: /team
+Allow: /images/
+
+# Disallow Private Administrative & API Endpoints
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /auth/
+
+# Sitemap Location
+Sitemap: https://ksavaluers.com/sitemap.xml
